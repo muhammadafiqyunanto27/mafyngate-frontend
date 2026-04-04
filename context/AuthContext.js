@@ -1,0 +1,69 @@
+'use client';
+import { createContext, useContext, useState, useEffect } from 'react';
+import api, { setAccessToken } from '../lib/api';
+import { useRouter } from 'next/navigation';
+
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  // loading is true while checking the initial session state
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  const fetchUser = async () => {
+    try {
+      const res = await api.get('/user/me');
+      setUser(res.data.data);
+    } catch (err) {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        // Automatically attempt to exchange HTTP-Only refresh cookie for access token
+        const res = await api.post('/auth/refresh');
+        setAccessToken(res.data.data.accessToken);
+        await fetchUser();
+      } catch (err) {
+        setUser(null);
+        setLoading(false);
+      }
+    };
+    initAuth();
+  }, []);
+
+  const login = async (email, password) => {
+    const res = await api.post('/auth/login', { email, password });
+    setAccessToken(res.data.data.accessToken);
+    setUser(res.data.data.user);
+    router.push('/dashboard');
+  };
+
+  const register = async (email, password) => {
+    await api.post('/auth/register', { email, password });
+    await login(email, password);
+  };
+
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } finally {
+      setAccessToken(null);
+      setUser(null);
+      router.push('/login');
+    }
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -33,7 +34,12 @@ export default function RegisterPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-slate-50">
-      <div className="w-full max-w-sm p-8 space-y-6 bg-white rounded-xl shadow border border-slate-100">
+      <motion.div 
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="w-full max-w-sm p-8 space-y-6 bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100"
+      >
         <h2 className="text-2xl font-bold text-center">Register</h2>
         {error && <div className="p-3 text-sm text-red-600 bg-red-50 rounded border border-red-200">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -65,9 +71,9 @@ export default function RegisterPage() {
           </button>
         </form>
         <p className="text-center text-sm text-slate-500">
-          Already have an account? <Link href="/login" className="text-blue-600 hover:underline">Log in</Link>
+          Already have an account? <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium hover:underline">Log in</Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

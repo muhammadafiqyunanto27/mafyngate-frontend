@@ -18,15 +18,18 @@ export const metadata = {
 
 import { AuthProvider } from "../context/AuthContext";
 
+import { ThemeProvider } from 'next-themes';
+
 export default function RootLayout({ children }) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <head />
       <body className="min-h-full flex flex-col text-slate-900">
-        <AuthProvider>{children}</AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
 }
+

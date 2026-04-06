@@ -1,7 +1,7 @@
 'use client';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ShieldCheck, Menu, Camera, Mail, KeyRound, CalendarDays, Award, Zap, Star } from 'lucide-react';
 import Sidebar from '../../components/Sidebar';
 import { motion } from 'framer-motion';
@@ -13,6 +13,8 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!loading && !user) router.push('/login');
   }, [user, loading, router]);
+
+  const [menuOpen, setMenuOpen] = useState(false);
 
   if (loading || !user) return <div className="flex h-screen items-center justify-center bg-slate-50"></div>;
 
@@ -30,17 +32,18 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
-      <Sidebar activePath="/profile" />
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-900 font-sans overflow-hidden">
+      <Sidebar activePath="/profile" isOpen={menuOpen} toggleMenu={() => setMenuOpen(!menuOpen)} />
+      <AnimatedBackground />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto relative">
         {/* Background decorative elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob"></div>
         <div className="absolute top-0 left-0 w-96 h-96 bg-fuchsia-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob animation-delay-2000"></div>
 
-        <header className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm z-10 sticky top-0 md:hidden">
+        <header className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shadow-sm z-10 sticky top-0 md:hidden">
            <div className="flex items-center gap-2 text-indigo-600">
-             <Menu className="w-6 h-6 text-slate-600 cursor-pointer" />
+             <Menu className="w-6 h-6 text-slate-600 cursor-pointer" onClick={() => setMenuOpen(!menuOpen)} />
             <ShieldCheck className="w-6 h-6 ml-2" />
           </div>
         </header>

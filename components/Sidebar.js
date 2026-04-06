@@ -1,25 +1,32 @@
 'use client';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, Activity, User, LogOut, Calculator } from 'lucide-react';
+import { ShieldCheck, Activity, User, LogOut, Calculator, X } from 'lucide-react';
 import Link from 'next/link';
 
-export default function Sidebar({ activePath = '/dashboard' }) {
+export default function Sidebar({ activePath = '/dashboard', isOpen = false, toggleMenu }) {
   const { user, logout } = useAuth();
   if (!user) return null;
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
-      <div className="h-16 flex items-center px-6 border-b border-slate-100">
+    <aside
+      className={`fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 md:relative md:translate-x-0 md:flex flex-col`}
+    >
+      {/* Mobile close button */}
+      <div className="flex items-center justify-between px-4 py-2 md:hidden">
+        <span className="font-bold text-xl text-indigo-600">MafynGate</span>
+        <button onClick={toggleMenu} className="p-2 text-slate-600 hover:text-slate-800">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      <div className="h-16 flex items-center px-6 border-b border-slate-100 hidden md:flex">
         <Link href="/dashboard" className="flex items-center gap-2 text-indigo-600">
           <ShieldCheck className="w-6 h-6" />
           <span className="font-bold text-xl tracking-tight text-slate-900">MafynGate</span>
         </Link>
       </div>
-      
+
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-        <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          Overview
-        </div>
+        <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Overview</div>
         <Link href="/dashboard" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${activePath === '/dashboard' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
           <Activity className="w-4 h-4" />
           <span className="font-medium text-sm">Dashboard</span>
@@ -44,9 +51,10 @@ export default function Sidebar({ activePath = '/dashboard' }) {
             <p className="text-xs text-slate-500 truncate">Authenticated User</p>
           </div>
         </div>
-        <button 
-          onClick={logout} 
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 rounded-lg transition-all duration-200 active:scale-95">
+        <button
+          onClick={logout}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 rounded-lg transition-all duration-200 active:scale-95"
+        >
           <LogOut className="w-4 h-4" />
           Log out
         </button>

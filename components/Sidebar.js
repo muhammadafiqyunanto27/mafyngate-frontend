@@ -1,6 +1,6 @@
 'use client';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, Activity, User, LogOut } from 'lucide-react';
+import { ShieldCheck, Activity, User, LogOut, Calculator } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Sidebar({ activePath = '/dashboard' }) {
@@ -27,6 +27,10 @@ export default function Sidebar({ activePath = '/dashboard' }) {
         <Link href="/profile" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${activePath === '/profile' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
           <User className="w-4 h-4" />
           <span className="font-medium text-sm">Profile</span>
+        </Link>
+        <Link href="/calculator" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${activePath === '/calculator' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+          <Calculator className="w-4 h-4" />
+          <span className="font-medium text-sm">Dev Calc</span>
         </Link>
       </div>
 

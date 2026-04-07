@@ -18,7 +18,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const menuItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-  { name: 'Profile', icon: User, path: '/profile' },
   { name: 'Calculator', icon: Calculator, path: '/calculator' },
   { name: 'Settings', icon: Settings, path: '/settings' },
 ];
@@ -176,7 +175,10 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
 
         {/* Footer Section */}
         <div className="p-4 border-t border-border flex-shrink-0 bg-card/30 overflow-hidden">
-          <div className={`flex items-center h-12 rounded-xl transition-all overflow-hidden ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-2 gap-3 hover:bg-muted/30 border border-transparent hover:border-border'}`}>
+          <Link 
+            href="/profile"
+            className={`flex items-center h-12 rounded-xl transition-all overflow-hidden ${isCollapsed && !isMobile ? 'justify-center px-0 hover:bg-muted/50' : 'px-2 gap-3 hover:bg-muted/30 border border-transparent hover:border-border'}`}
+          >
             <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0">
               {(user.name || user.email).charAt(0).toUpperCase()}
             </div>
@@ -188,7 +190,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
                 <p className="text-[10px] text-muted-foreground truncate opacity-70">Authenticated</p>
               </div>
             )}
-          </div>
+          </Link>
 
           <button
             onClick={logout}

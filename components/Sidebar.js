@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   ShieldCheck,
   LayoutDashboard,
+  MessageSquare,
   User,
   Calculator,
   LogOut,
@@ -18,6 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const menuItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+  { name: 'Messages', icon: MessageSquare, path: '/messages' },
   { name: 'Calculator', icon: Calculator, path: '/calculator' },
   { name: 'Settings', icon: Settings, path: '/settings' },
 ];

@@ -4,12 +4,14 @@ import { Menu, Search, Sun, Moon, Bell, Settings, LogOut, ShieldCheck } from 'lu
 import { useTheme } from 'next-themes';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar({ onMenuClick, pageTitle }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { user, logout } = useAuth();
+  const { unreadCount, requestNotificationPermission } = useSocket();
 
   useEffect(() => setMounted(true), []);
 
@@ -51,9 +53,20 @@ export default function Navbar({ onMenuClick, pageTitle }) {
         </button>
 
         {/* Notifications */}
-        <button className="hidden sm:flex p-2 rounded-xl text-muted-foreground hover:bg-muted relative">
+        <button 
+          onClick={requestNotificationPermission}
+          className="hidden sm:flex p-2 rounded-xl text-muted-foreground hover:bg-muted relative"
+        >
           <Bell className="w-5 h-5" />
-          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 border-2 border-card"></span>
+          {unreadCount > 0 && (
+            <motion.span 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-500 border-2 border-card text-[10px] font-bold text-white flex items-center justify-center"
+            >
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </motion.span>
+          )}
         </button>
 
         {/* Profile Dropdown Placeholder */}

@@ -31,6 +31,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [activities, setActivities] = useState([]);
+  const [showFullActivity, setShowFullActivity] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   
@@ -485,23 +486,40 @@ export default function ProfilePage() {
                       <p className="text-xs text-muted-foreground font-medium italic">No recent activity detected</p>
                     </div>
                   ) : (
-                    activities.map((activity, i) => {
-                      const Icon = getActivityIcon(activity.type);
-                      return (
-                        <div key={activity.id} className="flex gap-4 relative group">
-                           {i !== activities.length - 1 && (
-                             <div className="absolute left-[19px] top-10 bottom-[-10px] w-0.5 bg-border group-hover:bg-primary/20 transition-colors"></div>
-                           )}
-                           <div className={`z-10 w-10 min-w-10 h-10 rounded-full flex items-center justify-center border-2 border-background shadow-sm transition-transform group-hover:scale-110 ${activity.type === 'TASK_COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-primary/10 text-primary'}`}>
-                              <Icon className="w-5 h-5" />
-                           </div>
-                           <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-foreground leading-tight">{activity.message}</p>
-                              <p className="text-[11px] text-muted-foreground mt-1 font-medium">{getTimeAgo(activity.createdAt)} • System Action</p>
-                           </div>
-                        </div>
-                      )
-                    })
+                    <>
+                      {(showFullActivity ? activities : activities.slice(0, 5)).map((activity, i, arr) => {
+                        const Icon = getActivityIcon(activity.type);
+                        return (
+                          <motion.div 
+                            layout
+                            key={activity.id} 
+                            initial={{ opacity: 0, x: -5 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="flex gap-4 relative group"
+                          >
+                             {i !== arr.length - 1 && (
+                               <div className="absolute left-[19px] top-10 bottom-[-10px] w-0.5 bg-border group-hover:bg-primary/20 transition-colors"></div>
+                             )}
+                             <div className={`z-10 w-10 min-w-10 h-10 rounded-full flex items-center justify-center border-2 border-background shadow-sm transition-transform group-hover:scale-110 ${activity.type === 'TASK_COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-primary/10 text-primary'}`}>
+                                <Icon className="w-5 h-5" />
+                             </div>
+                             <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-foreground leading-tight">{activity.message}</p>
+                                <p className="text-[11px] text-muted-foreground mt-1 font-medium">{getTimeAgo(activity.createdAt)} • System Action</p>
+                             </div>
+                          </motion.div>
+                        )
+                      })}
+
+                      {activities.length > 5 && (
+                        <button 
+                          onClick={() => setShowFullActivity(!showFullActivity)}
+                          className="w-full py-2.5 mt-2 border border-dashed border-border rounded-xl text-xs font-bold text-muted-foreground hover:text-primary hover:border-primary/50 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        >
+                          {showFullActivity ? 'Show Less' : `Tampilkan Selengkapnya (${activities.length - 5}+)`}
+                        </button>
+                      )}
+                    </>
                   )}
                </div>
             </div>

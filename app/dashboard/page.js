@@ -49,7 +49,7 @@ export default function DashboardPage() {
                        <span>Extreme Performance Mode</span>
                     </div>
                     <h2 className="text-5xl font-black tracking-tight leading-[1.1]">
-                       Welcome, <span className="text-indigo-200">{user.email.split('@')[0]}</span>
+                       Welcome, <span className="text-indigo-200">{user.name || user.email.split('@')[0]}</span>
                     </h2>
                     <p className="text-white/70 max-w-lg text-lg font-medium leading-relaxed">
                        Your infrastructure is humming at <span className="text-white font-bold">99.98%</span> efficiency. All security protocols are active and enforced.

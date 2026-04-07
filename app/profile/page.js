@@ -2,7 +2,8 @@
 
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import ImageCropper from '../../components/ImageCropper';
 import { 
   User, 
   Mail, 
@@ -26,7 +27,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 
 export default function ProfilePage() {
-  const { user, loading, updateProfile, deleteAccount } = useAuth();
+  const { user, loading, updateProfile, updateAvatar, deleteAccount } = useAuth();
+  const fileInputRef = useRef(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -73,6 +78,38 @@ export default function ProfilePage() {
       return () => clearInterval(interval);
     }
   }, [user, loading, router]);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        return setMessage({ type: 'error', text: 'Ukuran file maksimal 2MB' });
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSelectedImage(reader.result);
+        setShowCropper(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCropComplete = async (blob) => {
+    setAvatarLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', blob, 'avatar.jpg');
+      await updateAvatar(formData);
+      setMessage({ type: 'success', text: 'Profile picture updated!' });
+      setShowCropper(false);
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Gagal mengupload foto' });
+    } finally {
+      setAvatarLoading(false);
+      // Reset input file agar bisa pilih file yang sama lagi
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   if (loading || !user) return null;
 
@@ -191,12 +228,30 @@ export default function ProfilePage() {
           
           <div className="px-8 -mt-16 flex flex-col md:flex-row items-end gap-6 relative z-10 font-sans">
             <div className="relative group">
-              <div className="w-32 h-32 rounded-3xl bg-card border-4 border-background p-1.5 shadow-2xl transition-transform group-hover:scale-105 duration-300">
-                <div className="w-full h-full rounded-2xl bg-gradient-to-tr from-primary to-indigo-400 flex items-center justify-center text-white text-4xl font-black shadow-inner uppercase">
-                  {(user.name || user.email).charAt(0)}
-                </div>
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
+              <div className="w-32 h-32 rounded-3xl bg-card border-4 border-background p-1.5 shadow-2xl transition-transform group-hover:scale-105 duration-300 overflow-hidden">
+                {user.avatar ? (
+                  <img 
+                    src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} 
+                    className="w-full h-full rounded-2xl object-cover"
+                    alt={user.name}
+                  />
+                ) : (
+                  <div className="w-full h-full rounded-2xl bg-gradient-to-tr from-primary to-indigo-400 flex items-center justify-center text-white text-4xl font-black shadow-inner uppercase">
+                    {(user.name || user.email).charAt(0)}
+                  </div>
+                )}
               </div>
-              <button className="absolute -bottom-2 -right-2 p-2.5 bg-primary text-white rounded-xl shadow-lg border-2 border-background hover:bg-primary-600 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 z-20">
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-2 -right-2 p-2.5 bg-primary text-white rounded-xl shadow-lg border-2 border-background hover:bg-primary-600 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 z-20"
+              >
                 <Camera className="w-4 h-4" />
               </button>
             </div>
@@ -227,6 +282,18 @@ export default function ProfilePage() {
             </div>
           </div>
         </section>
+
+        {/* Image Cropper Modal */}
+        <AnimatePresence>
+          {showCropper && (
+            <ImageCropper 
+              image={selectedImage}
+              onCropComplete={handleCropComplete}
+              onCancel={() => setShowCropper(false)}
+              loading={avatarLoading}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Edit Profile Modal */}
         <AnimatePresence>

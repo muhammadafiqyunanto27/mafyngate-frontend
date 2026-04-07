@@ -175,12 +175,20 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
 
         {/* Footer Section */}
         <div className="p-4 border-t border-border flex-shrink-0 bg-card/30 overflow-hidden">
-          <Link 
+           <Link 
             href="/profile"
             className={`flex items-center h-12 rounded-xl transition-all overflow-hidden ${isCollapsed && !isMobile ? 'justify-center px-0 hover:bg-muted/50' : 'px-2 gap-3 hover:bg-muted/30 border border-transparent hover:border-border'}`}
           >
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0">
-              {(user.name || user.email).charAt(0).toUpperCase()}
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0 overflow-hidden">
+              {user.avatar ? (
+                <img 
+                  src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} 
+                  className="w-full h-full object-cover"
+                  alt={user.name || 'User'}
+                />
+              ) : (
+                (user.name || user.email).charAt(0).toUpperCase()
+              )}
             </div>
             {(!isCollapsed || isMobile) && (
               <div className="flex-1 min-w-0 overflow-hidden">

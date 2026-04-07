@@ -65,6 +65,16 @@ export const AuthProvider = ({ children }) => {
     return res.data.data;
   };
 
+  const updateAvatar = async (formData) => {
+    const res = await api.patch('/user/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    setUser(res.data.data);
+    return res.data.data;
+  };
+
   const deleteAccount = async () => {
     await api.delete('/user/me');
     setAccessToken(null);
@@ -73,7 +83,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile, deleteAccount }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile, updateAvatar, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

@@ -81,6 +81,7 @@ export default function RegisterPage() {
                     type="email" 
                     required 
                     placeholder="name@example.com"
+                    suppressHydrationWarning
                     className="w-full pl-12 pr-4 py-3.5 bg-muted/30 border border-border rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-foreground placeholder:text-muted-foreground/50 font-medium" 
                     value={email} 
                     onChange={e => setEmail(e.target.value)} 
@@ -98,6 +99,7 @@ export default function RegisterPage() {
                     type="password" 
                     required 
                     placeholder="Create a strong password"
+                    suppressHydrationWarning
                     className="w-full pl-12 pr-4 py-3.5 bg-muted/30 border border-border rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-foreground placeholder:text-muted-foreground/50 font-medium" 
                     value={password} 
                     onChange={e => setPassword(e.target.value)} 
@@ -108,6 +110,7 @@ export default function RegisterPage() {
               <button 
                 type="submit" 
                 disabled={loading} 
+                suppressHydrationWarning
                 className="w-full flex items-center justify-center gap-3 px-4 py-4 mt-4 font-bold text-white bg-primary rounded-2xl hover:bg-primary-600 disabled:opacity-50 transition-all active:scale-[0.98] shadow-xl shadow-primary/20"
               >
                 {loading ? (

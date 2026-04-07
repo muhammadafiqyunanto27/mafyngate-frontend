@@ -26,7 +26,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 
 export default function ProfilePage() {
-  const { user, loading, updateProfile } = useAuth();
+  const { user, loading, updateProfile, deleteAccount } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -512,8 +512,22 @@ export default function ProfilePage() {
                   <h4 className="font-bold">Dangerous Zone</h4>
                </div>
                <p className="text-sm text-slate-500 dark:text-slate-400">Permanently delete your account and all associated data from our servers.</p>
-               <button className="w-full py-4 rounded-xl bg-rose-500 text-white text-sm font-bold hover:bg-rose-600 shadow-lg shadow-rose-500/20 transition-all active:scale-95">
-                  Delete Account
+               <button 
+                onClick={async () => {
+                  if (window.confirm('ARE YOU ABSOLUTELY SURE? This action is permanent and cannot be undone.')) {
+                    setUpdateLoading(true);
+                    try {
+                      await deleteAccount();
+                    } catch (err) {
+                      alert('Failed to delete account');
+                      setUpdateLoading(false);
+                    }
+                  }
+                }}
+                disabled={updateLoading}
+                className="w-full py-4 rounded-xl bg-rose-500 text-white text-sm font-bold hover:bg-rose-600 shadow-lg shadow-rose-500/20 transition-all active:scale-95 disabled:opacity-50"
+               >
+                  {updateLoading ? 'Deleting...' : 'Delete Account'}
                </button>
             </div>
           </div>

@@ -35,15 +35,15 @@ export default function MessagesPage() {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchConnections = async () => {
       try {
-        const res = await api.get('/user/users');
+        const res = await api.get('/user/connections');
         setUsers(res.data.data);
       } catch (err) {
-        console.error('Failed to fetch users:', err);
+        console.error('Failed to fetch connections:', err);
       }
     };
-    fetchUsers();
+    fetchConnections();
 
     const handleResize = () => setIsMobileView(window.innerWidth < 768);
     handleResize();

@@ -1,9 +1,17 @@
 'use client';
+
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import { ShieldCheck, Menu, Delete } from 'lucide-react';
-import Sidebar from '../../components/Sidebar';
+import { 
+  History, 
+  Trash2, 
+  Delete, 
+  ChevronRight,
+  Maximize2,
+  Trash
+} from 'lucide-react';
+import DashboardLayout from '../../components/DashboardLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as math from 'mathjs';
 
@@ -21,21 +29,15 @@ export default function CalculatorPage() {
     if (!loading && !user) router.push('/login');
   }, [user, loading, router]);
 
-  if (loading || !user) return <div className="flex h-screen items-center justify-center bg-slate-50"></div>;
+  if (loading || !user) return null;
 
   const handleInput = (val) => {
     setExpression((prev) => prev + val);
-    // Real-time evaluation
     try {
       const res = math.evaluate(expression + val);
-      if (res !== undefined && !isNaN(res)) {
-        setResult(res.toString());
-      } else {
-        setResult('');
-      }
-    } catch {
-      setResult('');
-    }
+      if (res !== undefined && !isNaN(res)) setResult(res.toString());
+      else setResult('');
+    } catch { setResult(''); }
   };
 
   const calculate = () => {
@@ -43,13 +45,11 @@ export default function CalculatorPage() {
       if (!expression) return;
       const res = math.evaluate(expression);
       if (res !== undefined) {
-        setHistory(prev => [{ eq: expression, res: res.toString() }, ...prev].slice(0, 5));
+        setHistory(prev => [{ eq: expression, res: res.toString() }, ...prev].slice(0, 10));
         setExpression(res.toString());
         setResult('');
       }
-    } catch (err) {
-      setResult('Error');
-    }
+    } catch (err) { setResult('Error'); }
   };
 
   const clear = () => {
@@ -58,147 +58,135 @@ export default function CalculatorPage() {
   };
 
   const backspace = () => {
-    setExpression(prev => prev.slice(0, -1));
+    const sliced = expression.slice(0, -1);
+    setExpression(sliced);
+    if(!sliced) { setResult(''); return; }
     try {
-      const sliced = expression.slice(0, -1);
-      if(!sliced) {
-         setResult(''); return;
-      }
       const res = math.evaluate(sliced);
       if (res !== undefined && !isNaN(res)) setResult(res.toString());
       else setResult('');
-    } catch {
-      setResult('');
-    }
+    } catch { setResult(''); }
   };
 
   const buttons = [
-    { label: 'sin(', val: 'sin(' }, { label: 'cos(', val: 'cos(' }, { label: 'tan(', val: 'tan(' }, { label: 'π', val: 'pi' }, { label: 'e', val: 'e' },
-    { label: 'log(', val: 'log10(' }, { label: 'ln(', val: 'log(' }, { label: '√', val: 'sqrt(' }, { label: '^', val: '^' }, { label: '!', val: '!' },
-    { label: '(', val: '(' }, { label: ')', val: ')' }, { label: '%', val: '%' }, { label: 'AC', val: 'AC', action: clear, type: 'danger' }, { label: 'DEL', val: 'DEL', action: backspace, type: 'danger' },
-    { label: '7', val: '7' }, { label: '8', val: '8' }, { label: '9', val: '9' }, { label: '/', val: '/' }, { label: '*', val: '*' },
-    { label: '4', val: '4' }, { label: '5', val: '5' }, { label: '6', val: '6' }, { label: '-', val: '-' }, { label: 'x10^', val: '*10^' },
+    { label: 'sin', val: 'sin(' }, { label: 'cos', val: 'cos(' }, { label: 'tan', val: 'tan(' }, { label: 'π', val: 'pi' }, { label: 'e', val: 'e' },
+    { label: 'log', val: 'log10(' }, { label: 'ln', val: 'log(' }, { label: '√', val: 'sqrt(' }, { label: '^', val: '^' }, { label: '!', val: '!' },
+    { label: '(', val: '(' }, { label: ')', val: ')' }, { label: '%', val: '%' }, { label: 'AC', action: clear, type: 'danger' }, { label: 'DEL', action: backspace, type: 'danger' },
+    { label: '7', val: '7' }, { label: '8', val: '8' }, { label: '9', val: '9' }, { label: '÷', val: '/' }, { label: '×', val: '*' },
+    { label: '4', val: '4' }, { label: '5', val: '5' }, { label: '6', val: '6' }, { label: '−', val: '-' }, { label: 'x10^y', val: '*10^' },
     { label: '1', val: '1' }, { label: '2', val: '2' }, { label: '3', val: '3' }, { label: '+', val: '+' }, { label: 'mod', val: ' mod ' },
-    { label: '0', val: '0', wide: true }, { label: '.', val: '.' }, { label: '=', val: '=', action: calculate, type: 'primary', wide: true },
+    { label: '0', val: '0', wide: true }, { label: '.', val: '.' }, { label: '=', action: calculate, type: 'primary', wide: true },
   ];
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
-      <Sidebar activePath="/calculator" />
-
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-white border-b border-slate-200 shadow-sm z-10 sticky top-0 md:hidden">
-           <div className="flex items-center gap-2 text-indigo-600">
-             <Menu className="w-6 h-6 text-slate-600 cursor-pointer" />
-            <ShieldCheck className="w-6 h-6 ml-2" />
-          </div>
-        </header>
-
+    <DashboardLayout pageTitle="Advanced Calculator">
+      <div className="flex flex-col xl:flex-row gap-8 items-start justify-center max-w-6xl mx-auto py-4">
+        
+        {/* Main Calculator Card */}
         <motion.div 
-          initial={{ opacity: 0, y: 15 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 0.4 }}
-          className="flex-1 p-4 sm:p-6 lg:p-8"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-[500px] bg-card border border-border rounded-[2.5rem] shadow-2xl overflow-hidden shadow-primary/5"
         >
-          <div className="max-w-4xl mx-auto">
-            
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white rounded-3xl shadow-2xl shadow-indigo-200/50 border border-slate-100 overflow-hidden"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3">
-                 {/* Calculator Body */}
-                 <div className="md:col-span-2 p-6 sm:p-8 bg-slate-900 text-white flex flex-col relative overflow-hidden">
-                    {/* Decorative */}
-                    <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-                    <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+          {/* Display Head */}
+          <div className="p-8 pb-4 space-y-4 bg-muted/20">
+             <div className="flex items-center justify-between text-muted-foreground">
+                <Maximize2 className="w-4 h-4 cursor-pointer hover:text-foreground transition-colors" />
+                <span className="text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary px-2 py-0.5 rounded">Radian Mode</span>
+             </div>
+             <div className="flex flex-col items-end min-h-[120px] justify-end">
+                <div className="w-full text-right text-muted-foreground font-mono text-lg overflow-x-auto whitespace-nowrap scrollbar-hide pb-2">
+                   {expression || ' '}
+                </div>
+                <div className="w-full text-right text-foreground font-mono text-5xl font-bold tracking-tighter truncate">
+                   {result ? `= ${result}` : expression ? '' : '0'}
+                </div>
+             </div>
+          </div>
 
-                    {/* Display */}
-                    <div className="relative z-10 w-full mb-8 pt-4">
-                       <input 
-                         ref={inputRef}
-                         type="text" 
-                         value={expression} 
-                         onChange={(e) => {
-                           setExpression(e.target.value);
-                           try {
-                             const res = math.evaluate(e.target.value);
-                             if (res !== undefined && !isNaN(res)) setResult(res.toString());
-                           } catch { setResult(''); }
-                         }}
-                         className="w-full bg-transparent text-right text-3xl sm:text-4xl font-mono tracking-wider outline-none text-slate-100 placeholder-slate-600"
-                         placeholder="0"
-                       />
-                       <div className="text-right text-indigo-400 font-mono text-xl sm:text-2xl mt-2 min-h-8">
-                         {result ? '= ' + result : ''}
-                       </div>
-                    </div>
-
-                    {/* Keypad Grid */}
-                    <div className="relative z-10 grid grid-cols-5 gap-2 sm:gap-3">
-                       {buttons.map((btn, idx) => (
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            key={idx}
-                            onClick={() => btn.action ? btn.action() : handleInput(btn.val)}
-                            className={`
-                               font-medium text-sm sm:text-base py-3 sm:py-4 rounded-xl transition-colors shadow-sm backdrop-blur-md font-mono
-                               ${btn.wide && btn.label === '0' ? 'col-span-2' : ''}
-                               ${btn.wide && btn.label === '=' ? 'col-span-2' : ''}
-                               ${btn.type === 'primary' ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/20' : 
-                                 btn.type === 'danger' ? 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/30' : 
-                                 /^([0-9.])$/.test(btn.label) ? 'bg-white/10 hover:bg-white/20 text-white' : 
-                                 'bg-slate-800/80 hover:bg-slate-700 text-indigo-300'
-                               }
-                            `}
-                          >
-                            {btn.label === 'DEL' ? <Delete className="w-5 h-5 mx-auto" /> : btn.label}
-                          </motion.button>
-                       ))}
-                    </div>
-                 </div>
-
-                 {/* History Sidebar */}
-                 <div className="p-6 sm:p-8 border-l border-slate-100 flex flex-col bg-slate-50">
-                    <h3 className="font-bold text-slate-800 uppercase tracking-wider text-xs mb-6">Recent Calculations</h3>
-                    <div className="flex-1 space-y-4">
-                       <AnimatePresence>
-                         {history.length === 0 ? (
-                           <motion.p initial={{opacity:0}} animate={{opacity:1}} className="text-slate-400 text-sm italic">No history yet</motion.p>
-                         ) : (
-                           history.map((h, i) => (
-                             <motion.div 
-                               initial={{ opacity: 0, x: 20 }}
-                               animate={{ opacity: 1, x: 0 }}
-                               key={i} 
-                               className="p-3 bg-white rounded-lg shadow-sm border border-slate-100 cursor-pointer hover:border-indigo-300 transition-colors"
-                               onClick={() => setExpression(h.eq)}
-                             >
-                               <div className="text-sm font-mono text-slate-500 truncate mb-1">{h.eq}</div>
-                               <div className="text-lg font-mono font-bold text-slate-800 truncate">= {h.res}</div>
-                             </motion.div>
-                           ))
-                         )}
-                       </AnimatePresence>
-                    </div>
-                    {history.length > 0 && (
-                      <button 
-                        onClick={() => setHistory([])}
-                        className="mt-6 text-xs font-semibold text-rose-500 hover:text-rose-600 transition-colors uppercase"
-                      >
-                        Clear History
-                      </button>
-                    )}
-                 </div>
-              </div>
-            </motion.div>
-
+          {/* Keypad */}
+          <div className="p-4 grid grid-cols-5 gap-2 bg-card">
+              {buttons.map((btn, i) => (
+                <button
+                  key={i}
+                  onClick={() => btn.action ? btn.action() : handleInput(btn.val)}
+                  className={`
+                    relative group flex items-center justify-center font-mono text-sm sm:text-base font-semibold h-14 sm:h-16 rounded-2xl transition-all active:scale-95
+                    ${btn.wide ? 'col-span-2' : ''}
+                    ${btn.type === 'primary' 
+                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary-600' 
+                      : btn.type === 'danger'
+                      ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20'
+                      : /[0-9.]/.test(btn.label) && btn.label !== 'log'
+                      ? 'bg-muted/50 text-foreground hover:bg-muted'
+                      : 'bg-muted/30 text-primary hover:bg-muted/60'
+                    }
+                  `}
+                >
+                  {btn.label === 'DEL' ? <Delete className="w-5 h-5" /> : btn.label}
+                  <span className="absolute inset-0 rounded-2xl bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></span>
+                </button>
+              ))}
           </div>
         </motion.div>
-      </main>
-    </div>
+
+        {/* History Area */}
+        <div className="w-full xl:w-80 space-y-6">
+           <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                 <h3 className="font-bold text-foreground flex items-center gap-2">
+                    <History className="w-5 h-5 text-primary" />
+                    History
+                 </h3>
+                 {history.length > 0 && (
+                   <button 
+                    onClick={() => setHistory([])}
+                    className="p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all"
+                   >
+                     <Trash2 className="w-4 h-4" />
+                   </button>
+                 )}
+              </div>
+              
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                 <AnimatePresence initial={false}>
+                    {history.length === 0 ? (
+                       <div className="flex flex-col items-center justify-center py-10 text-center space-y-2 opacity-50">
+                          <History className="w-8 h-8 text-muted-foreground" />
+                          <p className="text-xs font-medium italic">No recent history</p>
+                       </div>
+                    ) : (
+                       history.map((h, i) => (
+                         <motion.div
+                           key={i}
+                           initial={{ opacity: 0, x: 20 }}
+                           animate={{ opacity: 1, x: 0 }}
+                           exit={{ opacity: 0, x: -20 }}
+                           onClick={() => setExpression(h.eq)}
+                           className="group p-4 bg-muted/40 hover:bg-muted/70 rounded-2xl border border-transparent hover:border-primary/20 transition-all cursor-pointer relative overflow-hidden"
+                         >
+                            <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-widest">{new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                            <div className="text-xs font-mono text-muted-foreground truncate group-hover:text-primary transition-colors">{h.eq}</div>
+                            <div className="text-lg font-mono font-bold text-foreground truncate mt-1">= {h.res}</div>
+                         </motion.div>
+                       ))
+                    )}
+                 </AnimatePresence>
+              </div>
+           </div>
+
+           <div className="p-6 rounded-3xl bg-primary/5 border border-primary/20">
+              <h4 className="font-bold text-primary text-sm flex items-center gap-2">
+                 <Trash className="w-4 h-4" />
+                 Cleanup Logic
+              </h4>
+              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                 Calculations are processed locally using math.js with extreme precision. History is kept per session.
+              </p>
+           </div>
+        </div>
+
+      </div>
+    </DashboardLayout>
   );
 }

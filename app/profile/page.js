@@ -1,159 +1,186 @@
 'use client';
+
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { ShieldCheck, Menu, Camera, Mail, KeyRound, CalendarDays, Award, Zap, Star } from 'lucide-react';
-import Sidebar from '../../components/Sidebar';
+import { useEffect, useState } from 'react';
+import { 
+  User, 
+  Mail, 
+  Shield, 
+  Bell, 
+  Camera, 
+  ChevronRight, 
+  Key, 
+  LogOut,
+  Smartphone,
+  Globe,
+  Clock,
+  CheckCircle2
+} from 'lucide-react';
+import DashboardLayout from '../../components/DashboardLayout';
 import { motion } from 'framer-motion';
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
   }, [user, loading, router]);
 
-  const [menuOpen, setMenuOpen] = useState(false);
+  if (loading || !user) return null;
 
-  if (loading || !user) return <div className="flex h-screen items-center justify-center bg-slate-50"></div>;
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
+  const sections = [
+    {
+      title: 'Personal Information',
+      description: 'Update your personal details and how others see you.',
+      icon: User,
+      fields: [
+        { label: 'Full Name', value: 'System Administrator', icon: User },
+        { label: 'Email Address', value: user.email, icon: Mail },
+        { label: 'Recovery Phone', value: '+1 (555) 000-0000', icon: Smartphone },
+      ]
+    },
+    {
+      title: 'Security Settings',
+      description: 'Manage your password and account security preferences.',
+      icon: Shield,
+      fields: [
+        { label: 'Password', value: '••••••••••••', icon: Key },
+        { label: 'Two-Factor Auth', value: 'Enabled', icon: CheckCircle2, status: 'success' },
+      ]
     }
-  };
+  ];
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
-  };
+  const recentActivity = [
+    { event: 'Logged in from New Device', time: '2 hours ago', location: 'San Francisco, CA', icon: Globe },
+    { event: 'Password Changed Successfully', time: '1 day ago', location: 'Chrome on MacOS', icon: Key },
+    { event: 'Security Settings Updated', time: '3 days ago', location: 'Safari on iPhone', icon: Shield },
+  ];
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-900 font-sans overflow-hidden">
-      <Sidebar activePath="/profile" isOpen={menuOpen} toggleMenu={() => setMenuOpen(!menuOpen)} />
-      <AnimatedBackground />
-
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto relative">
-        {/* Background decorative elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob"></div>
-        <div className="absolute top-0 left-0 w-96 h-96 bg-fuchsia-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -z-10 animate-blob animation-delay-2000"></div>
-
-        <header className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shadow-sm z-10 sticky top-0 md:hidden">
-           <div className="flex items-center gap-2 text-indigo-600">
-             <Menu className="w-6 h-6 text-slate-600 cursor-pointer" onClick={() => setMenuOpen(!menuOpen)} />
-            <ShieldCheck className="w-6 h-6 ml-2" />
+    <DashboardLayout pageTitle="Profile">
+      <div className="max-w-5xl mx-auto space-y-10">
+        
+        {/* Profile Header */}
+        <section className="relative">
+          <div className="h-48 rounded-3xl bg-gradient-to-r from-primary-600 via-primary-500 to-indigo-600 shadow-lg relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:20px_20px]"></div>
           </div>
-        </header>
-
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="flex-1 p-4 sm:p-6 lg:p-8"
-        >
-          <div className="max-w-4xl mx-auto space-y-6">
+          
+          <div className="px-8 -mt-16 flex flex-col md:flex-row items-end gap-6 relative z-10">
+            <div className="relative group">
+              <div className="w-32 h-32 rounded-3xl bg-card border-4 border-background p-1.5 shadow-xl transition-transform group-hover:scale-[1.02]">
+                <div className="w-full h-full rounded-2xl bg-gradient-to-tr from-primary-500 to-primary-300 flex items-center justify-center text-white text-4xl font-bold shadow-inner uppercase">
+                  {user.email.charAt(0)}
+                </div>
+              </div>
+              <button className="absolute -bottom-2 -right-2 p-2.5 bg-primary text-white rounded-xl shadow-lg border-2 border-background hover:bg-primary-600 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100">
+                <Camera className="w-4 h-4" />
+              </button>
+            </div>
             
-            {/* Header Card */}
-            <motion.div variants={itemVariants} className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-               <div className="h-40 sm:h-56 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-               </div>
+            <div className="flex-1 pb-2">
+              <h1 className="text-3xl font-bold text-foreground">System Admin</h1>
+              <p className="text-muted-foreground font-medium flex items-center gap-2 mt-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Active Professional Account
+              </p>
+            </div>
 
-               <div className="px-6 sm:px-10 pb-8 relative">
-                 <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 -mt-20 sm:-mt-24 mb-8 relative z-10">
-                    <motion.div whileHover={{ scale: 1.05 }} className="relative group">
-                      <div className="w-40 h-40 rounded-full bg-white p-2 shadow-2xl shadow-indigo-200/50">
-                         <div className="w-full h-full rounded-full bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-6xl text-white font-extrabold shadow-inner">
-                           {user.email.charAt(0).toUpperCase()}
-                         </div>
-                      </div>
-                      <button className="absolute bottom-2 right-2 p-3 bg-slate-900 text-white rounded-full shadow-lg hover:bg-slate-800 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100">
-                        <Camera className="w-5 h-5" />
-                      </button>
-                    </motion.div>
-                    
-                    <div className="text-center sm:text-left mb-4 sm:mb-2">
-                       <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight">System Admin</h1>
-                       <div className="flex items-center justify-center sm:justify-start gap-2 mt-1">
-                         <span className="flex h-2.5 w-2.5 relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                         </span>
-                         <p className="text-emerald-500 font-bold text-sm uppercase tracking-wide">Online & Verified</p>
-                       </div>
-                    </div>
-
-                    <div className="flex-1 flex justify-center sm:justify-end gap-3 mb-4 sm:mb-2 w-full sm:w-auto">
-                       <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="px-5 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-semibold shadow-sm hover:bg-indigo-100 transition">
-                          Edit Profile
-                       </motion.button>
-                    </div>
-                 </div>
-
-                 {/* Info Cards inside Header */}
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-slate-50/80 rounded-2xl p-5 border border-slate-100/80 backdrop-blur-sm flex items-start gap-4 hover:shadow-md transition">
-                       <div className="p-3 bg-white rounded-xl shadow-sm text-indigo-500"><Mail className="w-6 h-6"/></div>
-                       <div>
-                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Email</p>
-                         <p className="text-slate-800 font-semibold">{user.email}</p>
-                       </div>
-                    </div>
-                    <div className="bg-slate-50/80 rounded-2xl p-5 border border-slate-100/80 backdrop-blur-sm flex items-start gap-4 hover:shadow-md transition">
-                       <div className="p-3 bg-white rounded-xl shadow-sm text-emerald-500"><KeyRound className="w-6 h-6"/></div>
-                       <div>
-                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Security</p>
-                         <p className="text-slate-800 font-semibold">2FA Enabled</p>
-                       </div>
-                    </div>
-                    <div className="bg-slate-50/80 rounded-2xl p-5 border border-slate-100/80 backdrop-blur-sm flex items-start gap-4 hover:shadow-md transition">
-                       <div className="p-3 bg-white rounded-xl shadow-sm text-amber-500"><CalendarDays className="w-6 h-6"/></div>
-                       <div>
-                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Member Since</p>
-                         <p className="text-slate-800 font-semibold">{"April 2026"}</p>
-                       </div>
-                    </div>
-                 </div>
-
-               </div>
-            </motion.div>
-
-            {/* Achievement section */}
-            <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-               <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-lg shadow-slate-200/40 border border-slate-100 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Productivity Score</h3>
-                    <div className="flex items-end gap-2">
-                       <span className="text-4xl font-black text-slate-800">98</span>
-                       <span className="text-lg font-bold text-emerald-500 mb-1">+5%</span>
-                    </div>
-                  </div>
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-emerald-400 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-emerald-200">
-                    <Zap className="w-10 h-10" />
-                  </div>
-               </div>
-
-               <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-xl shadow-indigo-900/20 border border-slate-800 flex items-center justify-between relative overflow-hidden">
-                  <div className="absolute right-0 top-0 -mr-10 -mt-10 opacity-20"><Star className="w-40 h-40 text-amber-400 fill-amber-400" /></div>
-                  <div className="relative z-10">
-                    <h3 className="text-sm font-bold text-indigo-300 uppercase tracking-wider mb-2">Platform Status</h3>
-                    <div className="flex items-center gap-3">
-                       <span className="text-3xl font-black text-white">Pro Tier</span>
-                    </div>
-                    <p className="text-slate-400 text-sm mt-3 font-medium">Access to Advanced tools</p>
-                  </div>
-                  <div className="relative z-10 w-16 h-16 rounded-2xl bg-amber-400/20 flex items-center justify-center text-amber-400 border border-amber-400/30 backdrop-blur-sm">
-                    <Award className="w-8 h-8" />
-                  </div>
-               </div>
-            </motion.div>
-
+            <div className="flex gap-3 pb-2">
+              <button 
+                onClick={() => setIsEditing(!isEditing)}
+                className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary-600 transition-all active:scale-95"
+              >
+                Edit Profile
+              </button>
+            </div>
           </div>
-        </motion.div>
-      </main>
-    </div>
+        </section>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Main Info Columns */}
+          <div className="lg:col-span-2 space-y-8">
+            {sections.map((section, idx) => (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm"
+              >
+                <div className="p-6 border-b border-border bg-muted/30">
+                   <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                      <section.icon className="w-5 h-5 text-primary" />
+                      {section.title}
+                   </h3>
+                   <p className="text-sm text-muted-foreground mt-1">{section.description}</p>
+                </div>
+                <div className="p-0">
+                  {section.fields.map((field, fIdx) => (
+                    <div key={fIdx} className={`p-6 flex items-center justify-between group cursor-pointer hover:bg-muted/30 transition-colors ${fIdx !== section.fields.length - 1 ? 'border-b border-border' : ''}`}>
+                      <div className="flex items-center gap-4">
+                        <div className="p-2.5 rounded-xl bg-muted text-muted-foreground group-hover:text-primary transition-colors">
+                          <field.icon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{field.label}</p>
+                          <p className="text-foreground font-semibold mt-0.5">{field.value}</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Activity Sidebar */}
+          <div className="space-y-8">
+            <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
+               <h3 className="text-lg font-bold text-foreground flex items-center gap-2 mb-6">
+                  <Clock className="w-5 h-5 text-primary" />
+                  Recent Activity
+               </h3>
+               <div className="space-y-6">
+                  {recentActivity.map((activity, i) => (
+                    <div key={i} className="flex gap-4 relative">
+                       {i !== recentActivity.length -1 && (
+                         <div className="absolute left-[19px] top-10 bottom-[-10px] w-0.5 bg-border"></div>
+                       )}
+                       <div className={`z-10 w-10 min-w-10 h-10 rounded-full flex items-center justify-center border-2 border-background shadow-sm ${activity.event.includes('Failed') ? 'bg-rose-500/10 text-rose-500' : 'bg-primary/10 text-primary'}`}>
+                          <activity.icon className="w-5 h-5" />
+                       </div>
+                       <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-foreground truncate">{activity.event}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{activity.time} • {activity.location}</p>
+                       </div>
+                    </div>
+                  ))}
+               </div>
+               <button className="w-full mt-8 py-2.5 rounded-xl bg-muted text-muted-foreground text-sm font-bold hover:bg-muted/70 transition-all active:scale-95">
+                  View Full Audit Log
+               </button>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-rose-500/5 border border-rose-500/20 space-y-4">
+               <div className="flex items-center gap-3 text-rose-500">
+                  <div className="p-2 rounded-lg bg-rose-500/10"><LogOut className="w-5 h-5" /></div>
+                  <h4 className="font-bold">Dangerous Zone</h4>
+               </div>
+               <p className="text-sm text-slate-500 dark:text-slate-400">Permanently delete your account and all associated data from our servers.</p>
+               <button className="w-full py-2.5 rounded-xl bg-rose-500 text-white text-sm font-bold hover:bg-rose-600 shadow-lg shadow-rose-500/20 transition-all active:scale-95">
+                  Delete Account
+               </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </DashboardLayout>
   );
 }

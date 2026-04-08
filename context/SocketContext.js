@@ -34,7 +34,15 @@ export const SocketProvider = ({ children }) => {
       fetchInitialData();
 
       newSocket.on('connect', () => {
-        console.log('Socket connected');
+        console.log('Socket connected successfully with ID:', newSocket.id);
+      });
+
+      newSocket.on('connect_error', (err) => {
+        console.error('Socket connection error:', err);
+      });
+
+      newSocket.on('disconnect', (reason) => {
+        console.log('Socket disconnected:', reason);
       });
 
       newSocket.on('unread_count', (data) => {
@@ -42,15 +50,42 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on('new_notification', (data) => {
+        console.log('[Socket] Notification received in real-time:', data);
         // data should be the notification object
         setNotifications(prev => [data, ...prev]);
         setUnreadCount(prev => prev + 1);
         
         if (Notification.permission === 'granted') {
-          new Notification('MafynGate', {
-            body: data.content || data.message,
-            icon: '/favicon.ico'
-          });
+          const title = 'MafynGate';
+          const options = {
+            body: data.content || data.message || 'New notification',
+            icon: '/globe.svg',
+            badge: '/window.svg',
+            vibrate: [200, 100, 200],
+            tag: data.id || 'general',
+            timestamp: new Date().getTime(),
+            data: {
+              type: data.type,
+              senderId: data.senderId,
+              url: data.type === 'CHAT' ? `/messages?userId=${data.senderId}` : `/profile/${data.senderId}`
+            }
+          };
+
+          if (data.type === 'FOLLOW') {
+            options.actions = [{ action: 'follback', title: 'Follow Back' }];
+          }
+
+          // Use ServiceWorker if available for better background handling
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(registration => {
+              registration.showNotification(title, options);
+            }).catch(err => {
+              console.warn('[Socket] SW not ready, using fallback notification', err);
+              new Notification(title, options);
+            });
+          } else {
+            new Notification(title, options);
+          }
         }
       });
 
@@ -65,9 +100,32 @@ export const SocketProvider = ({ children }) => {
   }, [user]);
 
   const requestNotificationPermission = () => {
-    if ('Notification' in window) {
-      Notification.requestPermission();
+    if (!('Notification' in window)) {
+      console.warn('This browser does not support desktop notification');
+      return;
     }
+
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        console.log('Notification permission granted.');
+        // Show a test notification to confirm
+        const title = 'MafynGate System';
+        const options = {
+          body: 'Notifikasi berhasil diaktifkan! Kamu akan menerima update secara real-time.',
+          icon: '/globe.svg',
+          badge: '/window.svg',
+          vibrate: [100, 50, 100],
+        };
+
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification(title, options);
+          });
+        } else {
+          new Notification(title, options);
+        }
+      }
+    });
   };
 
   const removeNotification = async (id) => {
@@ -77,6 +135,16 @@ export const SocketProvider = ({ children }) => {
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err) {
       console.error('Failed to delete notification:', err);
+    }
+  };
+
+  const readAllNotifications = async () => {
+    try {
+      await api.patch('/user/notifications/read');
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error('Failed to mark notifications as read:', err);
     }
   };
 
@@ -96,8 +164,10 @@ export const SocketProvider = ({ children }) => {
       unreadCount, 
       notifications, 
       setUnreadCount, 
+      setNotifications,
       requestNotificationPermission,
       removeNotification,
+      readAllNotifications,
       clearNotifications
     }}>
       {children}

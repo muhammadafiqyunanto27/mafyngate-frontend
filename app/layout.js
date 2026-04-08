@@ -21,8 +21,11 @@ import { Providers } from "../components/Providers";
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <head />
-      <body className="min-h-full flex flex-col">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#000000" />
+      </head>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <Providers>
           {children}
         </Providers>

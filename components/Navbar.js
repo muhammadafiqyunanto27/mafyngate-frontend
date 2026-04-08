@@ -5,14 +5,16 @@ import { useTheme } from 'next-themes';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../lib/api';
 
 export default function Navbar({ onMenuClick, pageTitle }) {
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { user, logout } = useAuth();
-  const { socket, unreadCount, requestNotificationPermission, notifications, removeNotification, clearNotifications } = useSocket();
+  const { socket, unreadCount, requestNotificationPermission, notifications, setNotifications, removeNotification, readAllNotifications, clearNotifications } = useSocket();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -78,6 +80,15 @@ export default function Navbar({ onMenuClick, pageTitle }) {
       console.error('Unfollow failed:', err);
       // Revert on failure
       setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: wasFollowing } : u));
+    }
+  };
+
+  const handleNotificationClick = (n) => {
+    setIsBellOpen(false);
+    if (n.type === 'CHAT') {
+      router.push(`/messages?userId=${n.senderId}`);
+    } else if (n.type === 'FOLLOW') {
+      router.push(`/profile/${n.senderId}`);
     }
   };
 
@@ -209,13 +220,23 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                       <h3 className="text-sm font-black uppercase tracking-tight">Notifications</h3>
                     </div>
                     {notifications.length > 0 && (
-                      <button 
-                        onClick={clearNotifications}
-                        className="text-[10px] font-bold uppercase text-muted-foreground hover:text-rose-500 flex items-center gap-1 transition-colors"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        Clear All
-                      </button>
+                      <div className="flex items-center gap-4">
+                        {unreadCount > 0 && (
+                          <button 
+                            onClick={readAllNotifications}
+                            className="text-[10px] font-black uppercase text-primary hover:underline transition-all"
+                          >
+                            Mark all as read
+                          </button>
+                        )}
+                        <button 
+                          onClick={clearNotifications}
+                          className="text-[10px] font-bold uppercase text-muted-foreground hover:text-rose-500 flex items-center gap-1 transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Clear All
+                        </button>
+                      </div>
                     )}
                   </div>
                   
@@ -230,16 +251,68 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                     ) : (
                       <div className="divide-y divide-border/50">
                         {notifications.map((n) => (
-                          <div key={n.id} className="p-4 hover:bg-muted/50 transition-all group relative">
+                          <div 
+                            key={n.id} 
+                            onClick={() => handleNotificationClick(n)}
+                            className="p-4 hover:bg-muted/50 transition-all group relative cursor-pointer"
+                          >
                             <div className="flex gap-3">
                               <div className={`w-2 h-2 mt-1.5 rounded-full flex-shrink-0 ${n.isRead ? 'bg-transparent' : 'bg-primary animate-pulse'}`} />
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-medium text-foreground leading-relaxed pr-6">{n.content}</p>
-                                <p className="text-[10px] text-muted-foreground mt-1.5 font-bold uppercase tracking-tight">{new Date(n.createdAt).toLocaleDateString()} • {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                <div className="flex items-center justify-between mt-1.5">
+                                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">{new Date(n.createdAt).toLocaleDateString()} • {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                  
+                                  {n.type === 'FOLLOW' && (
+                                    <div className="ml-auto" onClick={(e) => e.stopPropagation()}>
+                                      {n.isFollowingSender ? (
+                                        <button 
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            // Optimistic update
+                                            setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isFollowingSender: false } : notif));
+                                            try {
+                                              await api.delete(`/user/unfollow/${n.senderId}`);
+                                            } catch (err) {
+                                              console.error('Unfollow from notif failed:', err);
+                                              setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isFollowingSender: true } : notif));
+                                            }
+                                          }}
+                                          className="px-2 py-1 rounded-md bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 text-[10px] font-black uppercase tracking-tight transition-all"
+                                        >
+                                          Unfollow
+                                        </button>
+                                      ) : (
+                                        <button 
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            // Optimistic update
+                                            setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isFollowingSender: true } : notif));
+                                            try {
+                                              await api.post(`/user/follow/${n.senderId}`);
+                                              if (socket) {
+                                                socket.emit('follow_user', { followingId: n.senderId });
+                                              }
+                                            } catch (err) {
+                                              console.error('Follow from notif failed:', err);
+                                              setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isFollowingSender: false } : notif));
+                                            }
+                                          }}
+                                          className="px-2 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-black uppercase tracking-tight transition-all"
+                                        >
+                                          Follow Back
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                             <button 
-                              onClick={() => removeNotification(n.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeNotification(n.id);
+                              }}
                               className="absolute right-3 top-4 p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-all"
                             >
                               <X className="w-3.5 h-3.5" />
@@ -251,7 +324,18 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                   </div>
                   
                   <div className="p-3 border-t border-border bg-muted/10 text-center">
-                     <button onClick={requestNotificationPermission} className="text-[10px] font-bold uppercase text-primary hover:underline">Enable Browser Notifications</button>
+                     <button 
+                       onClick={() => {
+                         requestNotificationPermission();
+                         // Close the bell dropdown to let the user see the system permission popup
+                         setIsBellOpen(false);
+                       }} 
+                       className="text-[10px] font-black uppercase text-primary hover:underline hover:scale-105 active:scale-95 transition-all"
+                     >
+                       {typeof window !== 'undefined' && Notification.permission === 'granted' 
+                         ? '✓ Notifications Active' 
+                         : '🛎️ Enable Browser Notifications'}
+                     </button>
                   </div>
                 </motion.div>
               </>

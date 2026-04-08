@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import DashboardLayout from '../../components/DashboardLayout';
+import { useSearchParams } from 'next/navigation';
 import { 
   Send, 
   Search, 
@@ -25,6 +26,7 @@ import api from '../../lib/api';
 export default function MessagesPage() {
   const { user } = useAuth();
   const { socket } = useSocket();
+  const searchParams = useSearchParams();
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -33,6 +35,18 @@ export default function MessagesPage() {
   const [isMobileView, setIsMobileView] = useState(false);
   const [showChat, setShowChat] = useState(false); // For mobile responsiveness
   const messagesEndRef = useRef(null);
+
+  // Handle auto-select user from URL search params
+  useEffect(() => {
+    const userIdToSelect = searchParams.get('userId');
+    if (userIdToSelect && users.length > 0) {
+      const foundUser = users.find(u => u.id === userIdToSelect);
+      if (foundUser) {
+        setSelectedUser(foundUser);
+        if (isMobileView) setShowChat(true);
+      }
+    }
+  }, [searchParams, users, isMobileView]);
 
   useEffect(() => {
     const fetchConnections = async () => {

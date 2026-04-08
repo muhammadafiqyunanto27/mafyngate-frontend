@@ -18,7 +18,9 @@ import {
   Check,
   CheckCheck,
   Clock,
-  ArrowLeft
+  ArrowLeft,
+  Trash2,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
@@ -29,12 +31,59 @@ export default function MessagesPage() {
   const searchParams = useSearchParams();
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedMessages, setSelectedMessages] = useState([]);
+  const [selectionMode, setSelectionMode] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileView, setIsMobileView] = useState(false);
   const [showChat, setShowChat] = useState(false); // For mobile responsiveness
   const messagesEndRef = useRef(null);
+
+  // Listen for real-time message deletions
+  useEffect(() => {
+    if (socket) {
+      socket.on('messages_deleted', (data) => {
+        const { messageIds } = data;
+        setMessages(prev => prev.filter(m => !messageIds.includes(m.id)));
+        setSelectedMessages(prev => prev.filter(id => !messageIds.includes(id)));
+      });
+      return () => socket.off('messages_deleted');
+    }
+  }, [socket]);
+
+  const toggleMessageSelection = (id) => {
+    if (selectedMessages.includes(id)) {
+      setSelectedMessages(prev => prev.filter(mId => mId !== id));
+    } else {
+      setSelectedMessages(prev => [...prev, id]);
+    }
+  };
+
+  const handleDeleteMessages = async () => {
+    if (selectedMessages.length === 0) return;
+    try {
+      await api.delete('/user/chat/messages', { data: { messageIds: selectedMessages } });
+      
+      // Update local state
+      setMessages(prev => prev.filter(m => !selectedMessages.includes(m.id)));
+      
+      if (socket && selectedUser) {
+        // We calculate conversationId or just use the current room
+        const convoId = messages.find(m => m.id === selectedMessages[0])?.conversationId;
+        socket.emit('delete_messages', { 
+          messageIds: selectedMessages, 
+          conversationId: convoId,
+          receiverId: selectedUser.id
+        });
+      }
+      
+      setSelectedMessages([]);
+      setSelectionMode(false);
+    } catch (err) {
+      console.error('Delete failed:', err);
+    }
+  };
 
   // Handle auto-select user from URL search params
   useEffect(() => {
@@ -244,9 +293,40 @@ export default function MessagesPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all">
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
+                  {selectionMode ? (
+                    <div className="flex items-center gap-2">
+                       <span className="text-[10px] font-black uppercase text-primary bg-primary/10 px-2 py-1 rounded-lg">
+                         {selectedMessages.length} Selected
+                       </span>
+                       <button 
+                         onClick={handleDeleteMessages}
+                         disabled={selectedMessages.length === 0}
+                         className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all disabled:opacity-50"
+                         title="Delete Selected"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </button>
+                       <button 
+                         onClick={() => { setSelectionMode(false); setSelectedMessages([]); }}
+                         className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all"
+                       >
+                         <X className="w-4 h-4" />
+                       </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={() => setSelectionMode(true)}
+                        className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all group"
+                        title="Manage Messages"
+                      >
+                        <MessageSquare className="w-4 h-4 group-hover:text-primary transition-colors" />
+                      </button>
+                      <button className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all">
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -262,19 +342,39 @@ export default function MessagesPage() {
                 ) : (
                   messages.map((msg, i) => {
                     const isMine = msg.senderId === user?.id;
+                    const isSelected = selectedMessages.includes(msg.id);
+                    
                     return (
                       <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         key={msg.id || i}
-                        className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
+                        className={`flex group/msg relative ${isMine ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div className={`max-w-[85%] md:max-w-[70%] space-y-1 ${isMine ? 'items-end' : 'items-start'}`}>
-                          <div className={`px-5 py-3 rounded-[1.25rem] shadow-sm relative group transition-all ${
-                            isMine 
-                            ? 'bg-primary text-white rounded-br-none shadow-primary/20' 
-                            : 'bg-muted/80 text-foreground rounded-bl-none border border-border'
-                          }`}>
+                        <div className={`max-w-[85%] md:max-w-[70%] flex gap-3 ${isMine ? 'flex-row-reverse items-end' : 'items-start'}`}>
+                          
+                          {/* Selection Checkbox */}
+                          {selectionMode && isMine && (
+                            <button 
+                              onClick={() => toggleMessageSelection(msg.id)}
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 mt-3 ${
+                                isSelected ? 'bg-primary border-primary text-white scale-110 shadow-lg' : 'border-muted-foreground/30 hover:border-primary'
+                              }`}
+                            >
+                               {isSelected && <Check className="w-3 h-3 stroke-[4px]" />}
+                            </button>
+                          )}
+
+                          <div 
+                            onClick={() => selectionMode && isMine && toggleMessageSelection(msg.id)}
+                            className={`px-5 py-3 rounded-[1.25rem] shadow-sm relative group transition-all cursor-default ${
+                              selectionMode && isMine ? 'cursor-pointer hover:ring-2 hover:ring-primary/20' : ''
+                            } ${
+                              isMine 
+                              ? `bg-primary text-white rounded-br-none shadow-primary/20 ${isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}` 
+                              : 'bg-muted/80 text-foreground rounded-bl-none border border-border'
+                            }`}
+                          >
                             <p className="text-sm font-medium leading-relaxed">{msg.content}</p>
                             <div className={`flex items-center gap-1 mt-1 justify-end opacity-60 ${isMine ? 'text-white' : 'text-muted-foreground'}`}>
                                <span className="text-[10px] font-bold uppercase">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>

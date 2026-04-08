@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
-import { Check, Trash2, Plus, GripVertical, ListTodo } from 'lucide-react';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { Check, Trash2, Plus, GripVertical, ListTodo, Edit2, Copy, Layers, Save, X } from 'lucide-react';
+import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 
 export default function TodoList() {
   const [todos, setTodos] = useState([]);
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState('');
 
   useEffect(() => {
     fetchTodos();
@@ -52,6 +54,36 @@ export default function TodoList() {
     } catch (err) {
       fetchTodos();
       console.error(err);
+    }
+  };
+
+  const handleDuplicate = async (todo) => {
+    try {
+      const res = await api.post('/todo', { title: `${todo.title} (Copy)` });
+      setTodos([res.data.data, ...todos]);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const startEditing = (todo) => {
+    setEditingId(todo.id);
+    setEditValue(todo.title);
+  };
+
+  const saveEdit = async (id) => {
+    if (!editValue.trim()) return setEditingId(null);
+    try {
+      setTodos(todos.map(t => t.id === id ? { ...t, title: editValue } : t));
+      await api.put(`/todo/${id}`, { title: editValue });
+      setEditingId(null);
+    } catch (err) {
+      fetchTodos();
+      setEditingId(null);
     }
   };
 
@@ -119,7 +151,7 @@ export default function TodoList() {
           </button>
         </form>
 
-        <div className="max-h-[460px] overflow-y-auto pr-2 custom-scrollbar">
+        <div className="max-h-[460px] overflow-y-auto px-6 pb-6 custom-scrollbar">
           <Reorder.Group 
             axis="y" 
             values={todos} 
@@ -136,65 +168,114 @@ export default function TodoList() {
                   <p className="text-sm font-bold text-muted-foreground opacity-50 uppercase tracking-widest">Chill Day! No tasks found.</p>
                 </motion.div>
               ) : (
-                todos.map(todo => (
-                <Reorder.Item 
-                  key={todo.id}
-                  value={todo}
-                  layout="position"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  whileDrag={{ 
-                    scale: 1.02,
-                    zIndex: 50,
-                    boxShadow: "0 20px 40px -10px rgb(0 0 0 / 0.2)"
-                  }}
-                  transition={{ 
-                    type: "spring", 
-                    stiffness: 100, 
-                    damping: 30,
-                    mass: 0.5
-                  }}
-                  className={`group flex items-center gap-4 p-4 rounded-2xl border transition-colors cursor-default ${
-                    todo.completed 
-                      ? 'bg-muted/30 border-transparent opacity-60' 
-                      : 'bg-card border-border shadow-md hover:border-primary/50'
-                  }`}
-                >
-                  <div className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-primary transition-colors">
-                    <GripVertical className="w-5 h-5" />
-                  </div>
-                  
-                  <button 
-                    onClick={() => toggleTodo(todo.id, todo.completed)}
-                    className={`w-6 h-6 rounded-lg flex items-center justify-center border-2 transition-all ${
-                      todo.completed 
-                        ? 'bg-emerald-500 border-emerald-500 text-white' 
-                        : 'border-border bg-background hover:border-primary'
-                    }`}
-                  >
-                    {todo.completed && <Check className="w-4 h-4 stroke-[4]" />}
-                  </button>
-                  
-                  <span className={`flex-1 text-sm font-bold transition-all ${
-                    todo.completed ? 'text-muted-foreground line-through decoration-emerald-500/50' : 'text-foreground'
-                  }`}>
-                    {todo.title}
-                  </span>
-                  
-                  <button 
-                    onClick={() => deleteTodo(todo.id)}
-                    className="p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </Reorder.Item>
-              ))
-            )}
-          </AnimatePresence>
-        </Reorder.Group>
+                todos.map(todo => <TodoItem key={todo.id} todo={todo} todos={todos} setTodos={setTodos} toggleTodo={toggleTodo} deleteTodo={deleteTodo} handleDuplicate={handleDuplicate} handleCopy={handleCopy} startEditing={startEditing} editingId={editingId} setEditingId={setEditingId} editValue={editValue} setEditValue={setEditValue} saveEdit={saveEdit} />)
+              )}
+            </AnimatePresence>
+          </Reorder.Group>
         </div>
       </div>
     </div>
+  );
+}
+
+function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplicate, handleCopy, startEditing, editingId, setEditingId, editValue, setEditValue, saveEdit }) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item 
+      value={todo}
+      dragListener={false}
+      dragControls={controls}
+      layout="position"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      whileDrag={{ 
+        scale: 1.02,
+        zIndex: 50,
+        boxShadow: "0 20px 40px -10px rgb(0 0 0 / 0.2)"
+      }}
+      transition={{ 
+        type: "spring", 
+        stiffness: 100, 
+        damping: 30,
+        mass: 0.5
+      }}
+      className={`group flex items-center gap-4 p-4 rounded-2xl border transition-colors cursor-default ${
+        todo.completed 
+          ? 'bg-muted/30 border-transparent opacity-60' 
+          : 'bg-card border-border shadow-md hover:border-primary/50'
+      }`}
+    >
+      <div 
+        onPointerDown={(e) => controls.start(e)}
+        className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-primary transition-colors p-1"
+      >
+        <GripVertical className="w-5 h-5" />
+      </div>
+      
+      <button 
+        onClick={() => toggleTodo(todo.id, todo.completed)}
+        className={`w-6 h-6 rounded-lg flex items-center justify-center border-2 transition-all ${
+          todo.completed 
+            ? 'bg-emerald-500 border-emerald-500 text-white' 
+            : 'border-border bg-background hover:border-primary'
+        }`}
+      >
+        {todo.completed && <Check className="w-4 h-4 stroke-[4]" />}
+      </button>
+      
+      {editingId === todo.id ? (
+        <div className="flex-1 flex items-center gap-2">
+          <input 
+            autoFocus
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={() => saveEdit(todo.id)}
+            onKeyDown={(e) => e.key === 'Enter' && saveEdit(todo.id)}
+            className="flex-1 bg-background border border-primary/30 rounded-lg px-3 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+          <button onClick={() => saveEdit(todo.id)} className="text-emerald-500 hover:scale-110 transition-transform"><Save className="w-4 h-4" /></button>
+          <button onClick={() => setEditingId(null)} className="text-rose-500 hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
+        </div>
+      ) : (
+        <span className={`flex-1 text-sm font-bold transition-all break-all whitespace-pre-wrap ${
+          todo.completed ? 'text-muted-foreground line-through decoration-emerald-500/50' : 'text-foreground'
+        }`}>
+          {todo.title}
+        </span>
+      )}
+      
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button 
+          onClick={() => handleCopy(todo.title)}
+          className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+          title="Copy"
+        >
+          <Copy className="w-4 h-4" />
+        </button>
+        <button 
+          onClick={() => handleDuplicate(todo)}
+          className="p-2 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-xl transition-all"
+          title="Duplicate"
+        >
+          <Layers className="w-4 h-4" />
+        </button>
+        <button 
+          onClick={() => startEditing(todo)}
+          className="p-2 text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 rounded-xl transition-all"
+          title="Edit"
+        >
+          <Edit2 className="w-4 h-4" />
+        </button>
+        <button 
+          onClick={() => deleteTodo(todo.id)}
+          className="p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
+          title="Delete"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </Reorder.Item>
   );
 }

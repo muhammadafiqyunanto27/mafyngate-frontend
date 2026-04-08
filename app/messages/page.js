@@ -242,8 +242,21 @@ export default function MessagesPage() {
     fetchMessages();
   }, [selectedUser]);
 
+  const isInitialLoad = useRef(true);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    isInitialLoad.current = true;
+  }, [selectedUser]);
+
+  useEffect(() => {
+    if (messages.length > 0 && messagesEndRef.current) {
+      if (isInitialLoad.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
+        isInitialLoad.current = false;
+      } else {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
   }, [messages]);
 
 
@@ -323,10 +336,14 @@ export default function MessagesPage() {
                       <p className={`font-bold truncate text-sm ${selectedUser?.id === u.id ? 'text-white' : 'text-foreground'}`}>
                         {u.name || u.email.split('@')[0]}
                       </p>
-                      <span className={`text-[10px] font-medium opacity-60 ${selectedUser?.id === u.id ? 'text-white' : 'text-muted-foreground'}`}>12:45</span>
+                      {u.lastMessage && (
+                        <span className={`text-[10px] font-medium opacity-60 flex-shrink-0 ${selectedUser?.id === u.id ? 'text-white' : 'text-muted-foreground'}`}>
+                          {new Date(u.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
                     </div>
                     <p className={`text-xs truncate font-medium opacity-70 ${selectedUser?.id === u.id ? 'text-white/80' : 'text-muted-foreground'}`}>
-                      Click to start conversation...
+                      {u.lastMessage ? u.lastMessage.content : 'Click to start conversation...'}
                     </p>
                   </div>
                 </button>

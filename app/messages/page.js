@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import DashboardLayout from '../../components/DashboardLayout';
-import { useSearchParams } from 'next/navigation';
 import { 
   Send, 
   Search, 
@@ -25,24 +24,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 
-function ChatURLHandler({ users, onSelect, isMobileView, setShowChat }) {
-  const searchParams = useSearchParams();
-  
-  useEffect(() => {
-    const userIdToSelect = searchParams.get('userId');
-    if (userIdToSelect && users.length > 0) {
-      const foundUser = users.find(u => u.id === userIdToSelect);
-      if (foundUser) {
-        onSelect(foundUser);
-        if (isMobileView) setShowChat(true);
-      }
-    }
-  }, [searchParams, users, isMobileView, onSelect, setShowChat]);
-
-  return null;
-}
-
-function MessagesPageContent() {
+export default function MessagesPage() {
   const { user } = useAuth();
   const { socket } = useSocket();
   const [users, setUsers] = useState([]);
@@ -55,6 +37,7 @@ function MessagesPageContent() {
   const [isMobileView, setIsMobileView] = useState(false);
   const [showChat, setShowChat] = useState(false); // For mobile responsiveness
   const messagesEndRef = useRef(null);
+
 
   // Listen for real-time message deletions
   useEffect(() => {
@@ -103,11 +86,26 @@ function MessagesPageContent() {
 
 
 
+  // Fetch connections and handle initial setup
   useEffect(() => {
     const fetchConnections = async () => {
       try {
         const res = await api.get('/user/connections');
-        setUsers(res.data.data);
+        const connUsers = res.data.data;
+        setUsers(connUsers);
+        
+        // Handle auto-select user from URL using Native API (fix build issue)
+        if (typeof window !== 'undefined') {
+          const searchParams = new URLSearchParams(window.location.search);
+          const userIdToSelect = searchParams.get('userId');
+          if (userIdToSelect) {
+            const foundUser = connUsers.find(u => u.id === userIdToSelect);
+            if (foundUser) {
+              setSelectedUser(foundUser);
+              if (isMobileView) setShowChat(true);
+            }
+          }
+        }
       } catch (err) {
         console.error('Failed to fetch connections:', err);
       }
@@ -118,7 +116,7 @@ function MessagesPageContent() {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [isMobileView]);
 
   useEffect(() => {
     if (socket && user) {
@@ -188,14 +186,6 @@ function MessagesPageContent() {
 
   return (
     <DashboardLayout pageTitle="Messages">
-      <Suspense fallback={null}>
-        <ChatURLHandler 
-          users={users} 
-          onSelect={setSelectedUser} 
-          isMobileView={isMobileView} 
-          setShowChat={setShowChat} 
-        />
-      </Suspense>
       <div className="h-[calc(100vh-12rem)] bg-card border border-border rounded-[2.5rem] shadow-2xl flex overflow-hidden">
         
         {/* User List Sidebar */}
@@ -451,19 +441,5 @@ function MessagesPageContent() {
         </div>
       </div>
     </DashboardLayout>
-  );
-}
-
-export default function MessagesPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center animate-pulse">
-          <MessageSquare className="w-8 h-8 text-primary" />
-        </div>
-      </div>
-    }>
-      <MessagesPageContent />
-    </Suspense>
   );
 }

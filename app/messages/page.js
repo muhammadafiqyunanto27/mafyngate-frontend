@@ -25,10 +25,26 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 
+function ChatURLHandler({ users, onSelect, isMobileView, setShowChat }) {
+  const searchParams = useSearchParams();
+  
+  useEffect(() => {
+    const userIdToSelect = searchParams.get('userId');
+    if (userIdToSelect && users.length > 0) {
+      const foundUser = users.find(u => u.id === userIdToSelect);
+      if (foundUser) {
+        onSelect(foundUser);
+        if (isMobileView) setShowChat(true);
+      }
+    }
+  }, [searchParams, users, isMobileView, onSelect, setShowChat]);
+
+  return null;
+}
+
 function MessagesPageContent() {
   const { user } = useAuth();
   const { socket } = useSocket();
-  const searchParams = useSearchParams();
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedMessages, setSelectedMessages] = useState([]);
@@ -85,17 +101,7 @@ function MessagesPageContent() {
     }
   };
 
-  // Handle auto-select user from URL search params
-  useEffect(() => {
-    const userIdToSelect = searchParams.get('userId');
-    if (userIdToSelect && users.length > 0) {
-      const foundUser = users.find(u => u.id === userIdToSelect);
-      if (foundUser) {
-        setSelectedUser(foundUser);
-        if (isMobileView) setShowChat(true);
-      }
-    }
-  }, [searchParams, users, isMobileView]);
+
 
   useEffect(() => {
     const fetchConnections = async () => {
@@ -182,6 +188,14 @@ function MessagesPageContent() {
 
   return (
     <DashboardLayout pageTitle="Messages">
+      <Suspense fallback={null}>
+        <ChatURLHandler 
+          users={users} 
+          onSelect={setSelectedUser} 
+          isMobileView={isMobileView} 
+          setShowChat={setShowChat} 
+        />
+      </Suspense>
       <div className="h-[calc(100vh-12rem)] bg-card border border-border rounded-[2.5rem] shadow-2xl flex overflow-hidden">
         
         {/* User List Sidebar */}

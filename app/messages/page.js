@@ -19,7 +19,9 @@ import {
   Clock,
   ArrowLeft,
   Trash2,
-  X
+  X,
+  Copy,
+  Edit2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
@@ -31,15 +33,17 @@ export default function MessagesPage() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedMessages, setSelectedMessages] = useState([]);
   const [selectionMode, setSelectionMode] = useState(false);
+  const [editingMessage, setEditingMessage] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileView, setIsMobileView] = useState(false);
   const [showChat, setShowChat] = useState(false); // For mobile responsiveness
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
 
-  // Listen for real-time message deletions
+  // Listen for real-time message deletions and edits
   useEffect(() => {
     if (socket) {
       socket.on('messages_deleted', (data) => {
@@ -47,9 +51,83 @@ export default function MessagesPage() {
         setMessages(prev => prev.filter(m => !messageIds.includes(m.id)));
         setSelectedMessages(prev => prev.filter(id => !messageIds.includes(id)));
       });
-      return () => socket.off('messages_deleted');
+      
+      socket.on('message_updated', (updatedMsg) => {
+        setMessages(prev => prev.map(m => m.id === updatedMsg.id ? updatedMsg : m));
+      });
+
+      return () => {
+        socket.off('messages_deleted');
+        socket.off('message_updated');
+      };
     }
   }, [socket]);
+
+  const handleCopyMessage = (content) => {
+    navigator.clipboard.writeText(content);
+    // Could add a toast here
+  };
+
+  const handleStartEdit = (msg) => {
+    setEditingMessage(msg);
+    setNewMessage(msg.content);
+    textareaRef.current?.focus();
+    // Trigger height recalculation
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      }
+    }, 0);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
+    setNewMessage('');
+    if (textareaRef.current) textareaRef.current.style.height = '56px';
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !selectedUser || !socket) return;
+
+    if (editingMessage) {
+      try {
+        const res = await api.patch('/user/chat/message', { 
+          messageId: editingMessage.id, 
+          content: newMessage 
+        });
+        const updated = res.data.data;
+        
+        // Update local state
+        setMessages(prev => prev.map(m => m.id === updated.id ? updated : m));
+        
+        // Broadcast
+        socket.emit('edit_message', { 
+          message: updated, 
+          receiverId: selectedUser.id,
+          conversationId: updated.conversationId 
+        });
+
+        setEditingMessage(null);
+        setNewMessage('');
+      } catch (err) {
+        console.error('Edit failed:', err);
+      }
+    } else {
+      socket.emit('send_message', {
+        content: newMessage,
+        receiverId: selectedUser.id,
+        conversationId: 'temp_id', // Would be real in full implementation
+      });
+      setNewMessage('');
+    }
+
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '56px';
+    }
+  };
 
   const toggleMessageSelection = (id) => {
     if (selectedMessages.includes(id)) {
@@ -122,12 +200,18 @@ export default function MessagesPage() {
     if (socket && user) {
       socket.on('receive_message', (message) => {
         if (selectedUser && (message.senderId === selectedUser.id || message.senderId === user.id)) {
-          setMessages((prev) => [...prev, message]);
+          setMessages((prev) => {
+            if (prev.some(m => m.id === message.id)) return prev;
+            return [...prev, message];
+          });
         }
       });
 
       socket.on('message_sent', (message) => {
-        setMessages((prev) => [...prev, message]);
+        setMessages((prev) => {
+          if (prev.some(m => m.id === message.id)) return prev;
+          return [...prev, message];
+        });
       });
 
       return () => {
@@ -162,18 +246,7 @@ export default function MessagesPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !selectedUser || !socket) return;
 
-    socket.emit('send_message', {
-      content: newMessage,
-      receiverId: selectedUser.id,
-      conversationId: 'temp_id', // Would be real in full implementation
-    });
-
-    setNewMessage('');
-  };
 
   const filteredUsers = users.filter(u => 
     (u.name || u.email).toLowerCase().includes(searchQuery.toLowerCase())
@@ -263,7 +336,7 @@ export default function MessagesPage() {
         </div>
 
         {/* Chat Window */}
-        <div className={`${isMobileView && !showChat ? 'hidden' : 'flex'} flex-1 flex-col bg-card relative`}>
+        <div className={`${isMobileView && !showChat ? 'hidden' : 'flex'} flex-1 flex-col bg-card relative min-w-0 overflow-hidden`}>
           {selectedUser ? (
             <>
               {/* Chat Header */}
@@ -335,7 +408,7 @@ export default function MessagesPage() {
               </div>
 
               {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-6 custom-scrollbar bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
                 {messages.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-40">
                     <div className="p-4 rounded-full bg-muted">
@@ -353,15 +426,15 @@ export default function MessagesPage() {
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         key={msg.id || i}
-                        className={`flex group/msg relative ${isMine ? 'justify-end' : 'justify-start'}`}
+                        className={`flex group/msg relative mb-2 ${isMine ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div className={`max-w-[85%] md:max-w-[70%] flex gap-3 ${isMine ? 'flex-row-reverse items-end' : 'items-start'}`}>
+                        <div className={`max-w-[85%] md:max-w-[70%] min-w-0 flex gap-3 ${isMine ? 'flex-row-reverse items-end' : 'items-start'}`}>
                           
                           {/* Selection Checkbox */}
                           {selectionMode && isMine && (
                             <button 
                               onClick={() => toggleMessageSelection(msg.id)}
-                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 mt-3 ${
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 mb-3 ${
                                 isSelected ? 'bg-primary border-primary text-white scale-110 shadow-lg' : 'border-muted-foreground/30 hover:border-primary'
                               }`}
                             >
@@ -369,20 +442,45 @@ export default function MessagesPage() {
                             </button>
                           )}
 
-                          <div 
-                            onClick={() => selectionMode && isMine && toggleMessageSelection(msg.id)}
-                            className={`px-5 py-3 rounded-[1.25rem] shadow-sm relative group transition-all cursor-default ${
-                              selectionMode && isMine ? 'cursor-pointer hover:ring-2 hover:ring-primary/20' : ''
-                            } ${
-                              isMine 
-                              ? `bg-primary text-white rounded-br-none shadow-primary/20 ${isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}` 
-                              : 'bg-muted/80 text-foreground rounded-bl-none border border-border'
-                            }`}
-                          >
-                            <p className="text-sm font-medium leading-relaxed">{msg.content}</p>
-                            <div className={`flex items-center gap-1 mt-1 justify-end opacity-60 ${isMine ? 'text-white' : 'text-muted-foreground'}`}>
-                               <span className="text-[10px] font-bold uppercase">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                               {isMine && <CheckCheck className="w-3 h-3" />}
+                          <div className="relative group">
+                            {/* Message Toolbar */}
+                            {!selectionMode && (
+                              <div className={`absolute -top-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20 ${isMine ? 'right-0' : 'left-0'}`}>
+                                <button 
+                                  onClick={() => handleCopyMessage(msg.content)}
+                                  className="p-2 rounded-lg bg-card border border-border shadow-md hover:bg-muted text-muted-foreground transition-all"
+                                  title="Copy"
+                                >
+                                  <Copy className="w-3.5 h-3.5" />
+                                </button>
+                                {isMine && (
+                                  <button 
+                                    onClick={() => handleStartEdit(msg)}
+                                    className="p-2 rounded-lg bg-card border border-border shadow-md hover:bg-muted text-muted-foreground transition-all"
+                                    title="Edit"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            )}
+
+                            <div 
+                              onClick={() => selectionMode && isMine && toggleMessageSelection(msg.id)}
+                              className={`px-5 py-3 rounded-[1.25rem] shadow-sm relative transition-all cursor-default ${
+                                selectionMode && isMine ? 'cursor-pointer hover:ring-2 hover:ring-primary/20' : ''
+                              } ${
+                                isMine 
+                                ? `bg-primary text-white rounded-br-none shadow-primary/20 ${isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}` 
+                                : 'bg-muted/80 text-foreground rounded-bl-none border border-border'
+                              }`}
+                            >
+                              <p className="text-sm font-medium leading-relaxed break-all whitespace-pre-wrap">{msg.content}</p>
+                              <div className={`flex items-center gap-1.5 mt-1 justify-end opacity-60 ${isMine ? 'text-white' : 'text-muted-foreground'}`}>
+                                 {msg.isEdited && <span className="text-[9px] font-bold uppercase italic">Edited</span>}
+                                 <span className="text-[10px] font-bold uppercase">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                 {isMine && <CheckCheck className="w-3 h-3" />}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -395,6 +493,33 @@ export default function MessagesPage() {
 
               {/* Message Input */}
               <div className="p-6 border-t border-border bg-card">
+                <AnimatePresence>
+                  {editingMessage && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="mb-4 p-3 bg-primary/10 rounded-2xl flex items-center justify-between border border-primary/20"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-primary/20 text-primary">
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase text-primary tracking-widest">Editing Message</p>
+                          <p className="text-xs text-muted-foreground truncate max-w-[200px] font-medium">{editingMessage.content}</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={handleCancelEdit}
+                        className="p-2 rounded-xl hover:bg-primary/20 text-primary transition-all"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <form onSubmit={handleSendMessage} className="flex items-center gap-3 md:gap-4">
                   <div className="flex gap-1 md:gap-2">
                     <button type="button" className="p-3 rounded-2xl hover:bg-muted text-muted-foreground transition-all">
@@ -406,23 +531,34 @@ export default function MessagesPage() {
                   </div>
                   
                   <div className="flex-1 relative">
-                    <input 
-                      type="text"
+                    <textarea 
+                      ref={textareaRef}
                       placeholder="Type a message..."
                       value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
+                      onChange={(e) => {
+                        setNewMessage(e.target.value);
+                        e.target.style.height = 'auto';
+                        e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage(e);
+                        }
+                      }}
+                      rows={1}
                       autoComplete="off"
                       suppressHydrationWarning
-                      className="w-full px-6 py-4 bg-muted border border-border rounded-[1.5rem] focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-sm pr-12"
+                      className="w-full px-6 py-4 bg-muted border border-border rounded-[1.5rem] focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-sm pr-12 resize-none overflow-y-auto custom-scrollbar leading-tight min-h-[56px] max-h-[120px]"
                     />
                   </div>
 
                   <button 
                     type="submit"
                     disabled={!newMessage.trim()}
-                    className="p-4 rounded-2xl bg-primary text-white shadow-xl shadow-primary/30 hover:bg-primary-600 transition-all active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center justify-center"
+                    className={`p-4 rounded-2xl text-white shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center justify-center ${editingMessage ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-primary shadow-primary/30'}`}
                   >
-                    <Send className="w-5 h-5" />
+                    {editingMessage ? <Check className="w-5 h-5" /> : <Send className="w-5 h-5" />}
                   </button>
                 </form>
               </div>

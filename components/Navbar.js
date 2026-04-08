@@ -12,7 +12,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { user, logout } = useAuth();
-  const { unreadCount, requestNotificationPermission, notifications, removeNotification, clearNotifications } = useSocket();
+  const { socket, unreadCount, requestNotificationPermission, notifications, removeNotification, clearNotifications } = useSocket();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -44,23 +44,40 @@ export default function Navbar({ onMenuClick, pageTitle }) {
   }, [searchQuery]);
 
   const handleFollow = async (userId) => {
+    // Save previous state for specific error types
+    const wasFollowing = searchResults.find(u => u.id === userId)?.isFollowing;
+    
+    // Optimistic update
+    setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: true } : u));
+    
     try {
       await api.post(`/user/follow/${userId}`);
       if (socket) {
         socket.emit('follow_user', { followingId: userId });
       }
-      setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: true } : u));
     } catch (err) {
-      console.error('Follow failed:', err);
+      // If error is "Already following" (400), don't revert
+      if (err.response?.status === 400) {
+        console.warn('Already following this user');
+      } else {
+        console.error('Follow failed:', err);
+        setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: wasFollowing } : u));
+      }
     }
   };
 
   const handleUnfollow = async (userId) => {
+    const wasFollowing = searchResults.find(u => u.id === userId)?.isFollowing;
+    
+    // Optimistic update
+    setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: false } : u));
+    
     try {
       await api.delete(`/user/unfollow/${userId}`);
-      setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: false } : u));
     } catch (err) {
       console.error('Unfollow failed:', err);
+      // Revert on failure
+      setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: wasFollowing } : u));
     }
   };
 
@@ -124,12 +141,18 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                           <span className="text-sm font-medium text-foreground">{result.name || result.email.split('@')[0]}</span>
                         </div>
                         {result.isFollowing ? (
-                          <button onClick={() => handleUnfollow(result.id)} className="p-1.5 rounded-lg bg-muted text-muted-foreground hover:text-rose-500">
-                            <UserMinus className="w-4 h-4" />
+                          <button 
+                            onClick={() => handleUnfollow(result.id)} 
+                            className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 text-xs font-bold transition-all uppercase tracking-tight"
+                          >
+                            Unfollow
                           </button>
                         ) : (
-                          <button onClick={() => handleFollow(result.id)} className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20">
-                            <UserPlus className="w-4 h-4" />
+                          <button 
+                            onClick={() => handleFollow(result.id)} 
+                            className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold transition-all uppercase tracking-tight"
+                          >
+                            Follow
                           </button>
                         )}
                       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import DashboardLayout from '../../components/DashboardLayout';
@@ -25,7 +25,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 
-export default function MessagesPage() {
+function MessagesPageContent() {
   const { user } = useAuth();
   const { socket } = useSocket();
   const searchParams = useSearchParams();
@@ -437,5 +437,19 @@ export default function MessagesPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center animate-pulse">
+          <MessageSquare className="w-8 h-8 text-primary" />
+        </div>
+      </div>
+    }>
+      <MessagesPageContent />
+    </Suspense>
   );
 }

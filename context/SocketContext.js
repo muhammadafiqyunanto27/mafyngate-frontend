@@ -152,14 +152,40 @@ export const SocketProvider = ({ children }) => {
   };
 
   const handleEndCall = (shouldEmit = true) => {
+    console.log('[Call] Ending call and cleaning up...');
+    
     if (shouldEmit && socket && (targetUser || call.from)) {
       socket.emit('end_call', { to: targetUser || call.from });
     }
-    if (connectionRef.current) connectionRef.current.destroy();
-    setCall({ ...call, isReceivingCall: false });
+
+    // 1. Destroy Peer Connection
+    if (connectionRef.current) {
+      try {
+        connectionRef.current.destroy();
+      } catch (e) {}
+    }
+
+    // 2. Stop All Media Tracks (Camera & Mic)
+    if (stream) {
+      stream.getTracks().forEach(track => {
+        track.stop();
+        console.log(`[Media] Track ${track.kind} stopped`);
+      });
+    }
+
+    // 3. Reset States
+    setStream(null);
+    setRemoteStream(null);
+    setCall({ isReceivingCall: false, from: '', name: '', avatar: '', signal: null, type: 'voice' });
     setCallAccepted(false);
+    setCallEnded(true);
     setIsCalling(false);
-    stopStream();
+    setTargetUser(null);
+
+    // 4. Force Reload for total cleanup (Optional but requested for robustness)
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   };
 
   const startCall = async (userIdToCall, type = 'video') => {

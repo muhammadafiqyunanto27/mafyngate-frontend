@@ -48,6 +48,8 @@ function MessagesContent() {
   const [error, setError] = useState('');
   const [isDeletingConvo, setIsDeletingConvo] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
+  const [recipientStatus, setRecipientStatus] = useState('offline'); // online, offline, typing
+  const typingTimeoutRef = useRef(null);
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -176,10 +178,39 @@ function MessagesContent() {
 
   useEffect(() => {
     if (!socket) return;
+    
+    const handleStatusUpdate = (data) => {
+      if (selectedUser && data.userId === selectedUser.id) {
+        setRecipientStatus(data.status);
+      }
+    };
+
+    const handleTyping = (data) => {
+      if (selectedUser && data.from === selectedUser.id) {
+        setRecipientStatus('typing');
+      }
+    };
+
+    const handleStopTyping = (data) => {
+      if (selectedUser && data.from === selectedUser.id) {
+        setRecipientStatus('online');
+      }
+    };
+
+    socket.on('user_status', handleStatusUpdate);
+    socket.on('user_typing', handleTyping);
+    socket.on('user_stop_typing', handleStopTyping);
     socket.on('messages_deleted', (d) => setMessages(prev => prev.filter(m => !d.messageIds.includes(m.id))));
     socket.on('message_updated', (u) => setMessages(prev => prev.map(m => m.id === u.id ? u : m)));
-    return () => { socket.off('messages_deleted'); socket.off('message_updated'); };
-  }, [socket]);
+    
+    return () => { 
+      socket.off('user_status', handleStatusUpdate);
+      socket.off('user_typing', handleTyping);
+      socket.off('user_stop_typing', handleStopTyping);
+      socket.off('messages_deleted'); 
+      socket.off('message_updated'); 
+    };
+  }, [socket, selectedUser]);
 
   useEffect(() => {
     if (!socket || !user) return;
@@ -245,12 +276,16 @@ function MessagesContent() {
         // Clear notifications from this sender
         clearNotificationsFromSender(selectedUser.id);
         setActiveChatId(selectedUser.id);
-        if (socket) socket.emit('join_chat', { targetId: selectedUser.id });
+        if (socket) {
+          socket.emit('join_chat', { targetId: selectedUser.id });
+          socket.emit('get_user_status', { targetId: selectedUser.id });
+        }
       } catch (err) {}
     };
     fetchMsgs();
     return () => {
       setActiveChatId(null);
+      setRecipientStatus('offline');
       if (socket) socket.emit('leave_chat');
     };
   }, [selectedUser, socket]);
@@ -357,7 +392,15 @@ function MessagesContent() {
                   <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl overflow-hidden border-2 border-background shadow-sm cursor-pointer" onClick={() => setViewingProfile(selectedUser)}>
                     {selectedUser.avatar ? <img src={getAvatar(selectedUser.avatar)} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/10 text-primary flex items-center justify-center font-bold">{(selectedUser.name || selectedUser.email).charAt(0).toUpperCase()}</div>}
                   </div>
-                  <div className="min-w-0"><h3 className="font-black text-foreground uppercase tracking-tight text-sm md:text-base truncate cursor-pointer" onClick={() => setViewingProfile(selectedUser)}>{selectedUser.name || selectedUser.email.split('@')[0]}</h3><p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> End-to-End Encrypted</p></div>
+                  <div className="min-w-0">
+                    <h3 className="font-black text-foreground uppercase tracking-tight text-sm md:text-base truncate cursor-pointer" onClick={() => setViewingProfile(selectedUser)}>
+                      {selectedUser.name || selectedUser.email.split('@')[0]}
+                    </h3>
+                    <p className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 transition-colors duration-300 ${recipientStatus === 'typing' ? 'text-primary' : recipientStatus === 'online' ? 'text-emerald-500' : 'text-muted-foreground'}`}>
+                      <span className={`w-1 h-1 rounded-full animate-pulse ${recipientStatus === 'offline' ? 'bg-muted-foreground' : 'bg-current'}`} /> 
+                      {recipientStatus === 'typing' ? 'Typing...' : recipientStatus === 'online' ? 'Online' : 'Offline'}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1.5 relative" ref={menuRef}>
                   <button 
@@ -401,7 +444,29 @@ function MessagesContent() {
               </div>
               <div className="p-4 md:px-10 md:pb-8">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-3 md:gap-4">
-                  <div className="flex-1 relative"><textarea ref={textareaRef} placeholder="Type your message..." value={newMessage} onChange={(e) => { setNewMessage(e.target.value); e.target.style.height = 'auto'; e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`; }} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }} className="w-full px-6 py-4 bg-muted border border-border rounded-[2rem] focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm min-h-[58px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar" /></div>
+                  <div className="flex-1 relative">
+                    <textarea 
+                      ref={textareaRef} 
+                      placeholder="Type your message..." 
+                      value={newMessage} 
+                      onChange={(e) => { 
+                        setNewMessage(e.target.value); 
+                        e.target.style.height = 'auto'; 
+                        e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                        
+                        // Typing indicator
+                        if (socket && selectedUser) {
+                          socket.emit('typing', { to: selectedUser.id });
+                          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+                          typingTimeoutRef.current = setTimeout(() => {
+                            socket.emit('stop_typing', { to: selectedUser.id });
+                          }, 2000);
+                        }
+                      }} 
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }} 
+                      className="w-full px-6 py-4 bg-muted border border-border rounded-[2rem] focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm min-h-[58px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar" 
+                    />
+                  </div>
                   <button type="submit" className="p-4 bg-primary text-white rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all"><Send className="w-5 h-5" /></button>
                 </form>
               </div>

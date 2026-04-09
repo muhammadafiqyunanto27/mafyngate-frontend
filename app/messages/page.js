@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import DashboardLayout from '../../components/DashboardLayout';
@@ -10,341 +10,257 @@ import {
   MoreVertical, 
   Phone, 
   Video, 
-  Smile, 
-  Paperclip, 
   User, 
   MessageSquare,
-  Check,
   CheckCheck,
-  Clock,
   ArrowLeft,
   Trash2,
   X,
-  Copy,
-  Edit2
+  EyeOff,
+  Eye,
+  Lock,
+  AlertCircle,
+  Mail,
+  Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 
 export default function MessagesPage() {
   const { user } = useAuth();
-  const { socket, startCall } = useSocket();
-  const [users, setUsers] = useState([]);
+  const { socket } = useSocket();
+  const [users, setUsers] = useState([]); // This stores the current active set (normal or hidden)
   const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedMessages, setSelectedMessages] = useState([]);
-  const [selectionMode, setSelectionMode] = useState(false);
-  const [editingMessage, setEditingMessage] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileView, setIsMobileView] = useState(false);
-  const [showChat, setShowChat] = useState(false); // For mobile responsiveness
+  const [showChat, setShowChat] = useState(false);
+  
+  const [showMenu, setShowMenu] = useState(false);
+  const [isHiddenMode, setIsHiddenMode] = useState(false);
+  const [lockModal, setLockModal] = useState({ open: false, type: 'check', title: '', target: null });
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isDeletingConvo, setIsDeletingConvo] = useState(false);
+  const [viewingProfile, setViewingProfile] = useState(null);
+
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const menuRef = useRef(null);
 
-
-  // Listen for real-time message deletions and edits
   useEffect(() => {
-    if (socket) {
-      socket.on('messages_deleted', (data) => {
-        const { messageIds } = data;
-        setMessages(prev => prev.filter(m => !messageIds.includes(m.id)));
-        setSelectedMessages(prev => prev.filter(id => !messageIds.includes(id)));
-      });
-      
-      socket.on('message_updated', (updatedMsg) => {
-        setMessages(prev => prev.map(m => m.id === updatedMsg.id ? updatedMsg : m));
-      });
-
-      return () => {
-        socket.off('messages_deleted');
-        socket.off('message_updated');
-      };
-    }
-  }, [socket]);
-
-  const handleCopyMessage = (content) => {
-    navigator.clipboard.writeText(content);
-    // Could add a toast here
-  };
-
-  const handleStartEdit = (msg) => {
-    setEditingMessage(msg);
-    setNewMessage(msg.content);
-    textareaRef.current?.focus();
-    // Trigger height recalculation
-    setTimeout(() => {
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
-      }
-    }, 0);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingMessage(null);
-    setNewMessage('');
-    if (textareaRef.current) textareaRef.current.style.height = '56px';
-  };
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !selectedUser || !socket) return;
-
-    if (editingMessage) {
-      try {
-        const res = await api.patch('/user/chat/message', { 
-          messageId: editingMessage.id, 
-          content: newMessage 
-        });
-        const updated = res.data.data;
-        
-        // Update local state
-        setMessages(prev => prev.map(m => m.id === updated.id ? updated : m));
-        
-        // Broadcast
-        socket.emit('edit_message', { 
-          message: updated, 
-          receiverId: selectedUser.id,
-          conversationId: updated.conversationId 
-        });
-
-        setEditingMessage(null);
-        setNewMessage('');
-      } catch (err) {
-        console.error('Edit failed:', err);
-      }
-    } else {
-      socket.emit('send_message', {
-        content: newMessage,
-        receiverId: selectedUser.id,
-        conversationId: 'temp_id', // Would be real in full implementation
-      });
-      setNewMessage('');
-    }
-
-    // Reset textarea height
-    if (textareaRef.current) {
-      textareaRef.current.style.height = '56px';
-    }
-  };
-
-  const toggleMessageSelection = (id) => {
-    if (selectedMessages.includes(id)) {
-      setSelectedMessages(prev => prev.filter(mId => mId !== id));
-    } else {
-      setSelectedMessages(prev => [...prev, id]);
-    }
-  };
-
-  const handleDeleteMessages = async () => {
-    if (selectedMessages.length === 0) return;
-    try {
-      await api.delete('/user/chat/messages', { data: { messageIds: selectedMessages } });
-      
-      // Update local state
-      setMessages(prev => prev.filter(m => !selectedMessages.includes(m.id)));
-      
-      if (socket && selectedUser) {
-        // We calculate conversationId or just use the current room
-        const convoId = messages.find(m => m.id === selectedMessages[0])?.conversationId;
-        socket.emit('delete_messages', { 
-          messageIds: selectedMessages, 
-          conversationId: convoId,
-          receiverId: selectedUser.id
-        });
-      }
-      
-      setSelectedMessages([]);
-      setSelectionMode(false);
-    } catch (err) {
-      console.error('Delete failed:', err);
-    }
-  };
-
-
-
-  // Fetch connections and handle initial setup
-  useEffect(() => {
-    const fetchConnections = async () => {
-      try {
-        const res = await api.get('/user/connections');
-        const connUsers = res.data.data;
-        setUsers(connUsers);
-        
-        // Handle auto-select user from URL using Native API (fix build issue)
-        if (typeof window !== 'undefined') {
-          const searchParams = new URLSearchParams(window.location.search);
-          const userIdToSelect = searchParams.get('userId');
-          if (userIdToSelect) {
-            const foundUser = connUsers.find(u => u.id === userIdToSelect);
-            if (foundUser) {
-              setSelectedUser(foundUser);
-              if (isMobileView) setShowChat(true);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch connections:', err);
-      }
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
     };
-    fetchConnections();
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
+  const fetchConnections = async () => {
+    try {
+      // isHiddenMode flag in API is not needed if we handle it correctly here
+      const res = await api.get('/user/connections');
+      setUsers(res.data.data);
+    } catch (err) { console.error(err); }
+  };
+
+  useEffect(() => {
+    fetchConnections();
     const handleResize = () => setIsMobileView(window.innerWidth < 768);
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [isMobileView]);
+  }, []);
+
+  // NEW SEARCH LOGIC: Handles 3 cases
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery.trim()) return users;
+    
+    // If we are currently in hidden mode, filter the hidden list
+    // Otherwise, filter the normal list (checking for password match happens in another effect)
+    return users.filter(u => 
+      (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [users, searchQuery]);
 
   useEffect(() => {
-    if (socket && user) {
-      socket.on('receive_message', (message) => {
-        if (selectedUser && (message.senderId === selectedUser.id || message.senderId === user.id)) {
-          setMessages((prev) => {
-            if (prev.some(m => m.id === message.id)) return prev;
-            return [...prev, message];
-          });
-        }
-      });
-
-      socket.on('message_sent', (message) => {
-        setMessages((prev) => {
-          if (prev.some(m => m.id === message.id)) return prev;
-          return [...prev, message];
-        });
-      });
-
-      return () => {
-        socket.off('receive_message');
-        socket.off('message_sent');
-      };
+    if (searchQuery.length >= 4 && !isHiddenMode) {
+      handleUnlockAttempt(searchQuery);
+    } else if (isHiddenMode && searchQuery === '') {
+      setIsHiddenMode(false);
+      fetchConnections();
     }
+  }, [searchQuery, isHiddenMode]);
+
+  const handleUnlockAttempt = async (pwd) => {
+    try {
+      const res = await api.post('/user/chat/unlock', { password: pwd });
+      if (res.data.success) {
+        setUsers(res.data.data);
+        setIsHiddenMode(true);
+        setSearchQuery(''); // Clear search after unlock so we see ALL hidden chats
+        if (navigator.vibrate) navigator.vibrate(50);
+      }
+    } catch (err) {
+      // Silent fail - probably just a normal search query
+    }
+  };
+
+  const handleDeleteConversation = async () => {
+    if (!selectedUser) return;
+    try {
+      await api.delete(`/user/chat/conversation/${selectedUser.id}`);
+      setMessages([]); setSelectedUser(null); setIsDeletingConvo(false);
+      fetchConnections();
+    } catch (err) {}
+  };
+
+  const handleToggleHide = async () => {
+    if (!selectedUser) return;
+    try {
+      if (isHiddenMode) {
+        await api.post('/user/chat/hide', { targetId: selectedUser.id, hide: false });
+        // No password needed here because we are already in hide mode, but for safety let's just refresh connections
+        setIsHiddenMode(false);
+        fetchConnections();
+        setShowMenu(false);
+        setSelectedUser(null);
+      } else {
+        if (!user.chatLockPassword) {
+          setLockModal({ open: true, type: 'set', title: 'Set Lock Password', target: selectedUser.id });
+          return;
+        }
+        await api.post('/user/chat/hide', { targetId: selectedUser.id, hide: true });
+        setSelectedUser(null); setShowMenu(false); fetchConnections();
+      }
+    } catch (err) {}
+  };
+
+  const handleSetPassword = async () => {
+    if (password.length < 4) { setError('Min 4 chars'); return; }
+    try {
+      await api.post('/user/chat/lock-password', { password });
+      if (lockModal.target) await api.post('/user/chat/hide', { targetId: lockModal.target, hide: true });
+      setLockModal({ open: false, type: 'check', title: '', target: null });
+      setPassword(''); setSelectedUser(null); fetchConnections();
+    } catch (err) { setError('Failed'); }
+  };
+
+  const handleResetHidden = async () => {
+    if (!confirm('Confirm wipe?')) return;
+    try {
+      await api.delete('/user/chat/lock-reset');
+      setIsHiddenMode(false);
+      setLockModal({ open: false, type: 'check', title: '', target: null });
+      fetchConnections();
+    } catch (err) {}
+  };
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on('messages_deleted', (d) => setMessages(prev => prev.filter(m => !d.messageIds.includes(m.id))));
+    socket.on('message_updated', (u) => setMessages(prev => prev.map(m => m.id === u.id ? u : m)));
+    return () => { socket.off('messages_deleted'); socket.off('message_updated'); };
+  }, [socket]);
+
+  useEffect(() => {
+    if (!socket || !user) return;
+    const handleReceive = (m) => {
+        if (selectedUser && (m.senderId === selectedUser.id || m.senderId === user.id)) {
+          setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
+        }
+    };
+    const handleSent = (m) => setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
+    socket.on('receive_message', handleReceive);
+    socket.on('message_sent', handleSent);
+    return () => { socket.off('receive_message'); socket.off('message_sent'); };
   }, [socket, selectedUser, user?.id]);
 
   useEffect(() => {
-    const fetchMessages = async () => {
+    const fetchMsgs = async () => {
       if (!selectedUser) return;
       try {
         const res = await api.get(`/user/chat/messages/${selectedUser.id}`);
         setMessages(res.data.data);
-        
-        // Mark as read (Database)
         await api.patch(`/user/chat/read/${selectedUser.id}`);
-        
-        // Update Navbar badge (Socket)
-        if (socket) {
-          socket.emit('mark_read', { senderId: selectedUser.id });
-        }
-      } catch (err) {
-        console.error('Failed to fetch messages:', err);
-      }
+        if (socket) socket.emit('mark_read', { senderId: selectedUser.id });
+      } catch (err) {}
     };
-    fetchMessages();
-  }, [selectedUser]);
-
-  const isInitialLoad = useRef(true);
-
-  useEffect(() => {
-    isInitialLoad.current = true;
+    fetchMsgs();
   }, [selectedUser]);
 
   useEffect(() => {
     if (messages.length > 0 && messagesEndRef.current) {
-      if (isInitialLoad.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
-        isInitialLoad.current = false;
-      } else {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-      }
+        messagesEndRef.current.scrollIntoView({ behavior: isInitialLoad ? 'auto' : 'smooth' });
+        if (isInitialLoad) setIsInitialLoad(false);
     }
-  }, [messages]);
+  }, [messages, isInitialLoad]);
 
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !selectedUser || !socket) return;
+    socket.emit('send_message', { content: newMessage, receiverId: selectedUser.id });
+    setNewMessage('');
+    if (textareaRef.current) textareaRef.current.style.height = '56px';
+  };
 
-
-  const filteredUsers = users.filter(u => 
-    (u.name || u.email).toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const getAvatarUrl = (avatar) => {
+  const getAvatar = (avatar) => {
     if (!avatar) return null;
     return avatar.startsWith('http') ? avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${avatar}`;
   };
 
   return (
     <DashboardLayout pageTitle="Messages" fullWidth>
-      <div className="h-[calc(100vh-4rem)] bg-card flex overflow-hidden">
+      <div className="h-[calc(100vh-4rem)] bg-card flex overflow-hidden selection:bg-primary/30">
         
-        {/* User List Sidebar */}
-        <div className={`${isMobileView && showChat ? 'hidden' : 'flex'} w-full md:w-80 lg:w-96 border-r border-border flex-col bg-muted/10`}>
+        {/* Sidebar */}
+        <div className={`${isMobileView && showChat ? 'hidden' : 'flex'} w-full md:w-80 lg:w-96 border-r border-border flex-col bg-muted/5`}>
           <div className="p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">Chats</h2>
-              <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                <MessageSquare className="w-5 h-5" />
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">{isHiddenMode ? 'Hidden Chats' : 'Chat Inbox'}</h2>
+                {isHiddenMode && <Lock className="w-4 h-4 text-primary animate-pulse" />}
               </div>
+              <div className={`p-2.5 rounded-xl ${isHiddenMode ? 'bg-primary text-white shadow-lg' : 'bg-primary/10 text-primary'}`}><MessageSquare className="w-5 h-5" /></div>
             </div>
             
             <div className="relative group">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
-                <Search className="w-4 h-4" />
-              </div>
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"><Search className="w-4 h-4" /></div>
               <input 
-                type="text"
-                placeholder="Search conversations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                autoComplete="off"
-                suppressHydrationWarning
-                className="w-full pl-12 pr-4 py-3 bg-muted border border-border rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-medium"
+                type="text" 
+                placeholder={isHiddenMode ? 'Search hidden...' : 'Search chats...'} 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)} 
+                className="w-full pl-12 pr-4 py-3 bg-muted border border-border rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm" 
               />
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-1 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-2 custom-scrollbar focus:outline-none">
             {filteredUsers.length === 0 ? (
-              <div className="text-center py-12 px-6">
-                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4 opacity-50">
-                    <User className="w-8 h-8 text-muted-foreground" />
-                 </div>
-                 <p className="text-sm font-bold text-muted-foreground">No users found</p>
+              <div className="text-center py-12 px-6 opacity-40">
+                <User className="w-10 h-10 mx-auto mb-3" />
+                <p className="text-xs font-black uppercase tracking-widest">{searchQuery ? 'No results matches' : 'No conversations found'}</p>
               </div>
             ) : (
               filteredUsers.map((u) => (
                 <button
                   key={u.id}
-                  onClick={() => {
-                    setSelectedUser(u);
-                    setMessages([]); // Real implementation would fetch history
-                    if (isMobileView) setShowChat(true);
-                  }}
-                  className={`w-full p-4 rounded-[1.5rem] flex items-center gap-4 transition-all group ${selectedUser?.id === u.id ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-[1.02]' : 'hover:bg-muted'}`}
+                  onClick={() => { if (selectedUser?.id !== u.id) { setMessages([]); setIsInitialLoad(true); } setSelectedUser(u); if (isMobileView) setShowChat(true); }}
+                  className={`w-full p-4 rounded-3xl flex items-center gap-4 transition-all group ${selectedUser?.id === u.id ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'hover:bg-muted'}`}
                 >
-                  <div className="relative">
-                    <div className={`w-12 h-12 rounded-2xl overflow-hidden border-2 flex-shrink-0 ${selectedUser?.id === u.id ? 'border-primary-foreground/30' : 'border-background shadow-sm'}`}>
-                      {u.avatar ? (
-                        <img src={getAvatarUrl(u.avatar)} className="w-full h-full object-cover" alt="" />
-                      ) : (
-                        <div className={`w-full h-full flex items-center justify-center font-bold text-lg ${selectedUser?.id === u.id ? 'bg-white/20' : 'bg-primary/10 text-primary'}`}>
-                          {(u.name || u.email).charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 ${selectedUser?.id === u.id ? 'bg-emerald-400 border-primary' : 'bg-emerald-500 border-background'}`}></div>
+                  <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-background shadow-sm shrink-0" onClick={(e) => { e.stopPropagation(); setViewingProfile(u); }}>
+                    {u.avatar ? <img src={getAvatar(u.avatar)} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center font-bold bg-primary/10 text-primary">{(u.name || u.email).charAt(0).toUpperCase()}</div>}
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <div className="flex justify-between items-start mb-0.5">
-                      <p className={`font-bold truncate text-sm ${selectedUser?.id === u.id ? 'text-white' : 'text-foreground'}`}>
-                        {u.name || u.email.split('@')[0]}
-                      </p>
-                      {u.lastMessage && (
-                        <span className={`text-[10px] font-medium opacity-60 flex-shrink-0 ${selectedUser?.id === u.id ? 'text-white' : 'text-muted-foreground'}`}>
-                          {new Date(u.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      )}
+                    <div className="flex justify-between items-center mb-0.5">
+                      <p className="font-bold truncate text-sm">{u.name || u.email.split('@')[0]}</p>
+                      {u.lastMessage && <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{new Date(u.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
                     </div>
-                    <p className={`text-xs truncate font-medium opacity-70 ${selectedUser?.id === u.id ? 'text-white/80' : 'text-muted-foreground'}`}>
-                      {u.lastMessage ? u.lastMessage.content : 'Click to start conversation...'}
-                    </p>
+                    <p className="text-xs truncate font-medium opacity-60 italic">{u.lastMessage ? u.lastMessage.content : 'Start chatting...'}</p>
                   </div>
                 </button>
               ))
@@ -352,261 +268,100 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        {/* Chat Window */}
-        <div className={`${isMobileView && !showChat ? 'hidden' : 'flex'} flex-1 flex-col bg-card relative min-w-0 overflow-hidden`}>
+        {/* Chat Area */}
+        <div className={`${isMobileView && !showChat ? 'hidden' : 'flex'} flex-1 flex-col bg-card relative overflow-hidden`}>
           {selectedUser ? (
             <>
-              {/* Chat Header */}
-              <div className="p-4 md:p-6 border-b border-border flex items-center justify-between bg-muted/5 backdrop-blur-md sticky top-0 z-10">
+              <div className="p-4 md:p-6 border-b border-border flex items-center justify-between bg-background/50 backdrop-blur-md z-30">
                 <div className="flex items-center gap-4 min-w-0">
-                  {isMobileView && (
-                    <button onClick={() => setShowChat(false)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground transition-all">
-                       <ArrowLeft className="w-5 h-5" />
-                    </button>
-                  )}
-                  <div className="relative">
-                    <div className="w-10 md:w-12 h-10 md:h-12 rounded-2xl overflow-hidden border-2 border-background shadow-sm">
-                      {selectedUser.avatar ? (
-                        <img src={getAvatarUrl(selectedUser.avatar)} className="w-full h-full object-cover" alt="" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center font-bold bg-primary/10 text-primary">
-                          {(selectedUser.name || selectedUser.email).charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-background"></div>
+                  {isMobileView && <button onClick={() => setShowChat(false)} className="p-2 mr-1"><ArrowLeft className="w-5 h-5" /></button>}
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl overflow-hidden border-2 border-background shadow-sm cursor-pointer" onClick={() => setViewingProfile(selectedUser)}>
+                    {selectedUser.avatar ? <img src={getAvatar(selectedUser.avatar)} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/10 text-primary flex items-center justify-center font-bold">{(selectedUser.name || selectedUser.email).charAt(0).toUpperCase()}</div>}
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="font-black text-foreground truncate uppercase tracking-tight text-sm md:text-base">
-                      {selectedUser.name || selectedUser.email.split('@')[0]}
-                    </h3>
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <p className="text-[10px] md:text-xs text-emerald-500 font-bold uppercase tracking-widest">Online Now</p>
-                    </div>
-                  </div>
+                  <div className="min-w-0"><h3 className="font-black text-foreground uppercase tracking-tight text-sm md:text-base truncate cursor-pointer" onClick={() => setViewingProfile(selectedUser)}>{selectedUser.name || selectedUser.email.split('@')[0]}</h3><p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> End-to-End Encrypted</p></div>
                 </div>
-                <div className="flex items-center gap-1">
-                  {selectionMode ? (
-                    <div className="flex items-center gap-2">
-                       <span className="text-[10px] font-black uppercase text-primary bg-primary/10 px-2 py-1 rounded-lg">
-                         {selectedMessages.length} Selected
-                       </span>
-                       <button 
-                         onClick={handleDeleteMessages}
-                         disabled={selectedMessages.length === 0}
-                         className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all disabled:opacity-50"
-                         title="Delete Selected"
-                       >
-                         <Trash2 className="w-4 h-4" />
-                       </button>
-                       <button 
-                         onClick={() => { setSelectionMode(false); setSelectedMessages([]); }}
-                         className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all"
-                       >
-                         <X className="w-4 h-4" />
-                       </button>
-                    </div>
-                  ) : (
-                    <>
-                      <button 
-                        onClick={() => startCall(selectedUser.id, 'voice')}
-                        className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all group"
-                        title="Voice Call"
-                      >
-                        <Phone className="w-4 h-4 group-hover:text-primary transition-colors" />
-                      </button>
-                      <button 
-                        onClick={() => startCall(selectedUser.id, 'video')}
-                        className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all group"
-                        title="Video Call"
-                      >
-                        <Video className="w-4 h-4 group-hover:text-primary transition-colors" />
-                      </button>
-                      <button 
-                        onClick={() => setSelectionMode(true)}
-                        className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all group"
-                        title="Manage Messages"
-                      >
-                        <MessageSquare className="w-4 h-4 group-hover:text-primary transition-colors" />
-                      </button>
-                      <button className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all">
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-                    </>
-                  )}
+                <div className="flex items-center gap-1.5 relative" ref={menuRef}>
+                  <button onClick={() => setShowMenu(!showMenu)} className={`p-2.5 rounded-xl transition-all ${showMenu ? 'bg-primary text-white shadow-lg' : 'hover:bg-muted text-muted-foreground'}`}><MoreVertical className="w-4 h-4" /></button>
+                  <AnimatePresence>
+                    {showMenu && (
+                      <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} className="absolute right-0 top-14 w-56 bg-card border border-border rounded-2xl shadow-2xl z-[100] p-1.5">
+                        <button onClick={() => { setViewingProfile(selectedUser); setShowMenu(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted transition-all text-xs font-bold uppercase tracking-wide text-foreground group"><User className="w-4 h-4 text-primary" /> View Profile</button>
+                        <button onClick={handleToggleHide} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-xs font-bold uppercase tracking-wide group ${isHiddenMode ? 'hover:bg-emerald-500/10 text-emerald-500' : 'hover:bg-indigo-500/10 text-indigo-500'}`}>{isHiddenMode ? <><Eye className="w-4 h-4" /> Unhide Chat</> : <><EyeOff className="w-4 h-4" /> Hide Conversation</>}</button>
+                        <div className="h-px bg-border my-1 mx-2" /><button onClick={() => setIsDeletingConvo(true)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-rose-500/10 transition-all text-xs font-bold uppercase tracking-wide text-rose-500"><Trash2 className="w-4 h-4" /> Delete Chat</button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
-
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 space-y-6 custom-scrollbar bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
-                {messages.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-40">
-                    <div className="p-4 rounded-full bg-muted">
-                        <MessageSquare className="w-10 h-10 text-primary" />
+              <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 custom-scrollbar bg-card/10">
+                {messages.map((msg, i) => {
+                  const isMine = msg.senderId === user?.id;
+                  return (
+                    <div key={msg.id || i} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[85%] md:max-w-[70%] px-5 py-3.5 rounded-3xl shadow-sm text-sm font-medium break-words whitespace-pre-wrap ${isMine ? 'bg-primary text-white rounded-br-none shadow-primary/20' : 'bg-muted/50 text-foreground rounded-bl-none border border-border'}`}>
+                        {msg.content}<div className={`text-[9px] font-black uppercase mt-1.5 flex items-center gap-1 justify-end opacity-50 ${isMine ? 'text-white' : 'text-muted-foreground'}`}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{isMine && <CheckCheck className="w-3 h-3" />}</div>
+                      </div>
                     </div>
-                    <p className="text-sm font-black uppercase tracking-widest">End-to-End Encrypted</p>
-                  </div>
-                ) : (
-                  messages.map((msg, i) => {
-                    const isMine = msg.senderId === user?.id;
-                    const isSelected = selectedMessages.includes(msg.id);
-                    
-                    return (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        key={msg.id || i}
-                        className={`flex group/msg relative mb-2 ${isMine ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div className={`max-w-[92%] md:max-w-[80%] min-w-0 flex gap-3 ${isMine ? 'flex-row-reverse items-end' : 'items-start'}`}>
-                          
-                          {/* Selection Checkbox */}
-                          {selectionMode && isMine && (
-                            <button 
-                              onClick={() => toggleMessageSelection(msg.id)}
-                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 mb-3 ${
-                                isSelected ? 'bg-primary border-primary text-white scale-110 shadow-lg' : 'border-muted-foreground/30 hover:border-primary'
-                              }`}
-                            >
-                               {isSelected && <Check className="w-3 h-3 stroke-[4px]" />}
-                            </button>
-                          )}
-
-                          <div className="relative group">
-                            {/* Message Toolbar */}
-                            {!selectionMode && (
-                              <div className={`absolute -top-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20 ${isMine ? 'right-0' : 'left-0'}`}>
-                                <button 
-                                  onClick={() => handleCopyMessage(msg.content)}
-                                  className="p-2 rounded-lg bg-card border border-border shadow-md hover:bg-muted text-muted-foreground transition-all"
-                                  title="Copy"
-                                >
-                                  <Copy className="w-3.5 h-3.5" />
-                                </button>
-                                {isMine && (
-                                  <button 
-                                    onClick={() => handleStartEdit(msg)}
-                                    className="p-2 rounded-lg bg-card border border-border shadow-md hover:bg-muted text-muted-foreground transition-all"
-                                    title="Edit"
-                                  >
-                                    <Edit2 className="w-3.5 h-3.5" />
-                                  </button>
-                                )}
-                              </div>
-                            )}
-
-                            <div 
-                              onClick={() => selectionMode && isMine && toggleMessageSelection(msg.id)}
-                              className={`px-5 py-3 rounded-[1.25rem] shadow-sm relative transition-all cursor-default ${
-                                selectionMode && isMine ? 'cursor-pointer hover:ring-2 hover:ring-primary/20' : ''
-                              } ${
-                                isMine 
-                                ? `bg-primary text-white rounded-br-none shadow-primary/20 ${isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}` 
-                                : 'bg-muted/80 text-foreground rounded-bl-none border border-border'
-                              }`}
-                            >
-                              <p className="text-sm font-medium leading-relaxed break-all whitespace-pre-wrap">{msg.content}</p>
-                              <div className={`flex items-center gap-1.5 mt-1 justify-end opacity-60 ${isMine ? 'text-white' : 'text-muted-foreground'}`}>
-                                 {msg.isEdited && <span className="text-[9px] font-bold uppercase italic">Edited</span>}
-                                 <span className="text-[10px] font-bold uppercase">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                 {isMine && <CheckCheck className="w-3 h-3" />}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )
-                  })
-                )}
+                  );
+                })}
                 <div ref={messagesEndRef} />
               </div>
-
-              {/* Message Input */}
-              <div className="p-4 md:pt-6 md:pb-8 md:px-10 border-t border-border bg-card">
-                <AnimatePresence>
-                  {editingMessage && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="mb-4 p-3 bg-primary/10 rounded-2xl flex items-center justify-between border border-primary/20"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-primary/20 text-primary">
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black uppercase text-primary tracking-widest">Editing Message</p>
-                          <p className="text-xs text-muted-foreground truncate max-w-[200px] font-medium">{editingMessage.content}</p>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={handleCancelEdit}
-                        className="p-2 rounded-xl hover:bg-primary/20 text-primary transition-all"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
+              <div className="p-4 md:px-10 md:pb-8">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-3 md:gap-4">
-                  <div className="flex gap-1 md:gap-2">
-                    <button type="button" className="p-3 rounded-2xl hover:bg-muted text-muted-foreground transition-all">
-                      <Paperclip className="w-5 h-5" />
-                    </button>
-                    <button type="button" className="hidden sm:flex p-3 rounded-2xl hover:bg-muted text-muted-foreground transition-all">
-                      <Smile className="w-5 h-5" />
-                    </button>
-                  </div>
-                  
-                  <div className="flex-1 relative">
-                    <textarea 
-                      ref={textareaRef}
-                      placeholder="Type a message..."
-                      value={newMessage}
-                      onChange={(e) => {
-                        setNewMessage(e.target.value);
-                        e.target.style.height = 'auto';
-                        e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendMessage(e);
-                        }
-                      }}
-                      rows={1}
-                      autoComplete="off"
-                      suppressHydrationWarning
-                      className="w-full px-6 py-4 bg-muted border border-border rounded-[1.5rem] focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-sm pr-12 resize-none overflow-y-auto custom-scrollbar leading-tight min-h-[56px] max-h-[120px]"
-                    />
-                  </div>
-
-                  <button 
-                    type="submit"
-                    disabled={!newMessage.trim()}
-                    className={`p-4 rounded-2xl text-white shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center justify-center ${editingMessage ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-primary shadow-primary/30'}`}
-                  >
-                    {editingMessage ? <Check className="w-5 h-5" /> : <Send className="w-5 h-5" />}
-                  </button>
+                  <div className="flex-1 relative"><textarea ref={textareaRef} placeholder="Type your message..." value={newMessage} onChange={(e) => { setNewMessage(e.target.value); e.target.style.height = 'auto'; e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`; }} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }} className="w-full px-6 py-4 bg-muted border border-border rounded-[2rem] focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm min-h-[58px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar" /></div>
+                  <button type="submit" className="p-4 bg-primary text-white rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all"><Send className="w-5 h-5" /></button>
                 </form>
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
-              <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-tr from-primary/20 to-indigo-500/20 flex items-center justify-center mb-8 animate-pulse">
-                <MessageSquare className="w-12 h-12 text-primary" />
-              </div>
-              <h2 className="text-3xl font-black text-foreground uppercase tracking-tight mb-3">Your Messages</h2>
-              <p className="text-muted-foreground max-w-sm text-sm font-medium leading-relaxed">
-                Pilih pengguna dari daftar di sebelah kiri untuk mulai mengobrol secara real-time.
-              </p>
-            </div>
+             <div className="flex-1 flex flex-col items-center justify-center p-8 opacity-20"><MessageSquare className="w-16 h-16 mb-6" /><p className="text-xs font-black uppercase tracking-widest italic">Chat Standby</p></div>
           )}
         </div>
       </div>
+
+      <AnimatePresence>
+        {/* Profile Modal */}
+        {viewingProfile && (
+           <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setViewingProfile(null)} className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" />
+             <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative bg-card border border-border w-full max-w-[280px] overflow-hidden rounded-[2.5rem] shadow-2xl">
+               <div className="h-20 bg-gradient-to-r from-primary to-indigo-600 relative"><button onClick={() => setViewingProfile(null)} className="absolute top-4 right-4 p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-all"><X className="w-4 h-4" /></button></div>
+               <div className="px-5 pb-6 text-center -mt-10">
+                 <div className="relative inline-block"><div className="w-20 h-20 rounded-[1.5rem] border-4 border-background overflow-hidden bg-muted shadow-lg">{viewingProfile.avatar ? <img src={getAvatar(viewingProfile.avatar)} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl font-bold bg-primary text-white">{(viewingProfile.name || viewingProfile.email).charAt(0).toUpperCase()}</div>}</div><div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-background shadow-sm"></div></div>
+                 <h2 className="text-lg font-black mt-2 uppercase tracking-tight truncate px-2">{viewingProfile.name || 'Anonymous'}</h2><p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60 mb-6 truncate px-4">{viewingProfile.email}</p>
+                 <div className="grid grid-cols-2 gap-2 mb-6"><div className="p-2 bg-muted/50 rounded-2xl border border-border"><p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Status</p><p className="text-[9px] font-bold text-emerald-500 uppercase">Available</p></div><div className="p-2 bg-muted/50 rounded-2xl border border-border"><p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Mutuals</p><p className="text-[9px] font-bold uppercase truncate">Connected</p></div></div>
+                 <div className="space-y-2 text-left"><div className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border border-border/50"><Mail className="w-4 h-4 text-primary shrink-0" /><div className="min-w-0"><p className="text-[7px] font-black uppercase text-muted-foreground">Email</p><p className="text-[10px] font-bold truncate">{viewingProfile.email}</p></div></div></div>
+                 <button onClick={() => setViewingProfile(null)} className="w-full mt-6 py-3 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Close</button>
+               </div>
+             </motion.div>
+           </div>
+        )}
+
+        {lockModal.open && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setLockModal({ ...lockModal, open: false })} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl">
+              <div className="w-16 h-16 rounded-3xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6"><Lock className="w-8 h-8" /></div>
+              <h2 className="text-xl font-black text-center uppercase tracking-tight mb-2">{lockModal.title}</h2>
+              <div className="space-y-4">
+                <input type="password" placeholder="Min 4 chars" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-6 py-4 bg-muted border border-border rounded-2xl focus:border-primary text-center font-black tracking-widest" />
+                {error && <p className="text-[10px] text-rose-500 font-bold uppercase text-center">{error}</p>}
+                <button onClick={handleSetPassword} className="w-full bg-primary text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl hover:scale-[1.02] active:scale-95 transition-all">Secure Chat</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+        {isDeletingConvo && (
+           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDeletingConvo(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl">
+               <div className="w-16 h-16 rounded-3xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto mb-6"><AlertCircle className="w-8 h-8" /></div>
+               <h2 className="text-xl font-black text-center uppercase tracking-tight mb-2">Delete Chat?</h2>
+               <div className="space-y-3"><button onClick={handleDeleteConversation} className="w-full bg-rose-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl">Wipe History</button><button onClick={() => setIsDeletingConvo(false)} className="w-full text-foreground/50 text-[10px] font-black uppercase tracking-widest mt-2 hover:text-foreground text-center">Cancel</button></div>
+             </motion.div>
+           </div>
+        )}
+      </AnimatePresence>
     </DashboardLayout>
   );
 }

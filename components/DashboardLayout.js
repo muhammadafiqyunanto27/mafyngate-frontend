@@ -1,13 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { motion } from 'framer-motion';
 
 export default function DashboardLayout({ children, pageTitle = 'Dashboard', fullWidth = false }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Default to closed as requested (true means collapsed)
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Persistence logic: Retrieve from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('mafyn_sidebar_collapsed');
+    if (saved !== null) {
+      setIsCollapsed(JSON.parse(saved));
+    }
+    setIsMounted(true);
+  }, []);
+
+  // Update localStorage whenever isCollapsed changes (after initial mount)
+  const handleToggleCollapse = (value) => {
+    setIsCollapsed(value);
+    localStorage.setItem('mafyn_sidebar_collapsed', JSON.stringify(value));
+  };
 
   return (
     <div className="flex h-screen bg-background overflow-hidden relative selection:bg-primary/30">
@@ -20,7 +37,7 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
 
       <Sidebar 
         isCollapsed={isCollapsed} 
-        setIsCollapsed={setIsCollapsed} 
+        setIsCollapsed={handleToggleCollapse} 
         isMobileOpen={isMobileOpen} 
         setIsMobileOpen={setIsMobileOpen} 
       />
@@ -31,7 +48,7 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
           pageTitle={pageTitle} 
         />
 
-        <main className={`flex-1 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar ${fullWidth ? 'p-0' : 'p-4 md:p-6 lg:p-10'}`}>
+        <main className={`flex-1 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar ${fullWidth ? 'p-0' : 'p-0 md:p-6 lg:p-10'}`}>
           <motion.div
             initial={{ opacity: 0, y: fullWidth ? 0 : 20, scale: fullWidth ? 1 : 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

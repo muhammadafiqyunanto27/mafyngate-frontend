@@ -120,30 +120,30 @@ export default function TodoList() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-           <button 
-             onClick={handleClearAll}
-             className="p-2.5 rounded-xl hover:bg-rose-500/10 text-muted-foreground hover:text-rose-500 transition-all group"
-             title="Hapus Semua"
-           >
-             <Trash2 className="w-5 h-5" />
-           </button>
-           <div className="font-black text-[10px] uppercase bg-primary text-white px-3 py-1.5 rounded-lg shadow-lg shadow-primary/20">
-             {todos.filter(t => !t.completed).length}
-           </div>
+          <button
+            onClick={handleClearAll}
+            className="p-2.5 rounded-xl hover:bg-rose-500/10 text-muted-foreground hover:text-rose-500 transition-all group"
+            title="Hapus Semua"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
+          <div className="font-black text-[10px] uppercase bg-primary text-white px-3 py-1.5 rounded-lg shadow-lg shadow-primary/20">
+            {todos.filter(t => !t.completed).length}
+          </div>
         </div>
       </div>
-      
+
       <div className="px-5 md:px-12 py-8 space-y-8">
         <form onSubmit={addTodo} className="relative group">
-          <input 
-            type="text" 
-            placeholder="Ada tugas apa hari ini?" 
+          <input
+            type="text"
+            placeholder="Ada tugas apa hari ini?"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full px-6 py-4 bg-muted border border-border rounded-xl md:rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-bold text-sm pr-16"
           />
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={!title.trim()}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-primary text-white rounded-xl hover:bg-primary-600 disabled:opacity-30 transition-all active:scale-95 shadow-lg shadow-primary/20"
           >
@@ -151,21 +151,21 @@ export default function TodoList() {
           </button>
         </form>
 
-        <div 
-          className="max-h-[550px] overflow-y-auto pr-2 custom-scrollbar" 
+        <div
+          className="max-h-[550px] overflow-y-auto pr-2 custom-scrollbar"
           style={{ scrollbarGutter: 'stable' }}
         >
-          <Reorder.Group 
-            axis="y" 
-            values={todos} 
-            onReorder={setTodos} 
+          <Reorder.Group
+            axis="y"
+            values={todos}
+            onReorder={setTodos}
             className="flex flex-col gap-4"
           >
             <AnimatePresence mode="popLayout" initial={false}>
               {todos.length === 0 ? (
-                <motion.div 
-                  initial={{ opacity: 0 }} 
-                  animate={{ opacity: 1 }} 
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   className="text-center py-12 px-6 bg-muted/10 rounded-3xl border border-dashed border-border"
                 >
                   <p className="text-sm font-bold text-muted-foreground opacity-50 uppercase tracking-widest">Chill Day! No tasks found.</p>
@@ -200,7 +200,7 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
   };
 
   return (
-    <Reorder.Item 
+    <Reorder.Item
       value={todo}
       dragListener={false}
       dragControls={controls}
@@ -208,7 +208,7 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
       initial={{ opacity: 0, scale: 0.98, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: -10 }}
-      whileDrag={{ 
+      whileDrag={{
         scale: 1.02,
         zIndex: 50,
         boxShadow: "0 30px 60px -12px rgb(0 0 0 / 0.4)"
@@ -219,11 +219,10 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
         damping: 30,
         mass: 1
       }}
-      className={`relative group flex items-center gap-4 p-4 md:p-5 rounded-2xl border transition-colors select-none cursor-default ${
-        todo.completed 
-          ? 'bg-muted/10 border-transparent opacity-60' 
+      className={`relative group flex items-center gap-4 p-4 md:p-5 rounded-2xl border transition-colors select-none cursor-default ${todo.completed
+          ? 'bg-muted/10 border-transparent opacity-60'
           : 'bg-card border-border shadow-md hover:border-primary/40'
-      }`}
+        }`}
       onContextMenu={(e) => {
         if (window.innerWidth < 768) {
           e.preventDefault();
@@ -231,13 +230,13 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
         }
       }}
     >
-      <div 
+      <div
         className="flex flex-row items-center gap-4 shrink-0 max-[450px]:flex-col max-[450px]:gap-3"
         onPointerDown={handleStart}
         onPointerUp={handleEnd}
         onPointerLeave={handleEnd}
       >
-        <div 
+        <div
           onPointerDown={(e) => {
             e.stopPropagation();
             controls.start(e);
@@ -247,29 +246,28 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
         >
           <GripVertical className="w-5 h-5 md:w-6 md:h-6" />
         </div>
-        
-        <button 
+
+        <button
           onClick={(e) => {
             e.stopPropagation();
             toggleTodo(todo.id, todo.completed);
           }}
-          className={`shrink-0 w-6 h-6 rounded-lg flex items-center justify-center border-2 transition-all ${
-            todo.completed 
-              ? 'bg-emerald-500 border-emerald-500 text-white' 
+          className={`shrink-0 w-6 h-6 rounded-lg flex items-center justify-center border-2 transition-all ${todo.completed
+              ? 'bg-emerald-500 border-emerald-500 text-white'
               : 'border-border bg-background hover:border-primary'
-          }`}
+            }`}
         >
           {todo.completed && <Check className="w-4 h-4 stroke-[4]" />}
         </button>
       </div>
-      
+
       <div className="flex-1 min-w-0"
         onPointerDown={handleStart}
         onPointerUp={handleEnd}
         onPointerLeave={handleEnd}
       >
         {editingId === todo.id ? (
-          <input 
+          <input
             autoFocus
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
@@ -278,9 +276,8 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
             className="w-full bg-background border border-primary/30 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         ) : (
-          <span className={`block text-sm md:text-base font-bold transition-all break-words leading-relaxed ${
-            todo.completed ? 'text-muted-foreground/60 line-through decoration-emerald-500/50' : 'text-foreground'
-          }`}>
+          <span className={`block text-sm md:text-base font-bold transition-all break-words leading-relaxed ${todo.completed ? 'text-muted-foreground/60 line-through decoration-emerald-500/50' : 'text-foreground'
+            }`}>
             {todo.title}
           </span>
         )}
@@ -297,14 +294,14 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
       <AnimatePresence>
         {showActions && (
           <div className="contents md:hidden">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={(e) => { e.stopPropagation(); setShowActions(false); }}
               className="fixed inset-0 z-[100] bg-black/40"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}

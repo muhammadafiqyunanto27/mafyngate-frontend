@@ -108,8 +108,8 @@ export default function TodoList() {
   );
 
   return (
-    <div className="bg-card rounded-[2.5rem] overflow-hidden">
-      <div className="p-8 border-b border-border bg-muted/20 flex justify-between items-center">
+    <div className="bg-card rounded-none md:rounded-[2.5rem] overflow-hidden">
+      <div className="p-6 md:p-8 border-b border-border bg-muted/20 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
             <ListTodo className="w-5 h-5" />
@@ -128,37 +128,40 @@ export default function TodoList() {
              <Trash2 className="w-5 h-5" />
            </button>
            <div className="font-black text-[10px] uppercase bg-primary text-white px-3 py-1.5 rounded-lg shadow-lg shadow-primary/20">
-             {todos.filter(t => !t.completed).length} Tasks Left
+             {todos.filter(t => !t.completed).length}
            </div>
         </div>
       </div>
       
-      <div className="p-8 space-y-8">
+      <div className="px-5 md:px-12 py-8 space-y-8">
         <form onSubmit={addTodo} className="relative group">
           <input 
             type="text" 
             placeholder="Ada tugas apa hari ini?" 
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-6 py-4 bg-muted border border-border rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-sm pr-16"
+            className="w-full px-6 py-4 bg-muted border border-border rounded-xl md:rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-bold text-sm pr-16"
           />
           <button 
             type="submit" 
             disabled={!title.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-primary text-white rounded-xl hover:bg-primary-600 disabled:opacity-30 transition-all active:scale-90"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-primary text-white rounded-xl hover:bg-primary-600 disabled:opacity-30 transition-all active:scale-95 shadow-lg shadow-primary/20"
           >
             <Plus className="w-5 h-5 mx-auto" />
           </button>
         </form>
 
-        <div className="max-h-[460px] overflow-y-auto px-6 pb-6 custom-scrollbar">
+        <div 
+          className="max-h-[550px] overflow-y-auto pr-2 custom-scrollbar" 
+          style={{ scrollbarGutter: 'stable' }}
+        >
           <Reorder.Group 
             axis="y" 
             values={todos} 
             onReorder={setTodos} 
             className="flex flex-col gap-4"
           >
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="popLayout" initial={false}>
               {todos.length === 0 ? (
                 <motion.div 
                   initial={{ opacity: 0 }} 
@@ -180,102 +183,164 @@ export default function TodoList() {
 
 function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplicate, handleCopy, startEditing, editingId, setEditingId, editValue, setEditValue, saveEdit }) {
   const controls = useDragControls();
+  const [showActions, setShowActions] = useState(false);
+  const timerRef = useState(null);
+
+  const handleStart = (e) => {
+    if (e.pointerType === 'mouse') return;
+    const timer = setTimeout(() => {
+      setShowActions(true);
+      if (navigator.vibrate) navigator.vibrate(50);
+    }, 500);
+    timerRef[1](timer);
+  };
+
+  const handleEnd = () => {
+    if (timerRef[0]) clearTimeout(timerRef[0]);
+  };
 
   return (
     <Reorder.Item 
       value={todo}
       dragListener={false}
       dragControls={controls}
-      layout="position"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      layout
+      initial={{ opacity: 0, scale: 0.98, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: -10 }}
       whileDrag={{ 
         scale: 1.02,
         zIndex: 50,
-        boxShadow: "0 20px 40px -10px rgb(0 0 0 / 0.2)"
+        boxShadow: "0 30px 60px -12px rgb(0 0 0 / 0.4)"
       }}
-      transition={{ 
-        type: "spring", 
-        stiffness: 100, 
+      transition={{
+        type: "spring",
+        stiffness: 400,
         damping: 30,
-        mass: 0.5
+        mass: 1
       }}
-      className={`group flex items-center gap-4 p-4 rounded-2xl border transition-colors cursor-default ${
+      className={`relative group flex items-center gap-4 p-4 md:p-5 rounded-2xl border transition-colors select-none cursor-default ${
         todo.completed 
-          ? 'bg-muted/30 border-transparent opacity-60' 
-          : 'bg-card border-border shadow-md hover:border-primary/50'
+          ? 'bg-muted/10 border-transparent opacity-60' 
+          : 'bg-card border-border shadow-md hover:border-primary/40'
       }`}
+      onContextMenu={(e) => {
+        if (window.innerWidth < 768) {
+          e.preventDefault();
+          setShowActions(true);
+        }
+      }}
     >
       <div 
-        onPointerDown={(e) => controls.start(e)}
-        className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-primary transition-colors p-1"
+        className="flex flex-row items-center gap-4 shrink-0 max-[450px]:flex-col max-[450px]:gap-3"
+        onPointerDown={handleStart}
+        onPointerUp={handleEnd}
+        onPointerLeave={handleEnd}
       >
-        <GripVertical className="w-5 h-5" />
+        <div 
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            controls.start(e);
+          }}
+          style={{ touchAction: 'none' }}
+          className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-primary transition-all p-2 bg-muted/50 rounded-lg shrink-0"
+        >
+          <GripVertical className="w-5 h-5 md:w-6 md:h-6" />
+        </div>
+        
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleTodo(todo.id, todo.completed);
+          }}
+          className={`shrink-0 w-6 h-6 rounded-lg flex items-center justify-center border-2 transition-all ${
+            todo.completed 
+              ? 'bg-emerald-500 border-emerald-500 text-white' 
+              : 'border-border bg-background hover:border-primary'
+          }`}
+        >
+          {todo.completed && <Check className="w-4 h-4 stroke-[4]" />}
+        </button>
       </div>
       
-      <button 
-        onClick={() => toggleTodo(todo.id, todo.completed)}
-        className={`w-6 h-6 rounded-lg flex items-center justify-center border-2 transition-all ${
-          todo.completed 
-            ? 'bg-emerald-500 border-emerald-500 text-white' 
-            : 'border-border bg-background hover:border-primary'
-        }`}
+      <div className="flex-1 min-w-0"
+        onPointerDown={handleStart}
+        onPointerUp={handleEnd}
+        onPointerLeave={handleEnd}
       >
-        {todo.completed && <Check className="w-4 h-4 stroke-[4]" />}
-      </button>
-      
-      {editingId === todo.id ? (
-        <div className="flex-1 flex items-center gap-2">
+        {editingId === todo.id ? (
           <input 
             autoFocus
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={() => saveEdit(todo.id)}
             onKeyDown={(e) => e.key === 'Enter' && saveEdit(todo.id)}
-            className="flex-1 bg-background border border-primary/30 rounded-lg px-3 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full bg-background border border-primary/30 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
-          <button onClick={() => saveEdit(todo.id)} className="text-emerald-500 hover:scale-110 transition-transform"><Save className="w-4 h-4" /></button>
-          <button onClick={() => setEditingId(null)} className="text-rose-500 hover:scale-110 transition-transform"><X className="w-4 h-4" /></button>
-        </div>
-      ) : (
-        <span className={`flex-1 text-sm font-bold transition-all break-all whitespace-pre-wrap ${
-          todo.completed ? 'text-muted-foreground line-through decoration-emerald-500/50' : 'text-foreground'
-        }`}>
-          {todo.title}
-        </span>
-      )}
-      
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button 
-          onClick={() => handleCopy(todo.title)}
-          className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
-          title="Copy"
-        >
-          <Copy className="w-4 h-4" />
-        </button>
-        <button 
-          onClick={() => handleDuplicate(todo)}
-          className="p-2 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-xl transition-all"
-          title="Duplicate"
-        >
-          <Layers className="w-4 h-4" />
-        </button>
-        <button 
-          onClick={() => startEditing(todo)}
-          className="p-2 text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 rounded-xl transition-all"
-          title="Edit"
-        >
-          <Edit2 className="w-4 h-4" />
-        </button>
-        <button 
-          onClick={() => deleteTodo(todo.id)}
-          className="p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
-          title="Delete"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        ) : (
+          <span className={`block text-sm md:text-base font-bold transition-all break-words leading-relaxed ${
+            todo.completed ? 'text-muted-foreground/60 line-through decoration-emerald-500/50' : 'text-foreground'
+          }`}>
+            {todo.title}
+          </span>
+        )}
       </div>
+
+      <div className="hidden md:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <ActionButton icon={Copy} label="Copy" onClick={() => handleCopy(todo.title)} />
+        <ActionButton icon={Layers} label="Duplicate" onClick={() => handleDuplicate(todo)} />
+        <ActionButton icon={Edit2} label="Edit" onClick={() => startEditing(todo)} />
+        <ActionButton icon={Trash2} label="Delete" color="hover:text-rose-500 hover:bg-rose-500/10" onClick={() => deleteTodo(todo.id)} />
+      </div>
+
+      {/* Mobile Actions Overlay - Simplified and Smaller */}
+      <AnimatePresence>
+        {showActions && (
+          <div className="contents md:hidden">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={(e) => { e.stopPropagation(); setShowActions(false); }}
+              className="fixed inset-0 z-[100] bg-black/40"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed left-4 right-4 bottom-10 z-[110] flex items-center justify-between gap-2 bg-card border border-border p-3 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)]"
+            >
+              <div className="flex items-center gap-2">
+                <MobileAction icon={Copy} label="Copy" onClick={() => handleCopy(todo.title)} onClose={() => setShowActions(false)} />
+                <MobileAction icon={Layers} label="Dupe" onClick={() => handleDuplicate(todo)} onClose={() => setShowActions(false)} />
+                <MobileAction icon={Edit2} label="Edit" onClick={() => startEditing(todo)} onClose={() => setShowActions(false)} />
+                <MobileAction icon={Trash2} label="Del" color="text-rose-500" onClick={() => deleteTodo(todo.id)} onClose={() => setShowActions(false)} />
+              </div>
+              <div className="w-px h-8 bg-border mx-1 shrink-0" />
+              <button onClick={() => setShowActions(false)} className="p-2.5 bg-muted rounded-xl transition-active:scale-90"><X className="w-5 h-5" /></button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </Reorder.Item>
+  );
+}
+
+function ActionButton({ icon: Icon, onClick, color = "hover:text-primary hover:bg-primary/5" }) {
+  return (
+    <button onClick={(e) => { e.stopPropagation(); onClick(); }} className={`p-2 text-muted-foreground rounded-lg transition-all ${color}`}>
+      <Icon className="w-4 h-4" />
+    </button>
+  );
+}
+
+function MobileAction({ icon: Icon, label, onClick, onClose, color = "text-muted-foreground" }) {
+  return (
+    <button onClick={(e) => { e.stopPropagation(); onClick(); onClose(); }} className="flex flex-col items-center gap-1">
+      <div className={`p-2.5 bg-muted rounded-xl ${color}`}>
+        <Icon className="w-5 h-5" />
+      </div>
+      <span className="text-[9px] font-black uppercase tracking-tight opacity-50">{label}</span>
+    </button>
   );
 }

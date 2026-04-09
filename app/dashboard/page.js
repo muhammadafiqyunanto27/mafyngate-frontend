@@ -69,16 +69,22 @@ export default function DashboardPage() {
       if (socket) {
         socket.on('receive_message', fetchStats);
         socket.on('new_notification', fetchStats);
+        socket.on('unread_count', fetchStats);
+        socket.on('messages_deleted', fetchStats);
+        socket.on('message_updated', fetchStats);
         socket.on('todo_updated', fetchStats);
         socket.on('activity_logged', fetchStats);
         socket.on('mark_read', fetchStats);
 
         return () => {
-          socket.off('receive_message');
-          socket.off('new_notification');
-          socket.off('todo_updated');
-          socket.off('activity_logged');
-          socket.off('mark_read');
+          socket.off('receive_message', fetchStats);
+          socket.off('new_notification', fetchStats);
+          socket.off('unread_count', fetchStats);
+          socket.off('messages_deleted', fetchStats);
+          socket.off('message_updated', fetchStats);
+          socket.off('todo_updated', fetchStats);
+          socket.off('activity_logged', fetchStats);
+          socket.off('mark_read', fetchStats);
         };
       }
     }

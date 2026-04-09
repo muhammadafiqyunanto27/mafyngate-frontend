@@ -176,7 +176,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                     )}
                   </div>
                   
-                  <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                  <div className="max-h-[450px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-700 hover:scrollbar-thumb-primary/40 scrollbar-track-transparent">
                     {notifications.length === 0 ? (
                       <div className="p-12 text-center flex flex-col items-center gap-3">
                          <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center"><Bell className="w-6 h-6 text-muted-foreground/30" /></div>

@@ -30,7 +30,21 @@ export const SocketProvider = ({ children }) => {
       const accessToken = localStorage.getItem('accessToken');
       
       const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
-        auth: { token: accessToken }
+        auth: { token: accessToken },
+        transports: ['websocket', 'polling'], // Prioritize websocket
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
+        timeout: 10000,
+      });
+
+      newSocket.on('connect_error', (err) => {
+        console.error('[Socket] Connection Error:', err.message);
+        // If websocket fails, it will automatically try polling because of transports array
+      });
+
+      newSocket.on('reconnect', (attempt) => {
+        console.log('[Socket] Reconnected after', attempt, 'attempts');
       });
 
       const fetchInitialData = async () => {
@@ -56,7 +70,6 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('new_notification', (data) => {
         console.log('[Socket] New notification received:', data);
         setNotifications(prev => [data, ...prev]);
-        setUnreadCount(prev => prev + 1);
         setToast(data);
         
         // Play notification sound

@@ -105,7 +105,15 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 dark:bg-slate-700 rounded-full hover:bg-primary/50 transition-colors;
+  @apply bg-zinc-300 dark:bg-zinc-700 rounded-full hover:bg-primary/50 transition-colors;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  @apply bg-zinc-400/30 dark:bg-zinc-600/30 rounded-full hover:bg-primary/50;
 }
 
 /* Premium Utilities */

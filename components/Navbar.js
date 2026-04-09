@@ -212,12 +212,6 @@ export default function Navbar({ onMenuClick, pageTitle }) {
           </AnimatePresence>
         </div>
 
-        {/* User Badge */}
-        <div className="flex items-center gap-2 pl-2">
-          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-        </div>
       </div>
 
       {/* 5. Global Search Results (Fixed positioning for mobile/desktop harmony) */}
@@ -227,11 +221,11 @@ export default function Navbar({ onMenuClick, pageTitle }) {
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
               onClick={() => { setShowResults(false); setIsMobileSearchOpen(false); }} 
-              className="fixed inset-0 z-[65] bg-black/40 md:bg-transparent" 
+              className="fixed inset-0 z-[999] bg-black/40 md:bg-transparent" 
             />
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute top-16 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-80 mt-3 p-2.5 bg-card border border-border rounded-[2rem] shadow-2xl overflow-hidden max-h-[70vh] md:max-h-[350px] overflow-y-auto z-[70] scrollbar-thin"
+              className="absolute top-16 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-80 mt-3 p-2.5 bg-card border border-border rounded-[2rem] shadow-2xl overflow-hidden max-h-[70vh] md:max-h-[350px] overflow-y-auto z-[1000] scrollbar-thin"
             >
               {searchResults.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground text-sm font-medium italic">No matches found for your search</div>

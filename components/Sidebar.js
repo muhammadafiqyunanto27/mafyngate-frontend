@@ -29,6 +29,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -202,7 +203,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
           </div>
 
           <button
-            onClick={logout}
+            onClick={() => setShowLogoutModal(true)}
             className={`w-full flex items-center h-12 mt-2 transition-all duration-200 rounded-xl group relative overflow-hidden ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-4 gap-3'} text-destructive hover:bg-rose-500/10 border border-transparent hover:border-rose-500/10`}
             aria-label="Sign out"
           >
@@ -220,6 +221,49 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
           </button>
         </div>
       </motion.aside>
+      
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setShowLogoutModal(false)} 
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" 
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+              animate={{ scale: 1, opacity: 1, y: 0 }} 
+              exit={{ scale: 0.9, opacity: 0, y: 20 }} 
+              className="relative bg-card border border-border w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl text-center"
+            >
+              <div className="w-20 h-20 rounded-3xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto mb-6">
+                <LogOut className="w-10 h-10" />
+              </div>
+              
+              <h2 className="text-2xl font-black text-foreground uppercase tracking-tight mb-2">Sign Out?</h2>
+              <p className="text-sm text-muted-foreground mb-8">Are you sure you want to log out of your account?</p>
+              
+              <div className="flex flex-col gap-3">
+                <button 
+                  onClick={logout} 
+                  className="w-full bg-rose-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-rose-500/20 hover:scale-[1.02] active:scale-95 transition-all"
+                >
+                  Yes, Sign Out
+                </button>
+                <button 
+                  onClick={() => setShowLogoutModal(false)} 
+                  className="w-full py-4 text-muted-foreground font-black uppercase tracking-widest text-xs hover:text-foreground transition-all"
+                >
+                  No, Stay Logged In
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

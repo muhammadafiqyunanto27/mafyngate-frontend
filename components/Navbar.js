@@ -70,6 +70,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
 
   const handleNotificationClick = (n) => {
     setIsBellOpen(false);
+    removeNotification(n.id); // Remove from list once clicked
     if (n.type === 'CHAT') {
       router.push(`/messages?userId=${n.senderId}`);
     } else if (n.type === 'FOLLOW') {
@@ -80,14 +81,14 @@ export default function Navbar({ onMenuClick, pageTitle }) {
   if (!mounted) return null;
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 bg-card border-b border-border sticky top-0 z-30 transition-colors">
+    <header className="h-16 flex items-center justify-between px-6 bg-card border-b border-border sticky top-0 z-[100] transition-colors">
       
       {/* 1. Mobile Search Overlay */}
       <AnimatePresence>
         {isMobileSearchOpen && (
           <motion.div 
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-            className="absolute inset-0 bg-card z-[60] flex items-center px-4 gap-3 border-b border-primary/20 shadow-xl"
+            className="absolute inset-0 bg-card z-[1000] flex items-center px-4 gap-3 border-b border-primary/20 shadow-xl"
           >
              <button onClick={() => { setIsMobileSearchOpen(false); setShowResults(false); }} className="p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-2xl transition-all">
                 <X className="w-5 h-5" />
@@ -154,7 +155,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                 <div className="fixed inset-0 z-[-1]" onClick={() => setIsBellOpen(false)} />
                 <motion.div
                   initial={{ opacity: 0, y: 15, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-card border border-border rounded-3xl shadow-2xl overflow-hidden z-[80]"
+                  className="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-card border border-border rounded-3xl shadow-2xl overflow-hidden z-[1000]"
                 >
                   <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
                     <div className="flex items-center gap-2">

@@ -11,7 +11,10 @@ export const SocketProvider = ({ children }) => {
   const { user } = useAuth();
   const [socket, setSocket] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadChatsCount, setUnreadChatsCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
+  const [activeChatId, setActiveChatId] = useState(null);
+  const activeChatIdRef = React.useRef(null);
   const [toast, setToast] = useState(null);
 
   // Call States
@@ -28,6 +31,10 @@ export const SocketProvider = ({ children }) => {
    const [facingMode, setFacingMode] = useState('user'); // 'user' or 'environment'
 
   const connectionRef = React.useRef();
+
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId;
+  }, [activeChatId]);
 
   useEffect(() => {
     if (user) {
@@ -53,12 +60,16 @@ export const SocketProvider = ({ children }) => {
 
       const fetchInitialData = async () => {
         try {
-          const res = await api.get('/user/notifications');
-          setNotifications(res.data.data);
-          const unread = res.data.data.filter(n => !n.isRead).length;
-          setUnreadCount(unread);
+          const [notifRes, unreadChatRes] = await Promise.all([
+            api.get('/user/notifications'),
+            api.get('/user/chat/unread-conversations')
+          ]);
+          
+          setNotifications(notifRes.data.data);
+          setUnreadCount(notifRes.data.data.filter(n => !n.isRead).length);
+          setUnreadChatsCount(unreadChatRes.data.data.length);
         } catch (err) {
-          console.error('Failed to fetch initial notifications:', err);
+          console.error('Failed to fetch initial data:', err);
         }
       };
       fetchInitialData();
@@ -73,6 +84,12 @@ export const SocketProvider = ({ children }) => {
 
       newSocket.on('new_notification', (data) => {
         console.log('[Socket] New notification received:', data);
+        
+        // Suppress COMPLETELY if user is already chatting with this person in active window
+        if (data.type === 'CHAT' && activeChatIdRef.current === data.senderId) {
+          return;
+        }
+
         setNotifications(prev => [data, ...prev]);
         setToast(data);
         
@@ -110,6 +127,10 @@ export const SocketProvider = ({ children }) => {
         setRemoteIsMirrored(isMirrored);
       });
 
+      newSocket.on('unread_chats_count', (data) => {
+        setUnreadChatsCount(data.count);
+      });
+
       setSocket(newSocket);
       return () => newSocket.disconnect();
     }
@@ -142,6 +163,18 @@ export const SocketProvider = ({ children }) => {
       await api.delete('/user/notifications');
       setNotifications([]);
       setUnreadCount(0);
+    } catch (err) {}
+  };
+
+  const clearNotificationsFromSender = async (senderId) => {
+    try {
+      await api.delete(`/user/notifications/sender/${senderId}`);
+      setNotifications(prev => prev.filter(n => n.senderId !== senderId || n.type !== 'CHAT'));
+      // Recalculate unread count
+      setUnreadCount(prev => {
+        const remainingUnread = notifications.filter(n => (n.senderId !== senderId || n.type !== 'CHAT') && !n.isRead).length;
+        return remainingUnread;
+      });
     } catch (err) {}
   };
 
@@ -331,8 +364,9 @@ export const SocketProvider = ({ children }) => {
 
   return (
     <SocketContext.Provider value={{ 
-      socket, unreadCount, notifications, toast, setNotifications, setUnreadCount,
-      requestNotificationPermission, removeNotification, readAllNotifications, clearNotifications,
+      socket, unreadCount, unreadChatsCount, notifications, toast, activeChatId,
+      setNotifications, setUnreadCount, setUnreadChatsCount, setActiveChatId,
+      requestNotificationPermission, removeNotification, readAllNotifications, clearNotifications, clearNotificationsFromSender,
       call, callAccepted, callEnded, stream, remoteStream, isCalling,
       startCall, answerCall, rejectCall, handleEndCall,
       isMirrored, toggleMirror, switchCamera,

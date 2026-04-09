@@ -2,7 +2,7 @@
 
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import api from '../../lib/api';
 import { 
   Users, 
@@ -36,7 +36,7 @@ export default function DashboardPage() {
     activities: []
   });
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const [connRes, todoRes, unreadRes, activityRes, notifRes, unreadConvRes] = await Promise.all([
         api.get('/user/connections'),
@@ -58,7 +58,7 @@ export default function DashboardPage() {
     } catch (err) {
       console.error('Stats fetch failed', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -88,7 +88,7 @@ export default function DashboardPage() {
         };
       }
     }
-  }, [user, loading, router, socket]);
+  }, [user, loading, router, socket, fetchStats]);
 
   if (loading || !user) return null;
 

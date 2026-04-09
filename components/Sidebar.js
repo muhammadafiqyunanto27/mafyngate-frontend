@@ -26,6 +26,7 @@ const menuItems = [
 
 export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }) {
   const { user, logout } = useAuth();
+  const { unreadChatsCount } = require('../context/SocketContext').useSocket();
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -161,9 +162,18 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
                 </div>
 
                 {(!isCollapsed || isMobile) && (
-                  <span className="font-medium text-sm truncate whitespace-nowrap overflow-hidden">
+                  <span className="font-medium text-sm truncate whitespace-nowrap overflow-hidden flex-1">
                     {item.name}
                   </span>
+                )}
+
+                {item.name === 'Messages' && unreadChatsCount > 0 && (
+                  <motion.div 
+                    initial={{ scale: 0 }} animate={{ scale: 1 }}
+                    className={`flex items-center justify-center rounded-full bg-primary text-white font-black leading-none ${isCollapsed && !isMobile ? 'absolute top-2 right-2 w-4 h-4 text-[8px]' : 'w-5 h-5 text-[10px] mr-2 shadow-lg shadow-primary/20'}`}
+                  >
+                    {unreadChatsCount}
+                  </motion.div>
                 )}
 
                 {(isCollapsed && !isMobile) && (

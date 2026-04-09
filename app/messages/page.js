@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import DashboardLayout from '../../components/DashboardLayout';
@@ -26,11 +27,13 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 
-export default function MessagesPage() {
+function MessagesContent() {
   const { user, fetchUser } = useAuth();
-  const { socket, startCall, isCalling: isInitiatingCall } = useSocket();
+  const { socket, startCall, isCalling: isInitiatingCall, clearNotificationsFromSender, setUnreadChatsCount, setActiveChatId } = useSocket();
   const [users, setUsers] = useState([]); // This stores the current active set (normal or hidden)
   const [selectedUser, setSelectedUser] = useState(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [messages, setMessages] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [newMessage, setNewMessage] = useState('');
@@ -73,6 +76,20 @@ export default function MessagesPage() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Handle URL search params for quick redirect from Dashboard
+  useEffect(() => {
+    if (users.length > 0) {
+      const userId = searchParams.get('userId');
+      if (userId) {
+        const userToSelect = users.find(u => u.id === userId);
+        if (userToSelect) {
+          setSelectedUser(userToSelect);
+          if (window.innerWidth < 768) setShowChat(true);
+        }
+      }
+    }
+  }, [users, searchParams]);
 
   // NEW SEARCH LOGIC: Handles 3 cases
   const filteredUsers = useMemo(() => {
@@ -166,12 +183,40 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!socket || !user) return;
+    
+    const updateListWithNewMessage = (m, isIncoming) => {
+      setUsers(prev => {
+        const userId = isIncoming ? m.senderId : m.receiverId;
+        const userIndex = prev.findIndex(u => u.id === userId);
+        
+        if (userIndex === -1) return prev; // Should not happen with current mutual follow logic
+        
+        const updatedUsers = [...prev];
+        const targetUser = { ...updatedUsers[userIndex] };
+        
+        targetUser.lastMessage = { content: m.content, createdAt: m.createdAt };
+        if (isIncoming && (!selectedUser || selectedUser.id !== userId)) {
+          targetUser.unreadCount = (targetUser.unreadCount || 0) + 1;
+        }
+        
+        // Remove from current position and move to top
+        updatedUsers.splice(userIndex, 1);
+        return [targetUser, ...updatedUsers];
+      });
+    };
+
     const handleReceive = (m) => {
         if (selectedUser && (m.senderId === selectedUser.id || m.senderId === user.id)) {
           setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
         }
+        updateListWithNewMessage(m, true);
     };
-    const handleSent = (m) => setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
+    
+    const handleSent = (m) => {
+      setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
+      updateListWithNewMessage(m, false);
+    };
+
     socket.on('receive_message', handleReceive);
     socket.on('message_sent', handleSent);
     return () => { socket.off('receive_message'); socket.off('message_sent'); };
@@ -185,10 +230,30 @@ export default function MessagesPage() {
         setMessages(res.data.data);
         await api.patch(`/user/chat/read/${selectedUser.id}`);
         if (socket) socket.emit('mark_read', { senderId: selectedUser.id });
+        
+        // Clear unread count locally
+        let newUnreadChatCount = 0;
+        setUsers(prev => {
+          const updated = prev.map(u => u.id === selectedUser.id ? { ...u, unreadCount: 0 } : u);
+          newUnreadChatCount = updated.filter(u => (u.unreadCount || 0) > 0).length;
+          return updated;
+        });
+        
+        // Update global sidebar badge count
+        setUnreadChatsCount(newUnreadChatCount);
+
+        // Clear notifications from this sender
+        clearNotificationsFromSender(selectedUser.id);
+        setActiveChatId(selectedUser.id);
+        if (socket) socket.emit('join_chat', { targetId: selectedUser.id });
       } catch (err) {}
     };
     fetchMsgs();
-  }, [selectedUser]);
+    return () => {
+      setActiveChatId(null);
+      if (socket) socket.emit('leave_chat');
+    };
+  }, [selectedUser, socket]);
 
   useEffect(() => {
     if (messages.length > 0 && messagesEndRef.current) {
@@ -257,7 +322,7 @@ export default function MessagesPage() {
                 <button
                   key={u.id}
                   onClick={() => { if (selectedUser?.id !== u.id) { setMessages([]); setIsInitialLoad(true); } setSelectedUser(u); if (isMobileView) setShowChat(true); }}
-                  className={`w-full p-4 rounded-3xl flex items-center gap-4 transition-all group ${selectedUser?.id === u.id ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'hover:bg-muted'}`}
+                  className={`w-full p-4 rounded-3xl flex items-center gap-4 transition-all group ${selectedUser?.id === u.id ? 'bg-primary/10 text-primary shadow-sm border border-primary/10' : 'hover:bg-muted border border-transparent'}`}
                 >
                   <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-background shadow-sm shrink-0" onClick={(e) => { e.stopPropagation(); setViewingProfile(u); }}>
                     {u.avatar ? <img src={getAvatar(u.avatar)} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center font-bold bg-primary/10 text-primary">{(u.name || u.email).charAt(0).toUpperCase()}</div>}
@@ -267,7 +332,14 @@ export default function MessagesPage() {
                       <p className="font-bold truncate text-sm">{u.name || u.email.split('@')[0]}</p>
                       {u.lastMessage && <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{new Date(u.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
                     </div>
-                    <p className="text-xs truncate font-medium opacity-60 italic">{u.lastMessage ? u.lastMessage.content : 'Start chatting...'}</p>
+                    <div className="flex items-center justify-between gap-2">
+                       <p className="text-xs truncate font-medium opacity-60 italic flex-1">{u.lastMessage ? u.lastMessage.content : 'Start chatting...'}</p>
+                       {u.unreadCount > 0 && (
+                         <div className="min-w-[18px] h-[18px] bg-emerald-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 shadow-lg shadow-emerald-500/20 animate-in zoom-in duration-300">
+                           {u.unreadCount}
+                         </div>
+                       )}
+                    </div>
                   </div>
                 </button>
               ))
@@ -384,5 +456,13 @@ export default function MessagesPage() {
         )}
       </AnimatePresence>
     </DashboardLayout>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div className="h-screen w-full flex items-center justify-center bg-card"><div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>}>
+      <MessagesContent />
+    </Suspense>
   );
 }

@@ -12,6 +12,18 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
+  const [toast, setToast] = useState(null);
+
+  // Call States
+  const [call, setCall] = useState({ isReceivingCall: false, from: '', name: '', avatar: '', signal: null, type: 'voice' });
+  const [callAccepted, setCallAccepted] = useState(false);
+  const [callEnded, setCallEnded] = useState(false);
+  const [stream, setStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
+  const [isCalling, setIsCalling] = useState(false);
+  const [targetUser, setTargetUser] = useState(null);
+
+  const connectionRef = React.useRef();
 
   useEffect(() => {
     if (user) {
@@ -34,15 +46,7 @@ export const SocketProvider = ({ children }) => {
       fetchInitialData();
 
       newSocket.on('connect', () => {
-        console.log('Socket connected successfully with ID:', newSocket.id);
-      });
-
-      newSocket.on('connect_error', (err) => {
-        console.error('Socket connection error:', err);
-      });
-
-      newSocket.on('disconnect', (reason) => {
-        console.log('Socket disconnected:', reason);
+        console.log('[Socket] Connected as:', user.id);
       });
 
       newSocket.on('unread_count', (data) => {
@@ -50,82 +54,50 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on('new_notification', (data) => {
-        console.log('[Socket] Notification received in real-time:', data);
-        // data should be the notification object
+        console.log('[Socket] New notification received:', data);
         setNotifications(prev => [data, ...prev]);
         setUnreadCount(prev => prev + 1);
+        setToast(data);
         
-        if (Notification.permission === 'granted') {
-          const title = 'MafynGate';
-          const options = {
-            body: data.content || data.message || 'New notification',
-            icon: '/globe.svg',
-            badge: '/window.svg',
-            vibrate: [200, 100, 200],
-            tag: data.id || 'general',
-            timestamp: new Date().getTime(),
-            data: {
-              type: data.type,
-              senderId: data.senderId,
-              url: data.type === 'CHAT' ? `/messages?userId=${data.senderId}` : `/profile/${data.senderId}`
-            }
-          };
+        // Play notification sound
+        try {
+          const audio = new Audio('/notification.mp3');
+          audio.play().catch(() => {}); // Browsers might block auto-play
+        } catch (e) {}
 
-          if (data.type === 'FOLLOW') {
-            options.actions = [{ action: 'follback', title: 'Follow Back' }];
-          }
+        setTimeout(() => setToast(null), 5000);
+      });
 
-          // Use ServiceWorker if available for better background handling
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then(registration => {
-              registration.showNotification(title, options);
-            }).catch(err => {
-              console.warn('[Socket] SW not ready, using fallback notification', err);
-              new Notification(title, options);
-            });
-          } else {
-            new Notification(title, options);
-          }
+      // --- Call Listeners ---
+      newSocket.on('incoming_call', ({ from, name, avatar, signal, type }) => {
+        console.log('[Socket] Incoming call from:', name);
+        setCall({ isReceivingCall: true, from, name, avatar, signal, type });
+      });
+
+      newSocket.on('call_accepted', (signal) => {
+        setCallAccepted(true);
+        if (connectionRef.current) {
+          connectionRef.current.signal(signal);
         }
       });
 
-      setSocket(newSocket);
+      newSocket.on('call_rejected', () => {
+        handleEndCall(false);
+      });
 
-      return () => {
-        newSocket.disconnect();
-      };
-    } else {
-      setSocket(null);
+      newSocket.on('call_ended', () => {
+        handleEndCall(false); 
+      });
+
+      setSocket(newSocket);
+      return () => newSocket.disconnect();
     }
   }, [user]);
 
+  // --- Notification Methods ---
   const requestNotificationPermission = () => {
-    if (!('Notification' in window)) {
-      console.warn('This browser does not support desktop notification');
-      return;
-    }
-
-    Notification.requestPermission().then((permission) => {
-      if (permission === 'granted') {
-        console.log('Notification permission granted.');
-        // Show a test notification to confirm
-        const title = 'MafynGate System';
-        const options = {
-          body: 'Notifikasi berhasil diaktifkan! Kamu akan menerima update secara real-time.',
-          icon: '/globe.svg',
-          badge: '/window.svg',
-          vibrate: [100, 50, 100],
-        };
-
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.ready.then(registration => {
-            registration.showNotification(title, options);
-          });
-        } else {
-          new Notification(title, options);
-        }
-      }
-    });
+    if (!('Notification' in window)) return;
+    Notification.requestPermission();
   };
 
   const removeNotification = async (id) => {
@@ -133,9 +105,7 @@ export const SocketProvider = ({ children }) => {
       await api.delete(`/user/notifications/${id}`);
       setNotifications(prev => prev.filter(n => n.id !== id));
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (err) {
-      console.error('Failed to delete notification:', err);
-    }
+    } catch (err) {}
   };
 
   const readAllNotifications = async () => {
@@ -143,9 +113,7 @@ export const SocketProvider = ({ children }) => {
       await api.patch('/user/notifications/read');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
-    } catch (err) {
-      console.error('Failed to mark notifications as read:', err);
-    }
+    } catch (err) {}
   };
 
   const clearNotifications = async () => {
@@ -153,22 +121,115 @@ export const SocketProvider = ({ children }) => {
       await api.delete('/user/notifications');
       setNotifications([]);
       setUnreadCount(0);
-    } catch (err) {
-      console.error('Failed to clear notifications:', err);
+    } catch (err) {}
+  };
+
+  // --- Call Methods ---
+  const stopStream = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => {
+        console.log('[Stream] Stopping track:', track.kind);
+        track.stop();
+      });
     }
+    setStream(null);
+    setRemoteStream(null);
+  };
+
+  const handleEndCall = (shouldEmit = true) => {
+    if (shouldEmit && socket && (targetUser || call.from)) {
+      socket.emit('end_call', { to: targetUser || call.from });
+    }
+    if (connectionRef.current) connectionRef.current.destroy();
+    setCall({ ...call, isReceivingCall: false });
+    setCallAccepted(false);
+    setIsCalling(false);
+    stopStream();
+  };
+
+  const startCall = async (userIdToCall, type = 'video') => {
+    console.log(`[Call] Initializing ${type} call...`);
+    setIsCalling(true);
+    setTargetUser(userIdToCall);
+
+    try {
+      console.log('[Media] Requesting access to camera/mic...');
+      const currentStream = await navigator.mediaDevices.getUserMedia({
+        video: type === 'video',
+        audio: true
+      });
+      
+      console.log('[Media] Stream acquired successfully:', currentStream.id);
+      setStream(currentStream);
+
+      const Peer = (await import('simple-peer')).default;
+      const peer = new Peer({ initiator: true, trickle: false, stream: currentStream });
+
+      peer.on('signal', (data) => {
+        console.log('[Signal] Sending offer signal to:', userIdToCall);
+        socket.emit('call_user', {
+          userToCall: userIdToCall,
+          signalData: data,
+          from: user.id,
+          name: user.name || user.email.split('@')[0],
+          avatar: user.avatar,
+          type
+        });
+      });
+
+      peer.on('stream', (remoteStream) => {
+        console.log('[Stream] Remote stream received');
+        setRemoteStream(remoteStream);
+      });
+
+      connectionRef.current = peer;
+    } catch (err) {
+      console.error('[Media] Fatal error getting media:', err);
+      setIsCalling(false);
+    }
+  };
+
+  const answerCall = async () => {
+    setCallAccepted(true);
+    try {
+      console.log('[Media] Answering call, requesting media...');
+      const currentStream = await navigator.mediaDevices.getUserMedia({
+        video: call.type === 'video',
+        audio: true
+      });
+      setStream(currentStream);
+
+      const Peer = (await import('simple-peer')).default;
+      const peer = new Peer({ initiator: false, trickle: false, stream: currentStream });
+
+      peer.on('signal', (data) => {
+        socket.emit('answer_call', { signal: data, to: call.from });
+      });
+
+      peer.on('stream', (remoteStream) => {
+        setRemoteStream(remoteStream);
+      });
+
+      peer.signal(call.signal);
+      connectionRef.current = peer;
+    } catch (err) {
+      console.error('[Media] Error answering:', err);
+    }
+  };
+
+  const rejectCall = () => {
+    if (socket && call.from) {
+      socket.emit('reject_call', { to: call.from });
+    }
+    setCall({ ...call, isReceivingCall: false });
   };
 
   return (
     <SocketContext.Provider value={{ 
-      socket, 
-      unreadCount, 
-      notifications, 
-      setUnreadCount, 
-      setNotifications,
-      requestNotificationPermission,
-      removeNotification,
-      readAllNotifications,
-      clearNotifications
+      socket, unreadCount, notifications, toast, setNotifications, setUnreadCount,
+      requestNotificationPermission, removeNotification, readAllNotifications, clearNotifications,
+      call, callAccepted, callEnded, stream, remoteStream, isCalling,
+      startCall, answerCall, rejectCall, handleEndCall
     }}>
       {children}
     </SocketContext.Provider>

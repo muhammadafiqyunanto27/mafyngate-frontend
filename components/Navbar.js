@@ -14,7 +14,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { user, logout } = useAuth();
-  const { socket, unreadCount, requestNotificationPermission, notifications, setNotifications, removeNotification, readAllNotifications, clearNotifications } = useSocket();
+  const { socket, unreadCount, notifications, setNotifications, removeNotification, readAllNotifications, clearNotifications } = useSocket();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -45,41 +45,29 @@ export default function Navbar({ onMenuClick, pageTitle }) {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
-  const handleFollow = async (userId) => {
-    // Save previous state for specific error types
-    const wasFollowing = searchResults.find(u => u.id === userId)?.isFollowing;
+  // Unified Follow Logic
+  const handleFollowAction = async (targetId, action) => {
+    const targetIdStr = targetId.toString();
+    const isFollow = action === 'follow';
     
-    // Optimistic update
-    setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: true } : u));
+    // 1. Optimistic Update for Search Results
+    setSearchResults(prev => prev.map(u => u.id === targetIdStr ? { ...u, isFollowing: isFollow } : u));
     
-    try {
-      await api.post(`/user/follow/${userId}`);
-      if (socket) {
-        socket.emit('follow_user', { followingId: userId });
-      }
-    } catch (err) {
-      // If error is "Already following" (400), don't revert
-      if (err.response?.status === 400) {
-        console.warn('Already following this user');
-      } else {
-        console.error('Follow failed:', err);
-        setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: wasFollowing } : u));
-      }
-    }
-  };
+    // 2. Optimistic Update for Notifications
+    setNotifications(prev => prev.map(n => n.senderId === targetIdStr ? { ...n, isFollowingSender: isFollow } : n));
 
-  const handleUnfollow = async (userId) => {
-    const wasFollowing = searchResults.find(u => u.id === userId)?.isFollowing;
-    
-    // Optimistic update
-    setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: false } : u));
-    
     try {
-      await api.delete(`/user/unfollow/${userId}`);
+      if (isFollow) {
+        await api.post(`/user/follow/${targetIdStr}`);
+        if (socket) socket.emit('follow_user', { followingId: targetIdStr });
+      } else {
+        await api.delete(`/user/unfollow/${targetIdStr}`);
+      }
     } catch (err) {
-      console.error('Unfollow failed:', err);
-      // Revert on failure
-      setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: wasFollowing } : u));
+      console.error(`${action} action failed:`, err);
+      // Rollback on error
+      setSearchResults(prev => prev.map(u => u.id === targetIdStr ? { ...u, isFollowing: !isFollow } : u));
+      setNotifications(prev => prev.map(n => n.senderId === targetIdStr ? { ...n, isFollowingSender: !isFollow } : n));
     }
   };
 
@@ -96,25 +84,19 @@ export default function Navbar({ onMenuClick, pageTitle }) {
 
   return (
     <header className="h-16 flex items-center justify-between px-6 bg-card border-b border-border sticky top-0 z-30 transition-colors">
-
-      {/* Left section: Title & Mobile menu toggle */}
       <div className="flex items-center gap-4">
-        <button
-          onClick={onMenuClick}
-          className="lg:hidden p-2 rounded-xl text-muted-foreground hover:bg-muted transition-colors"
-        >
+        <button onClick={onMenuClick} className="lg:hidden p-2 rounded-xl text-muted-foreground hover:bg-muted transition-colors">
           <Menu className="w-5 h-5 cursor-pointer" />
         </button>
         <span className="text-xl font-bold tracking-tight text-foreground">{pageTitle}</span>
       </div>
 
-      {/* Center: Search (Desktop only) */}
       <div className="hidden md:flex flex-col relative w-max max-w-md">
         <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-muted transition-colors">
           {isSearching ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <Search className="w-4 h-4 text-muted-foreground" />}
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
@@ -122,21 +104,12 @@ export default function Navbar({ onMenuClick, pageTitle }) {
           />
         </div>
 
-        {/* Search Results Dropdown */}
         <AnimatePresence>
           {showResults && (
             <>
-              <motion.div 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
-                exit={{ opacity: 0 }}
-                onClick={() => setShowResults(false)}
-                className="fixed inset-0 z-[-1]"
-              />
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowResults(false)} className="fixed inset-0 z-[-1]" />
               <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 className="absolute top-full left-0 right-0 mt-2 p-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden max-h-[300px] overflow-y-auto z-50"
               >
                 {searchResults.length === 0 ? (
@@ -146,26 +119,17 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                     {searchResults.map(result => (
                       <div key={result.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-all">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                            {result.name?.charAt(0).toUpperCase() || result.email.charAt(0).toUpperCase()}
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase">
+                            {(result.name || result.email).charAt(0)}
                           </div>
-                          <span className="text-sm font-medium text-foreground">{result.name || result.email.split('@')[0]}</span>
+                          <span className="text-sm font-medium text-foreground truncate max-w-[120px]">{result.name || result.email.split('@')[0]}</span>
                         </div>
-                        {result.isFollowing ? (
-                          <button 
-                            onClick={() => handleUnfollow(result.id)} 
-                            className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 text-xs font-bold transition-all uppercase tracking-tight"
-                          >
-                            Unfollow
-                          </button>
-                        ) : (
-                          <button 
-                            onClick={() => handleFollow(result.id)} 
-                            className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold transition-all uppercase tracking-tight"
-                          >
-                            Follow
-                          </button>
-                        )}
+                        <button 
+                          onClick={() => handleFollowAction(result.id, result.isFollowing ? 'unfollow' : 'follow')} 
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all uppercase tracking-tight ${result.isFollowing ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}
+                        >
+                          {result.isFollowing ? 'Unfollow' : (result.followsMe ? 'Follow Back' : 'Follow')}
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -176,29 +140,16 @@ export default function Navbar({ onMenuClick, pageTitle }) {
         </AnimatePresence>
       </div>
 
-      {/* Right section: Utilities */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Theme Toggle */}
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-2 rounded-xl text-muted-foreground hover:bg-muted transition-all duration-200"
-          aria-label="Toggle theme"
-        >
+        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="p-2 rounded-xl text-muted-foreground hover:bg-muted transition-all duration-200">
           {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
         </button>
 
-        {/* Notifications */}
         <div className="relative">
-          <button 
-            onClick={() => setIsBellOpen(!isBellOpen)}
-            className={`p-2 rounded-xl transition-all duration-200 ${isBellOpen ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'text-muted-foreground hover:bg-muted'}`}
-          >
+          <button onClick={() => setIsBellOpen(!isBellOpen)} className={`p-2 rounded-xl transition-all duration-200 ${isBellOpen ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'text-muted-foreground hover:bg-muted'}`}>
             <Bell className={`w-5 h-5 ${unreadCount > 0 && !isBellOpen ? 'animate-bounce' : ''}`} />
             {unreadCount > 0 && (
-              <motion.span 
-                initial={{ scale: 0 }} animate={{ scale: 1 }}
-                className={`absolute -top-1 -right-1 w-5 h-5 rounded-full border-2 text-[10px] font-bold flex items-center justify-center ${isBellOpen ? 'bg-white text-primary border-primary' : 'bg-rose-500 text-white border-card'}`}
-              >
+              <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className={`absolute -top-1 -right-1 w-5 h-5 rounded-full border-2 text-[10px] font-bold flex items-center justify-center ${isBellOpen ? 'bg-white text-primary border-primary' : 'bg-rose-500 text-white border-card'}`}>
                 {unreadCount > 9 ? '9+' : unreadCount}
               </motion.span>
             )}
@@ -209,9 +160,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
               <>
                 <div className="fixed inset-0 z-[-1]" onClick={() => setIsBellOpen(false)} />
                 <motion.div
-                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 15, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   className="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-card border border-border rounded-3xl shadow-2xl overflow-hidden z-50"
                 >
                   <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
@@ -221,21 +170,8 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                     </div>
                     {notifications.length > 0 && (
                       <div className="flex items-center gap-4">
-                        {unreadCount > 0 && (
-                          <button 
-                            onClick={readAllNotifications}
-                            className="text-[10px] font-black uppercase text-primary hover:underline transition-all"
-                          >
-                            Mark all as read
-                          </button>
-                        )}
-                        <button 
-                          onClick={clearNotifications}
-                          className="text-[10px] font-bold uppercase text-muted-foreground hover:text-rose-500 flex items-center gap-1 transition-colors"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          Clear All
-                        </button>
+                        <button onClick={readAllNotifications} className="text-[10px] font-black uppercase text-primary hover:underline">Mark all read</button>
+                        <button onClick={clearNotifications} className="text-[10px] font-bold uppercase text-muted-foreground hover:text-rose-500 flex items-center gap-1"><Trash2 className="w-3 h-3" /> Clear</button>
                       </div>
                     )}
                   </div>
@@ -243,78 +179,33 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                   <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                     {notifications.length === 0 ? (
                       <div className="p-12 text-center flex flex-col items-center gap-3">
-                         <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center">
-                            <Bell className="w-6 h-6 text-muted-foreground/30" />
-                         </div>
+                         <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center"><Bell className="w-6 h-6 text-muted-foreground/30" /></div>
                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">No notifications yet</p>
                       </div>
                     ) : (
                       <div className="divide-y divide-border/50">
                         {notifications.map((n) => (
-                          <div 
-                            key={n.id} 
-                            onClick={() => handleNotificationClick(n)}
-                            className="p-4 hover:bg-muted/50 transition-all group relative cursor-pointer"
-                          >
+                          <div key={n.id} onClick={() => handleNotificationClick(n)} className="p-4 hover:bg-muted/50 transition-all group relative cursor-pointer">
                             <div className="flex gap-3">
                               <div className={`w-2 h-2 mt-1.5 rounded-full flex-shrink-0 ${n.isRead ? 'bg-transparent' : 'bg-primary animate-pulse'}`} />
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-medium text-foreground leading-relaxed pr-6">{n.content}</p>
                                 <div className="flex items-center justify-between mt-1.5">
                                   <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">{new Date(n.createdAt).toLocaleDateString()} • {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                  
-                                  {n.type === 'FOLLOW' && (
+                                  {n.type === 'FOLLOW' && n.senderId && (
                                     <div className="ml-auto" onClick={(e) => e.stopPropagation()}>
-                                      {n.isFollowingSender ? (
-                                        <button 
-                                          onClick={async (e) => {
-                                            e.stopPropagation();
-                                            // Optimistic update
-                                            setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isFollowingSender: false } : notif));
-                                            try {
-                                              await api.delete(`/user/unfollow/${n.senderId}`);
-                                            } catch (err) {
-                                              console.error('Unfollow from notif failed:', err);
-                                              setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isFollowingSender: true } : notif));
-                                            }
-                                          }}
-                                          className="px-2 py-1 rounded-md bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 text-[10px] font-black uppercase tracking-tight transition-all"
-                                        >
-                                          Unfollow
-                                        </button>
-                                      ) : (
-                                        <button 
-                                          onClick={async (e) => {
-                                            e.stopPropagation();
-                                            // Optimistic update
-                                            setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isFollowingSender: true } : notif));
-                                            try {
-                                              await api.post(`/user/follow/${n.senderId}`);
-                                              if (socket) {
-                                                socket.emit('follow_user', { followingId: n.senderId });
-                                              }
-                                            } catch (err) {
-                                              console.error('Follow from notif failed:', err);
-                                              setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isFollowingSender: false } : notif));
-                                            }
-                                          }}
-                                          className="px-2 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-black uppercase tracking-tight transition-all"
-                                        >
-                                          Follow Back
-                                        </button>
-                                      )}
+                                      <button 
+                                        onClick={() => handleFollowAction(n.senderId, n.isFollowingSender ? 'unfollow' : 'follow')}
+                                        className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-tight transition-all ${n.isFollowingSender ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}
+                                      >
+                                        {n.isFollowingSender ? 'Unfollow' : 'Follow Back'}
+                                      </button>
                                     </div>
                                   )}
                                 </div>
                               </div>
                             </div>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeNotification(n.id);
-                              }}
-                              className="absolute right-3 top-4 p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-all"
-                            >
+                            <button onClick={(e) => { e.stopPropagation(); removeNotification(n.id); }} className="absolute right-3 top-4 p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-all">
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
@@ -322,29 +213,11 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                       </div>
                     )}
                   </div>
-                  
-                  <div className="p-3 border-t border-border bg-muted/10 text-center">
-                     <button 
-                       onClick={() => {
-                         requestNotificationPermission();
-                         // Close the bell dropdown to let the user see the system permission popup
-                         setIsBellOpen(false);
-                       }} 
-                       className="text-[10px] font-black uppercase text-primary hover:underline hover:scale-105 active:scale-95 transition-all"
-                     >
-                       {typeof window !== 'undefined' && Notification.permission === 'granted' 
-                         ? '✓ Notifications Active' 
-                         : '🛎️ Enable Browser Notifications'}
-                     </button>
-                  </div>
                 </motion.div>
               </>
             )}
           </AnimatePresence>
         </div>
-
-        {/* Profile Dropdown Placeholder */}
-        <div className="w-px h-6 bg-border mx-1 hidden sm:block"></div>
 
         <div className="flex items-center gap-2 pl-2">
           <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">

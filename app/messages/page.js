@@ -28,7 +28,7 @@ import api from '../../lib/api';
 
 export default function MessagesPage() {
   const { user } = useAuth();
-  const { socket } = useSocket();
+  const { socket, startCall } = useSocket();
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedMessages, setSelectedMessages] = useState([]);
@@ -409,6 +409,20 @@ export default function MessagesPage() {
                     </div>
                   ) : (
                     <>
+                      <button 
+                        onClick={() => startCall(selectedUser.id, 'voice')}
+                        className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all group"
+                        title="Voice Call"
+                      >
+                        <Phone className="w-4 h-4 group-hover:text-primary transition-colors" />
+                      </button>
+                      <button 
+                        onClick={() => startCall(selectedUser.id, 'video')}
+                        className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all group"
+                        title="Video Call"
+                      >
+                        <Video className="w-4 h-4 group-hover:text-primary transition-colors" />
+                      </button>
                       <button 
                         onClick={() => setSelectionMode(true)}
                         className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all group"

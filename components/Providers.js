@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from '../context/AuthContext';
 import { SocketProvider } from '../context/SocketContext';
+import { CallOverlay } from './CallOverlay';
+import { NotificationToast } from './NotificationToast';
 
 export function Providers({ children }) {
   useEffect(() => {
@@ -19,6 +21,8 @@ export function Providers({ children }) {
       <AuthProvider>
         <SocketProvider>
           {children}
+          <CallOverlay />
+          <NotificationToast />
         </SocketProvider>
       </AuthProvider>
     </ThemeProvider>

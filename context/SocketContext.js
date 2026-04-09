@@ -20,10 +20,12 @@ export const SocketProvider = ({ children }) => {
   const [callEnded, setCallEnded] = useState(false);
   const [stream, setStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
-  const [isCalling, setIsCalling] = useState(false);
-  const [targetUser, setTargetUser] = useState(null);
-  const [isMirrored, setIsMirrored] = useState(true);
-  const [facingMode, setFacingMode] = useState('user'); // 'user' or 'environment'
+   const [isCalling, setIsCalling] = useState(false);
+   const [targetUser, setTargetUser] = useState(null);
+   const [isMirrored, setIsMirrored] = useState(true);
+   const [remoteIsMirrored, setRemoteIsMirrored] = useState(false);
+   const [isMinimized, setIsMinimized] = useState(false);
+   const [facingMode, setFacingMode] = useState('user'); // 'user' or 'environment'
 
   const connectionRef = React.useRef();
 
@@ -104,6 +106,10 @@ export const SocketProvider = ({ children }) => {
         handleEndCall(false); 
       });
 
+      newSocket.on('remote_mirror_toggled', ({ isMirrored }) => {
+        setRemoteIsMirrored(isMirrored);
+      });
+
       setSocket(newSocket);
       return () => newSocket.disconnect();
     }
@@ -181,6 +187,8 @@ export const SocketProvider = ({ children }) => {
     setCallEnded(true);
     setIsCalling(false);
     setTargetUser(null);
+    setIsMinimized(false);
+    setRemoteIsMirrored(false);
 
     // 4. Final Cleanup
     connectionRef.current = null;
@@ -191,12 +199,13 @@ export const SocketProvider = ({ children }) => {
     }, 2000);
   };
 
-  const startCall = async (userIdToCall, type = 'video') => {
+  const startCall = async (userIdToCall, type = 'video', recipientInfo = {}) => {
     if (isCalling || stream || callAccepted) {
       console.warn('[Call] Already in a call or calling process. Ignoring request.');
       return;
     }
     setCallEnded(false); // Reset call ended status
+    setCall({ isReceivingCall: false, from: userIdToCall, name: recipientInfo.name, avatar: recipientInfo.avatar, type });
     console.log(`[Call] Initializing ${type} call...`);
     setIsCalling(true);
     setTargetUser(userIdToCall);
@@ -224,6 +233,8 @@ export const SocketProvider = ({ children }) => {
           avatar: user.avatar,
           type
         });
+        // Also send initial mirror state
+        socket.emit('mirror_toggled', { to: userIdToCall, isMirrored });
       });
 
       peer.on('stream', (remoteStream) => {
@@ -258,6 +269,8 @@ export const SocketProvider = ({ children }) => {
 
       peer.on('signal', (data) => {
         socket.emit('answer_call', { signal: data, to: call.from });
+        // Also send initial mirror state
+        socket.emit('mirror_toggled', { to: call.from, isMirrored });
       });
 
       peer.on('stream', (remoteStream) => {
@@ -276,6 +289,14 @@ export const SocketProvider = ({ children }) => {
       socket.emit('reject_call', { to: call.from });
     }
     setCall({ ...call, isReceivingCall: false });
+  };
+
+  const toggleMirror = () => {
+    const newVal = !isMirrored;
+    setIsMirrored(newVal);
+    if (socket && (targetUser || call.from)) {
+      socket.emit('mirror_toggled', { to: targetUser || call.from, isMirrored: newVal });
+    }
   };
 
   const switchCamera = async () => {
@@ -314,7 +335,8 @@ export const SocketProvider = ({ children }) => {
       requestNotificationPermission, removeNotification, readAllNotifications, clearNotifications,
       call, callAccepted, callEnded, stream, remoteStream, isCalling,
       startCall, answerCall, rejectCall, handleEndCall,
-      isMirrored, setIsMirrored, switchCamera
+      isMirrored, toggleMirror, switchCamera,
+      remoteIsMirrored, isMinimized, setIsMinimized
     }}>
       {children}
     </SocketContext.Provider>

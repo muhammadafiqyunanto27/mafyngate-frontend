@@ -231,6 +231,7 @@ export default function MessagesPage() {
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"><Search className="w-4 h-4" /></div>
               <input 
                 type="text" 
+                suppressHydrationWarning
                 placeholder={isHiddenMode ? 'Search hidden...' : 'Search chats...'} 
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
@@ -283,14 +284,14 @@ export default function MessagesPage() {
                 <div className="flex items-center gap-1.5 relative" ref={menuRef}>
                   <button 
                     disabled={isInitiatingCall}
-                    onClick={() => startCall(selectedUser.id, 'voice')} 
+                    onClick={() => startCall(selectedUser.id, 'voice', selectedUser)} 
                     className={`p-2.5 rounded-xl transition-all ${isInitiatingCall ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted text-muted-foreground'}`}
                   >
                     <Phone className="w-4 h-4" />
                   </button>
                   <button 
                     disabled={isInitiatingCall}
-                    onClick={() => startCall(selectedUser.id, 'video')} 
+                    onClick={() => startCall(selectedUser.id, 'video', selectedUser)} 
                     className={`p-2.5 rounded-xl transition-all ${isInitiatingCall ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted text-muted-foreground'}`}
                   >
                     <Video className="w-4 h-4" />

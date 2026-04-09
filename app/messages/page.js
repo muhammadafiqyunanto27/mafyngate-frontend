@@ -271,8 +271,8 @@ export default function MessagesPage() {
   };
 
   return (
-    <DashboardLayout pageTitle="Messages">
-      <div className="h-[calc(100vh-12rem)] bg-card border border-border rounded-[2.5rem] shadow-2xl flex overflow-hidden">
+    <DashboardLayout pageTitle="Messages" fullWidth>
+      <div className="h-[calc(100vh-4rem)] bg-card flex overflow-hidden">
         
         {/* User List Sidebar */}
         <div className={`${isMobileView && showChat ? 'hidden' : 'flex'} w-full md:w-80 lg:w-96 border-r border-border flex-col bg-muted/10`}>
@@ -439,7 +439,7 @@ export default function MessagesPage() {
               </div>
 
               {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-6 custom-scrollbar bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 space-y-6 custom-scrollbar bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
                 {messages.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-40">
                     <div className="p-4 rounded-full bg-muted">
@@ -459,7 +459,7 @@ export default function MessagesPage() {
                         key={msg.id || i}
                         className={`flex group/msg relative mb-2 ${isMine ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div className={`max-w-[85%] md:max-w-[70%] min-w-0 flex gap-3 ${isMine ? 'flex-row-reverse items-end' : 'items-start'}`}>
+                        <div className={`max-w-[92%] md:max-w-[80%] min-w-0 flex gap-3 ${isMine ? 'flex-row-reverse items-end' : 'items-start'}`}>
                           
                           {/* Selection Checkbox */}
                           {selectionMode && isMine && (
@@ -523,7 +523,7 @@ export default function MessagesPage() {
               </div>
 
               {/* Message Input */}
-              <div className="p-6 border-t border-border bg-card">
+              <div className="p-4 md:pt-6 md:pb-8 md:px-10 border-t border-border bg-card">
                 <AnimatePresence>
                   {editingMessage && (
                     <motion.div 

@@ -5,7 +5,7 @@ import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { motion } from 'framer-motion';
 
-export default function DashboardLayout({ children, pageTitle = 'Dashboard' }) {
+export default function DashboardLayout({ children, pageTitle = 'Dashboard', fullWidth = false }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -31,12 +31,12 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard' }) {
           pageTitle={pageTitle} 
         />
 
-        <main className="flex-1 p-4 md:p-6 lg:p-10 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar">
+        <main className={`flex-1 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar ${fullWidth ? 'p-0' : 'p-4 md:p-6 lg:p-10'}`}>
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+            initial={{ opacity: 0, y: fullWidth ? 0 : 20, scale: fullWidth ? 1 : 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-[1500px] mx-auto min-h-full"
+            className={`w-full mx-auto min-h-full ${fullWidth ? 'max-w-none' : 'max-w-[1500px]'}`}
           >
             {children}
           </motion.div>

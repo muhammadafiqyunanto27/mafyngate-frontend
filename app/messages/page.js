@@ -27,7 +27,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 
 export default function MessagesPage() {
-  const { user } = useAuth();
+  const { user, fetchUser } = useAuth();
   const { socket, startCall, isCalling: isInitiatingCall } = useSocket();
   const [users, setUsers] = useState([]); // This stores the current active set (normal or hidden)
   const [selectedUser, setSelectedUser] = useState(null);
@@ -89,9 +89,6 @@ export default function MessagesPage() {
   useEffect(() => {
     if (searchQuery.length >= 4 && !isHiddenMode) {
       handleUnlockAttempt(searchQuery);
-    } else if (isHiddenMode && searchQuery === '') {
-      setIsHiddenMode(false);
-      fetchConnections();
     }
   }, [searchQuery, isHiddenMode]);
 
@@ -129,7 +126,7 @@ export default function MessagesPage() {
         setShowMenu(false);
         setSelectedUser(null);
       } else {
-        if (!user.chatLockPassword) {
+        if (!user.hasChatLock) {
           setLockModal({ open: true, type: 'set', title: 'Set Lock Password', target: selectedUser.id });
           return;
         }
@@ -143,6 +140,7 @@ export default function MessagesPage() {
     if (password.length < 4) { setError('Min 4 chars'); return; }
     try {
       await api.post('/user/chat/lock-password', { password });
+      await fetchUser(); // Update hasChatLock locally
       if (lockModal.target) await api.post('/user/chat/hide', { targetId: lockModal.target, hide: true });
       setLockModal({ open: false, type: 'check', title: '', target: null });
       setPassword(''); setSelectedUser(null); fetchConnections();
@@ -220,7 +218,15 @@ export default function MessagesPage() {
         <div className={`${isMobileView && showChat ? 'hidden' : 'flex'} w-full md:w-80 lg:w-96 border-r border-border flex-col bg-muted/5`}>
           <div className="p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                {isHiddenMode && (
+                  <button 
+                    onClick={() => { setIsHiddenMode(false); fetchConnections(); }}
+                    className="p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground mr-1"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                )}
                 <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">{isHiddenMode ? 'Hidden Chats' : 'Chat Inbox'}</h2>
                 {isHiddenMode && <Lock className="w-4 h-4 text-primary animate-pulse" />}
               </div>

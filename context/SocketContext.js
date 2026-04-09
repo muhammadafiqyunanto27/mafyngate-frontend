@@ -182,13 +182,21 @@ export const SocketProvider = ({ children }) => {
     setIsCalling(false);
     setTargetUser(null);
 
-    // 4. Force Reload for total cleanup (Optional but requested for robustness)
+    // 4. Final Cleanup
+    connectionRef.current = null;
+    
+    // Auto-hide the "Call Ended" message after 2 seconds
     setTimeout(() => {
-      window.location.reload();
-    }, 1000);
+      setCallEnded(false);
+    }, 2000);
   };
 
   const startCall = async (userIdToCall, type = 'video') => {
+    if (isCalling || stream || callAccepted) {
+      console.warn('[Call] Already in a call or calling process. Ignoring request.');
+      return;
+    }
+    setCallEnded(false); // Reset call ended status
     console.log(`[Call] Initializing ${type} call...`);
     setIsCalling(true);
     setTargetUser(userIdToCall);
@@ -231,6 +239,11 @@ export const SocketProvider = ({ children }) => {
   };
 
   const answerCall = async () => {
+    if (callAccepted || stream) {
+      console.warn('[Call] Already answered or stream exists.');
+      return;
+    }
+    setCallEnded(false); // Reset call ended status
     setCallAccepted(true);
     try {
       console.log('[Media] Answering call, requesting media...');
@@ -271,6 +284,12 @@ export const SocketProvider = ({ children }) => {
     setFacingMode(newMode);
 
     try {
+      // Stop old tracks first to release hardware
+      stream.getTracks().forEach(track => {
+        console.log('[Media] Releasing old track:', track.kind);
+        track.stop();
+      });
+
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: newMode },
         audio: true
@@ -283,8 +302,6 @@ export const SocketProvider = ({ children }) => {
         connectionRef.current.replaceTrack(videoTrack, newVideoTrack, stream);
       }
 
-      // Stop old tracks
-      stream.getTracks().forEach(track => track.stop());
       setStream(newStream);
     } catch (err) {
       console.error('[Media] Switch camera failed:', err);

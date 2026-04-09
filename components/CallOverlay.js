@@ -36,7 +36,7 @@ export const CallOverlay = () => {
     }
   }, [callAccepted, remoteStream]);
 
-  if (!isCalling && !call.isReceivingCall && !callAccepted) return null;
+  if (!isCalling && !call.isReceivingCall && !callAccepted && !callEnded) return null;
 
   return (
     <AnimatePresence>

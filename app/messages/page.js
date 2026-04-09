@@ -28,7 +28,7 @@ import api from '../../lib/api';
 
 export default function MessagesPage() {
   const { user } = useAuth();
-  const { socket } = useSocket();
+  const { socket, startCall, isCalling: isInitiatingCall } = useSocket();
   const [users, setUsers] = useState([]); // This stores the current active set (normal or hidden)
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -281,6 +281,20 @@ export default function MessagesPage() {
                   <div className="min-w-0"><h3 className="font-black text-foreground uppercase tracking-tight text-sm md:text-base truncate cursor-pointer" onClick={() => setViewingProfile(selectedUser)}>{selectedUser.name || selectedUser.email.split('@')[0]}</h3><p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> End-to-End Encrypted</p></div>
                 </div>
                 <div className="flex items-center gap-1.5 relative" ref={menuRef}>
+                  <button 
+                    disabled={isInitiatingCall}
+                    onClick={() => startCall(selectedUser.id, 'voice')} 
+                    className={`p-2.5 rounded-xl transition-all ${isInitiatingCall ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted text-muted-foreground'}`}
+                  >
+                    <Phone className="w-4 h-4" />
+                  </button>
+                  <button 
+                    disabled={isInitiatingCall}
+                    onClick={() => startCall(selectedUser.id, 'video')} 
+                    className={`p-2.5 rounded-xl transition-all ${isInitiatingCall ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted text-muted-foreground'}`}
+                  >
+                    <Video className="w-4 h-4" />
+                  </button>
                   <button onClick={() => setShowMenu(!showMenu)} className={`p-2.5 rounded-xl transition-all ${showMenu ? 'bg-primary text-white shadow-lg' : 'hover:bg-muted text-muted-foreground'}`}><MoreVertical className="w-4 h-4" /></button>
                   <AnimatePresence>
                     {showMenu && (

@@ -22,6 +22,8 @@ export const SocketProvider = ({ children }) => {
   const [remoteStream, setRemoteStream] = useState(null);
   const [isCalling, setIsCalling] = useState(false);
   const [targetUser, setTargetUser] = useState(null);
+  const [isMirrored, setIsMirrored] = useState(true);
+  const [facingMode, setFacingMode] = useState('user'); // 'user' or 'environment'
 
   const connectionRef = React.useRef();
 
@@ -237,12 +239,39 @@ export const SocketProvider = ({ children }) => {
     setCall({ ...call, isReceivingCall: false });
   };
 
+  const switchCamera = async () => {
+    if (!stream) return;
+    const newMode = facingMode === 'user' ? 'environment' : 'user';
+    setFacingMode(newMode);
+
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: newMode },
+        audio: true
+      });
+
+      if (connectionRef.current) {
+        const videoTrack = stream.getVideoTracks()[0];
+        const newVideoTrack = newStream.getVideoTracks()[0];
+        // Replace track in peer connection
+        connectionRef.current.replaceTrack(videoTrack, newVideoTrack, stream);
+      }
+
+      // Stop old tracks
+      stream.getTracks().forEach(track => track.stop());
+      setStream(newStream);
+    } catch (err) {
+      console.error('[Media] Switch camera failed:', err);
+    }
+  };
+
   return (
     <SocketContext.Provider value={{ 
       socket, unreadCount, notifications, toast, setNotifications, setUnreadCount,
       requestNotificationPermission, removeNotification, readAllNotifications, clearNotifications,
       call, callAccepted, callEnded, stream, remoteStream, isCalling,
-      startCall, answerCall, rejectCall, handleEndCall
+      startCall, answerCall, rejectCall, handleEndCall,
+      isMirrored, setIsMirrored, switchCamera
     }}>
       {children}
     </SocketContext.Provider>

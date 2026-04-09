@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
-import { Phone, PhoneOff, Video, VideoOff, Mic, MicOff, Maximize2, Minimize2 } from 'lucide-react';
+import { Phone, PhoneOff, Video, VideoOff, Mic, MicOff, Maximize2, Minimize2, RefreshCw, FlipHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const CallOverlay = () => {
@@ -15,7 +15,10 @@ export const CallOverlay = () => {
     isCalling, 
     answerCall, 
     rejectCall, 
-    handleEndCall 
+    handleEndCall,
+    isMirrored,
+    setIsMirrored,
+    switchCamera
   } = useSocket();
 
   const myVideo = useRef();
@@ -75,14 +78,14 @@ export const CallOverlay = () => {
                   muted
                   ref={myVideo}
                   autoPlay
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full object-cover ${isMirrored ? 'scale-x-[-1]' : ''}`}
                 />
               </div>
             )}
           </div>
 
           {/* Controls Bar */}
-          <div className="h-24 bg-zinc-900/90 border-t border-white/5 flex items-center justify-center space-x-6 px-6">
+          <div className="h-24 bg-zinc-900/90 border-t border-white/5 flex items-center justify-center space-x-4 md:space-x-6 px-6">
             {call.isReceivingCall && !callAccepted ? (
               <>
                 <button
@@ -106,6 +109,24 @@ export const CallOverlay = () => {
                 <button className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
                   <Video size={20} />
                 </button>
+                
+                {/* Camera Settings Buttons */}
+                <button 
+                  onClick={() => setIsMirrored(!isMirrored)}
+                  title="Toggle Mirror"
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isMirrored ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                >
+                  <FlipHorizontal size={20} />
+                </button>
+                
+                <button 
+                  onClick={switchCamera}
+                  title="Switch Camera"
+                  className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all active:rotate-180"
+                >
+                  <RefreshCw size={20} />
+                </button>
+
                 <button
                   onClick={() => handleEndCall(true)}
                   className="w-16 h-12 rounded-2xl bg-rose-500 hover:bg-rose-600 flex items-center justify-center text-white transition-all transform hover:scale-105 shadow-lg shadow-rose-500/20 px-4"

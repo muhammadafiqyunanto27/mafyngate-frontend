@@ -86,6 +86,9 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   *, ::after, ::before, ::backdrop, ::file-selector-button {
     border-color: var(--border);
   }

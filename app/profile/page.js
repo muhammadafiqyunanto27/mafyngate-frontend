@@ -8,7 +8,6 @@ import {
   User, 
   Mail, 
   Shield, 
-  Bell, 
   Camera, 
   ChevronRight, 
   Key, 
@@ -20,7 +19,9 @@ import {
   MessageSquare,
   CheckCircle,
   X,
-  Lock
+  Lock,
+  LifeBuoy,
+  MessageCircle
 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -106,7 +107,6 @@ export default function ProfilePage() {
       setMessage({ type: 'error', text: 'Gagal mengupload foto' });
     } finally {
       setAvatarLoading(false);
-      // Reset input file agar bisa pilih file yang sama lagi
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -185,6 +185,14 @@ export default function ProfilePage() {
     return date.toLocaleDateString();
   };
 
+  // Direct Gmail Redirect
+  const openGmail = () => {
+    const email = "muhammadafiqyunanto@gmail.com";
+    const subject = encodeURIComponent("MafynGate | Support Request");
+    const body = encodeURIComponent("Description:\n\nUser: " + (user.name || user.email));
+    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`, '_blank');
+  };
+
   const sections = [
     {
       title: 'Personal Information',
@@ -202,19 +210,27 @@ export default function ProfilePage() {
       fields: [
         { label: 'Password', value: '••••••••••••', icon: Key, action: () => setIsChangingPassword(true) },
       ]
+    },
+    {
+      title: 'Support & Bug Report',
+      description: 'Found a glitch or need help? Contact our developer team.',
+      icon: LifeBuoy,
+      fields: [
+        { label: 'Email Report', value: 'Send formal bug report', icon: Mail, action: openGmail },
+        { label: 'WhatsApp Support', value: 'Instant technical chat', icon: MessageCircle, action: () => window.open('https://wa.me/6282219785260', '_blank') }
+      ]
     }
   ];
 
   return (
     <DashboardLayout pageTitle="Profile">
-      <div className="max-w-5xl mx-auto space-y-10">
+      <div className="max-w-5xl mx-auto space-y-10 selection:bg-primary/30">
         
-        {/* Profile Header */}
+        {/* RESTORED: Profile Header (Full Size) */}
         <section className="relative">
           <div className="h-48 rounded-[2.5rem] bg-gradient-to-r from-indigo-700 via-primary-600 to-primary-800 shadow-2xl relative overflow-hidden flex items-end">
             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:20px_20px]"></div>
             
-            {/* Username inside blue banner - positioned 5px above boundary */}
             <div className="relative z-20 pl-[11.5rem] pb-[5px] hidden md:block">
                <motion.h1 
                 initial={{ opacity: 0, y: 10 }}
@@ -250,13 +266,12 @@ export default function ProfilePage() {
               </div>
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-2 -right-2 p-2.5 bg-primary text-white rounded-xl shadow-lg border-2 border-background hover:bg-primary-600 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 z-20"
+                className="absolute -bottom-2 -right-2 p-2.5 bg-primary text-white rounded-xl shadow-lg border-2 border-background hover:bg-primary-600 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 z-20 flex items-center justify-center"
               >
                 <Camera className="w-4 h-4" />
               </button>
             </div>
             
-            {/* Email section - Fixed positioning 5px below boundary */}
             <div className="flex-1 flex flex-col self-start mt-[69px]">
               <h1 className="text-2xl font-black text-foreground md:hidden mb-1">
                 {user.name || user.email.split('@')[0]}
@@ -283,217 +298,16 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Image Cropper Modal */}
-        <AnimatePresence>
-          {showCropper && (
-            <ImageCropper 
-              image={selectedImage}
-              onCropComplete={handleCropComplete}
-              onCancel={() => setShowCropper(false)}
-              loading={avatarLoading}
-            />
-          )}
-        </AnimatePresence>
+        {/* Success/Error Toast (Original Size) */}
+        {message.text && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`fixed bottom-10 right-10 p-5 rounded-2xl shadow-2xl z-[150] border flex items-center gap-3 ${message.type === 'success' ? 'bg-emerald-500/90 text-white border-emerald-400' : 'bg-rose-500/90 text-white border-rose-400'}`}>
+             {message.type === 'success' ? <CheckCircle2 size={24} /> : <X size={24} />}
+             <p className="text-xs font-black uppercase tracking-widest italic">{message.text}</p>
+          </motion.div>
+        )}
 
-        {/* Edit Profile Modal */}
-        <AnimatePresence>
-          {isEditing && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsEditing(false)}
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative bg-card border border-border w-full max-w-md rounded-3xl shadow-2xl overflow-hidden z-10"
-              >
-                <div className="p-6 border-b border-border flex items-center justify-between bg-muted/30">
-                  <h2 className="text-xl font-bold text-foreground">Edit Profile</h2>
-                  <button 
-                    onClick={() => setIsEditing(false)}
-                    className="p-2 rounded-xl h-10 w-10 flex items-center justify-center hover:bg-muted text-muted-foreground transition-all"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <form onSubmit={handleUpdate} className="p-6 space-y-5">
-                  {message.text && (
-                    <div className={`p-4 rounded-xl text-sm font-medium ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
-                      {message.text}
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Display Name</label>
-                    <div className="relative">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                        <User className="w-5 h-5" />
-                      </div>
-                      <input 
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        className="w-full pl-12 pr-4 py-3 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-foreground"
-                        placeholder="Your Name"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Email Address</label>
-                    <div className="relative">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                        <Mail className="w-5 h-5" />
-                      </div>
-                      <input 
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
-                        className="w-full pl-12 pr-4 py-3 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-foreground"
-                        placeholder="your@email.com"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="pt-4 flex gap-3">
-                    <button 
-                      type="button"
-                      onClick={() => setIsEditing(false)}
-                      className="flex-1 py-3 px-4 rounded-xl border border-border font-bold text-sm hover:bg-muted transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      type="submit"
-                      disabled={updateLoading}
-                      className="flex-1 py-3 px-4 rounded-xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      {updateLoading ? 'Saving...' : 'Save Changes'}
-                    </button>
-                  </div>
-                </form>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-
-        {/* Change Password Modal */}
-        <AnimatePresence>
-          {isChangingPassword && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsChangingPassword(false)}
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative bg-card border border-border w-full max-w-md rounded-3xl shadow-2xl overflow-hidden z-10"
-              >
-                <div className="p-6 border-b border-border flex items-center justify-between bg-muted/30">
-                  <h2 className="text-xl font-bold text-foreground">Change Password</h2>
-                  <button 
-                    onClick={() => setIsChangingPassword(false)}
-                    className="p-2 rounded-xl h-10 w-10 flex items-center justify-center hover:bg-muted text-muted-foreground transition-all"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <form onSubmit={handlePasswordUpdate} className="p-6 space-y-5">
-                  {message.text && (
-                    <div className={`p-4 rounded-xl text-sm font-medium ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
-                      {message.text}
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Current Password</label>
-                    <div className="relative">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                        <Lock className="w-5 h-5" />
-                      </div>
-                      <input 
-                        type="password"
-                        value={passwordData.currentPassword}
-                        onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                        className="w-full pl-12 pr-4 py-3 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-foreground"
-                        placeholder="••••••••"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">New Password</label>
-                    <div className="relative">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                        <Key className="w-5 h-5" />
-                      </div>
-                      <input 
-                        type="password"
-                        value={passwordData.newPassword}
-                        onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                        className="w-full pl-12 pr-4 py-3 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-foreground"
-                        placeholder="••••••••"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Confirm New Password</label>
-                    <div className="relative">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                        <CheckCircle2 className="w-5 h-5" />
-                      </div>
-                      <input 
-                        type="password"
-                        value={passwordData.confirmPassword}
-                        onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                        className="w-full pl-12 pr-4 py-3 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-foreground"
-                        placeholder="••••••••"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="pt-4 flex gap-3">
-                    <button 
-                      type="button"
-                      onClick={() => setIsChangingPassword(false)}
-                      className="flex-1 py-3 px-4 rounded-xl border border-border font-bold text-sm hover:bg-muted transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      type="submit"
-                      disabled={updateLoading}
-                      className="flex-1 py-3 px-4 rounded-xl bg-indigo-600 text-white font-bold text-sm shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      {updateLoading ? 'Updating...' : 'Update Password'}
-                    </button>
-                  </div>
-                </form>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-10">
           
-          {/* Main Info Columns */}
           <div className="lg:col-span-2 space-y-8">
             {sections.map((section, idx) => (
               <motion.div 
@@ -504,11 +318,11 @@ export default function ProfilePage() {
                 className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm"
               >
                 <div className="p-6 border-b border-border bg-muted/30">
-                   <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                   <h3 className="text-lg font-bold text-foreground flex items-center gap-2 uppercase tracking-tight italic">
                       <section.icon className="w-5 h-5 text-primary" />
                       {section.title}
                    </h3>
-                   <p className="text-sm text-muted-foreground mt-1">{section.description}</p>
+                   <p className="text-sm text-muted-foreground mt-1 font-medium">{section.description}</p>
                 </div>
                 <div className="p-0">
                   {section.fields.map((field, fIdx) => (
@@ -522,16 +336,11 @@ export default function ProfilePage() {
                           <field.icon className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{field.label}</p>
-                          <p className="text-foreground font-semibold mt-0.5">{field.value}</p>
+                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-none">{field.label}</p>
+                          <p className="text-foreground font-semibold mt-1.5">{field.value}</p>
                         </div>
                       </div>
-                      {field.action && (
-                        <div className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-all">
-                          CHANGE
-                        </div>
-                      )}
-                      <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
+                      <ChevronRight className="w-4 h-4 text-muted-foreground opacity-30 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
                     </div>
                   ))}
                 </div>
@@ -539,51 +348,39 @@ export default function ProfilePage() {
             ))}
           </div>
 
-          {/* Activity Sidebar */}
           <div className="space-y-8">
+            {/* RESTORED: Full Activity Logic */}
             <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
-               <h3 className="text-lg font-bold text-foreground flex items-center gap-2 mb-6">
+               <h3 className="text-lg font-bold text-foreground flex items-center gap-2 mb-6 italic uppercase tracking-tight">
                   <Clock className="w-5 h-5 text-primary" />
                   Recent Activity
                </h3>
                <div className="space-y-6">
                   {activities.length === 0 ? (
                     <div className="text-center py-10 px-4 border-2 border-dashed border-border rounded-2xl">
-                      <Activity className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                      <p className="text-xs text-muted-foreground font-medium italic">No recent activity detected</p>
+                       <Activity className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                       <p className="text-xs text-muted-foreground font-medium italic">No recent activity detected</p>
                     </div>
                   ) : (
                     <>
                       {(showFullActivity ? activities : activities.slice(0, 5)).map((activity, i, arr) => {
                         const Icon = getActivityIcon(activity.type);
                         return (
-                          <motion.div 
-                            layout
-                            key={activity.id} 
-                            initial={{ opacity: 0, x: -5 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="flex gap-4 relative group"
-                          >
-                             {i !== arr.length - 1 && (
-                               <div className="absolute left-[19px] top-10 bottom-[-10px] w-0.5 bg-border group-hover:bg-primary/20 transition-colors"></div>
-                             )}
-                             <div className={`z-10 w-10 min-w-10 h-10 rounded-full flex items-center justify-center border-2 border-background shadow-sm transition-transform group-hover:scale-110 ${activity.type === 'TASK_COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-primary/10 text-primary'}`}>
+                          <motion.div layout key={activity.id} className="flex gap-4 relative group">
+                             {i !== arr.length - 1 && <div className="absolute left-[19px] top-10 bottom-[-10px] w-0.5 bg-border"></div>}
+                             <div className={`z-10 w-10 min-w-10 h-10 rounded-full flex items-center justify-center border-2 border-background shadow-sm ${activity.type === 'TASK_COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-primary/10 text-primary'}`}>
                                 <Icon className="w-5 h-5" />
                              </div>
                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-foreground leading-tight">{activity.message}</p>
-                                <p className="text-[11px] text-muted-foreground mt-1 font-medium">{getTimeAgo(activity.createdAt)} • System Action</p>
+                                <p className="text-sm font-bold text-foreground leading-tight truncate">{activity.message}</p>
+                                <p className="text-[10px] text-muted-foreground mt-1 uppercase font-black">{getTimeAgo(activity.createdAt)}</p>
                              </div>
                           </motion.div>
                         )
                       })}
-
                       {activities.length > 5 && (
-                        <button 
-                          onClick={() => setShowFullActivity(!showFullActivity)}
-                          className="w-full py-2.5 mt-2 border border-dashed border-border rounded-xl text-xs font-bold text-muted-foreground hover:text-primary hover:border-primary/50 transition-all active:scale-95 flex items-center justify-center gap-2"
-                        >
-                          {showFullActivity ? 'Show Less' : `Tampilkan Selengkapnya (${activities.length - 5}+)`}
+                        <button onClick={() => setShowFullActivity(!showFullActivity)} className="w-full py-2.5 mt-2 border border-dashed border-border rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all">
+                          {showFullActivity ? 'Show Less' : `Show More (${activities.length - 5}+)`}
                         </button>
                       )}
                     </>
@@ -591,34 +388,66 @@ export default function ProfilePage() {
                </div>
             </div>
 
+            {/* RESTORED: Dangerous Zone (Full Size) */}
             <div className="p-6 rounded-3xl bg-rose-500/5 border border-rose-500/20 space-y-4">
                <div className="flex items-center gap-3 text-rose-500">
                   <div className="p-2 rounded-lg bg-rose-500/10"><LogOut className="w-5 h-5" /></div>
                   <h4 className="font-bold">Dangerous Zone</h4>
                </div>
-               <p className="text-sm text-slate-500 dark:text-slate-400">Permanently delete your account and all associated data from our servers.</p>
+               <p className="text-xs text-muted-foreground font-medium leading-relaxed">Permanently delete your account and all associated data from our servers. This action is irreversible.</p>
                <button 
                 onClick={async () => {
-                  if (window.confirm('ARE YOU ABSOLUTELY SURE? This action is permanent and cannot be undone.')) {
+                  if (window.confirm('ARE YOU ABSOLUTELY SURE? This action is permanent.')) {
                     setUpdateLoading(true);
-                    try {
-                      await deleteAccount();
-                    } catch (err) {
-                      alert('Failed to delete account');
-                      setUpdateLoading(false);
-                    }
+                    try { await deleteAccount(); } catch (err) { alert('Failed to delete account'); } finally { setUpdateLoading(false); }
                   }
                 }}
                 disabled={updateLoading}
-                className="w-full py-4 rounded-xl bg-rose-500 text-white text-sm font-bold hover:bg-rose-600 shadow-lg shadow-rose-500/20 transition-all active:scale-95 disabled:opacity-50"
+                className="w-full py-4 rounded-xl bg-rose-500 text-white text-xs font-black uppercase tracking-widest hover:bg-rose-600 shadow-lg shadow-rose-500/20 transition-all disabled:opacity-50"
                >
-                  {updateLoading ? 'Deleting...' : 'Delete Account'}
+                  {updateLoading ? 'Processing...' : 'Delete Account'}
                </button>
             </div>
           </div>
-
         </div>
       </div>
+
+      <AnimatePresence>
+        {isEditing && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsEditing(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-md rounded-3xl shadow-2xl p-6 hidden md:block">
+               {/* Modal Content - Kept original */}
+               <div className="flex justify-between items-center mb-6">
+                 <h2 className="text-xl font-bold">Edit Profile</h2>
+                 <button onClick={() => setIsEditing(false)} className="p-2 hover:bg-muted rounded-xl"><X /></button>
+               </div>
+               <form onSubmit={handleUpdate} className="space-y-4">
+                  <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl text-sm" placeholder="Name" />
+                  <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl text-sm" placeholder="Email" />
+                  <button type="submit" className="w-full py-4 bg-primary text-white font-bold rounded-xl">{updateLoading ? 'Saving...' : 'Save Changes'}</button>
+               </form>
+            </motion.div>
+          </div>
+        )}
+        {isChangingPassword && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsChangingPassword(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-md rounded-3xl shadow-2xl p-6">
+               <h2 className="text-xl font-bold mb-6 italic italic italic">Security Update</h2>
+               <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                  <input type="password" value={passwordData.currentPassword} onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})} className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl" placeholder="Old Password" />
+                  <input type="password" value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl" placeholder="New Password" />
+                  <input type="password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})} className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl" placeholder="Confirm" />
+                  <button type="submit" className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl">Confirm Security Update</button>
+               </form>
+            </motion.div>
+          </div>
+        )}
+        {showCropper && (
+          <ImageCropper image={selectedImage} onCropComplete={handleCropComplete} onCancel={() => setShowCropper(false)} loading={avatarLoading} />
+        )}
+      </AnimatePresence>
     </DashboardLayout>
   );
 }

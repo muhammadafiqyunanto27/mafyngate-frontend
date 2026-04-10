@@ -21,7 +21,7 @@ const menuItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
   { name: 'Messages', icon: MessageSquare, path: '/messages' },
   { name: 'Calculator', icon: Calculator, path: '/calculator' },
-  { name: 'Settings', icon: Settings, path: '/profile' },
+  { name: 'Settings', icon: Settings, path: '/settings' },
 ];
 
 export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }) {
@@ -188,10 +188,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
 
         {/* Footer Section */}
         <div className="p-4 border-t border-border flex-shrink-0 bg-card/30 overflow-hidden">
-           <div 
-            className={`flex items-center h-12 rounded-xl overflow-hidden ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-2 gap-3'}`}
+         <Link 
+            href="/profile"
+            className={`flex items-center h-12 rounded-xl overflow-hidden hover:bg-muted/50 transition-all cursor-pointer group/user ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-2 gap-3'}`}
           >
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0 overflow-hidden">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0 overflow-hidden group-hover/user:scale-105 transition-transform">
               {user.avatar ? (
                 <img 
                   src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} 
@@ -204,13 +205,13 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
             </div>
             {(!isCollapsed || isMobile) && (
               <div className="flex-1 min-w-0 overflow-hidden">
-                <p className="text-xs font-bold truncate text-foreground uppercase tracking-widest leading-none mb-1">
+                <p className="text-xs font-bold truncate text-foreground uppercase tracking-widest leading-none mb-1 group-hover/user:text-primary transition-colors">
                   {user.name || user.email.split('@')[0]}
                 </p>
-                <p className="text-[10px] text-muted-foreground truncate opacity-70">Authenticated</p>
+                <p className="text-[10px] text-muted-foreground truncate opacity-70 uppercase tracking-tighter">Public Identity</p>
               </div>
             )}
-          </div>
+          </Link>
 
           <button
             onClick={() => setShowLogoutModal(true)}

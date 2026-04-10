@@ -79,6 +79,14 @@ function MessagesContent() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Real-time Update Listener
+  useEffect(() => {
+    if (!socket) return;
+    const handleRefresh = () => fetchConnections();
+    socket.on('connection_update', handleRefresh);
+    return () => socket.off('connection_update', handleRefresh);
+  }, [socket]);
+
   // Handle URL search params for quick redirect from Dashboard
   useEffect(() => {
     if (users.length > 0) {
@@ -129,7 +137,19 @@ function MessagesContent() {
     if (!selectedUser) return;
     try {
       await api.delete(`/user/chat/conversation/${selectedUser.id}`);
-      setMessages([]); setSelectedUser(null); setIsDeletingConvo(false);
+      
+      // Notify other side via socket
+      if (socket) {
+        socket.emit('messages_deleted', { 
+          targetId: selectedUser.id, 
+          messageIds: messages.map(m => m.id),
+          everyone: true 
+        });
+      }
+
+      setMessages([]); 
+      setSelectedUser(null); 
+      setIsDeletingConvo(false);
       fetchConnections();
     } catch (err) {}
   };
@@ -200,15 +220,27 @@ function MessagesContent() {
     socket.on('user_status', handleStatusUpdate);
     socket.on('user_typing', handleTyping);
     socket.on('user_stop_typing', handleStopTyping);
-    socket.on('messages_deleted', (d) => setMessages(prev => prev.filter(m => !d.messageIds.includes(m.id))));
-    socket.on('message_updated', (u) => setMessages(prev => prev.map(m => m.id === u.id ? u : m)));
-    
+    socket.on('messages_deleted', (d) => {
+      setMessages(prev => prev.filter(m => !d.messageIds.includes(m.id)));
+      fetchConnections();
+    });
+    socket.on('message_updated', (u) => {
+      setMessages(prev => prev.map(m => m.id === u.id ? u : m));
+      fetchConnections();
+    });
+    socket.on('messages_read', (d) => {
+      if (selectedUser && d.by === selectedUser.id) {
+        setMessages(prev => prev.map(m => ({ ...m, isRead: true })));
+      }
+    });
+
     return () => { 
       socket.off('user_status', handleStatusUpdate);
       socket.off('user_typing', handleTyping);
       socket.off('user_stop_typing', handleStopTyping);
       socket.off('messages_deleted'); 
       socket.off('message_updated'); 
+      socket.off('messages_read');
     };
   }, [socket, selectedUser]);
 
@@ -220,7 +252,11 @@ function MessagesContent() {
         const userId = isIncoming ? m.senderId : m.receiverId;
         const userIndex = prev.findIndex(u => u.id === userId);
         
-        if (userIndex === -1) return prev; // Should not happen with current mutual follow logic
+        if (userIndex === -1) {
+          // New contact not in current list? Trigger full fetch to be safe
+          fetchConnections();
+          return prev;
+        }
         
         const updatedUsers = [...prev];
         const targetUser = { ...updatedUsers[userIndex] };
@@ -435,7 +471,7 @@ function MessagesContent() {
                   return (
                     <div key={msg.id || i} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[85%] md:max-w-[70%] px-5 py-3.5 rounded-3xl shadow-sm text-sm font-medium break-words whitespace-pre-wrap ${isMine ? 'bg-primary text-white rounded-br-none shadow-primary/20' : 'bg-muted/50 text-foreground rounded-bl-none border border-border'}`}>
-                        {msg.content}<div className={`text-[9px] font-black uppercase mt-1.5 flex items-center gap-1 justify-end opacity-50 ${isMine ? 'text-white' : 'text-muted-foreground'}`}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{isMine && <CheckCheck className="w-3 h-3" />}</div>
+                        {msg.content}<div className={`text-[9px] font-black uppercase mt-1.5 flex items-center gap-1 justify-end opacity-50 ${isMine ? 'text-white' : 'text-muted-foreground'}`}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{isMine && <CheckCheck className={`w-3 h-3 ${msg.isRead ? 'text-blue-300' : ''}`} />}</div>
                       </div>
                     </div>
                   );

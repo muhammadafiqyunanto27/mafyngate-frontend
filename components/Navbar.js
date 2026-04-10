@@ -1,8 +1,8 @@
 'use client';
 
-import { Menu, Search, Sun, Moon, Bell, Settings, LogOut, ShieldCheck, UserPlus, UserMinus, Loader2, Trash2, X, BellRing } from 'lucide-react';
+import { Menu, Search, Sun, Moon, Bell, Settings, LogOut, ShieldCheck, UserPlus, UserMinus, Loader2, Trash2, X, BellRing, Lock as LockIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { useRouter } from 'next/navigation';
@@ -22,7 +22,19 @@ export default function Navbar({ onMenuClick, pageTitle }) {
   const [isBellOpen, setIsBellOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
+  const bellRef = useRef(null);
+
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (bellRef.current && !bellRef.current.contains(event.target)) {
+        setIsBellOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
@@ -73,7 +85,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
     removeNotification(n.id); // Remove from list once clicked
     if (n.type === 'CHAT') {
       router.push(`/messages?userId=${n.senderId}`);
-    } else if (n.type === 'FOLLOW') {
+    } else if (n.type === 'FOLLOW' || n.type === 'CONNECTION_REQUEST' || n.type === 'CONNECTION_ACCEPTED') {
       router.push(`/profile/${n.senderId}`);
     }
   };
@@ -139,7 +151,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
         </button>
 
         {/* Notification Bell */}
-        <div className="relative">
+        <div className="relative" ref={bellRef}>
           <button onClick={() => setIsBellOpen(!isBellOpen)} className={`p-2.5 rounded-2xl transition-all duration-200 ${isBellOpen ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'text-muted-foreground hover:bg-muted'}`}>
             <Bell className={`w-5 h-5 ${unreadCount > 0 && !isBellOpen ? 'animate-bounce' : ''}`} />
             {unreadCount > 0 && (
@@ -178,22 +190,47 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                       </div>
                     ) : (
                       <div className="divide-y divide-border/50">
-                        {notifications.map((n) => (
-                          <div key={n.id} onClick={() => handleNotificationClick(n)} className="p-4 hover:bg-muted/50 transition-all group relative cursor-pointer">
+                        {notifications.map((n, idx) => (
+                          <div key={n.id || `notif-${idx}`} onClick={() => handleNotificationClick(n)} className="p-4 hover:bg-muted/50 transition-all group relative cursor-pointer">
                             <div className="flex gap-3">
                               <div className={`w-2 h-2 mt-1.5 rounded-full flex-shrink-0 ${n.isRead ? 'bg-transparent' : 'bg-primary animate-pulse'}`} />
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-medium text-foreground leading-relaxed pr-6">{n.content}</p>
                                 <div className="flex items-center justify-between mt-1.5">
                                   <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">{new Date(n.createdAt).toLocaleDateString()} • {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                  {n.type === 'FOLLOW' && n.senderId && (
-                                    <div className="ml-auto" onClick={(e) => e.stopPropagation()}>
-                                      <button 
-                                        onClick={() => handleFollowAction(n.senderId, n.isFollowingSender ? 'unfollow' : 'follow')}
-                                        className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-tight transition-all ${n.isFollowingSender ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}
-                                      >
-                                        {n.isFollowingSender ? 'Unfollow' : 'Follow Back'}
-                                      </button>
+                                  {n.senderId && (
+                                    <div className="ml-auto flex gap-2" onClick={(e) => e.stopPropagation()}>
+                                      {n.type === 'CONNECTION_REQUEST' && (
+                                        <>
+                                          <button 
+                                            onClick={async () => {
+                                              await api.post(`/user/requests/accept/${n.senderId}`);
+                                              removeNotification(n.id);
+                                              if (socket) socket.emit('connection_update', { targetId: n.senderId, status: 'ACCEPTED' });
+                                            }}
+                                            className="px-2 py-1 bg-emerald-500/10 text-emerald-500 rounded-md text-[9px] font-black uppercase hover:bg-emerald-500/20"
+                                          >
+                                            Accept
+                                          </button>
+                                          <button 
+                                            onClick={async () => {
+                                              await api.post(`/user/requests/decline/${n.senderId}`);
+                                              removeNotification(n.id);
+                                            }}
+                                            className="px-2 py-1 bg-rose-500/10 text-rose-500 rounded-md text-[9px] font-black uppercase hover:bg-rose-500/20"
+                                          >
+                                            Decline
+                                          </button>
+                                        </>
+                                      )}
+                                      {n.type === 'FOLLOW' && (
+                                        <button 
+                                          onClick={() => handleFollowAction(n.senderId, n.isMutual ? 'unfollow' : 'follow')}
+                                          className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tight transition-all ${n.isMutual ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}
+                                        >
+                                          {n.isMutual ? 'Unfollow' : 'Follow Back'}
+                                        </button>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -226,28 +263,39 @@ export default function Navbar({ onMenuClick, pageTitle }) {
             />
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute top-16 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-80 mt-3 p-2.5 bg-card border border-border rounded-[2rem] shadow-2xl overflow-hidden max-h-[70vh] md:max-h-[350px] overflow-y-auto z-[1000] scrollbar-thin"
+              className="absolute top-16 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-[400px] mt-3 p-2.5 bg-card border border-border rounded-[2rem] shadow-2xl overflow-hidden max-h-[70vh] md:max-h-[450px] overflow-y-auto z-[1000] scrollbar-thin"
             >
               {searchResults.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground text-sm font-medium italic">No matches found for your search</div>
               ) : (
                 <div className="grid gap-2">
-                  {searchResults.map(result => (
-                    <div key={result.id} className="flex items-center justify-between p-3 rounded-2xl hover:bg-muted/80 transition-all border border-transparent hover:border-border/50">
-                      <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary/20 to-indigo-500/20 flex items-center justify-center text-primary font-black text-sm border border-primary/10 uppercase">
-                          {(result.name || result.email).charAt(0)}
+                  {searchResults.map((result) => (
+                    <div 
+                      key={result.id} 
+                      onClick={() => { router.push(`/profile/${result.id}`); setSearchResults([]); setSearchQuery(''); }}
+                      className="flex items-center justify-between p-3.5 hover:bg-muted/50 rounded-[1.5rem] cursor-pointer transition-all group/item border border-transparent hover:border-border/50"
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary/20 to-indigo-500/20 flex items-center justify-center text-primary font-black text-sm border border-primary/10 uppercase group-hover/item:scale-105 transition-transform flex-shrink-0">
+                          {result.avatar ? <img src={result.avatar.startsWith('http') ? result.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${result.avatar}`} className="w-full h-full object-cover rounded-2xl" /> : (result.name || result.email).charAt(0)}
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-bold text-foreground leading-none truncate">{result.name || result.email.split('@')[0]}</p>
-                          <p className="text-[10px] text-muted-foreground mt-1 font-medium truncate">{result.email}</p>
+                        <div className="min-w-0 font-sans">
+                          <p className="text-sm font-bold text-foreground leading-none flex items-center gap-1 mb-1">
+                            <span>{result.name || result.email.split('@')[0]}</span>
+                            {result.isPrivate && <LockIcon size={10} className="text-amber-500" />}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-medium truncate uppercase tracking-tighter italic">
+                            {result.isPrivate && !result.isFollowing ? 'Shielded Identity' : result.email}
+                          </p>
                         </div>
                       </div>
                       <button 
-                        onClick={() => handleFollowAction(result.id, result.isFollowing ? 'unfollow' : 'follow')} 
-                        className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest flex-shrink-0 ${result.isFollowing ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20' : 'bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105 active:scale-95'}`}
+                        onClick={(e) => { e.stopPropagation(); handleFollowAction(result.id, result.followStatus === 'ACCEPTED' ? 'unfollow' : 'follow'); }} 
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest flex-shrink-0 ${result.followStatus === 'ACCEPTED' ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20' : result.followStatus === 'PENDING' ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105 active:scale-95'}`}
                       >
-                        {result.isFollowing ? 'Unfollow' : (result.followsMe ? 'Follow Back' : 'Follow')}
+                        {result.followStatus === 'ACCEPTED' ? 'Unfollow' : 
+                         (result.followStatus === 'PENDING' ? 'Requested' : 
+                          (result.followsMe ? 'Follow Back' : (result.isPrivate ? 'Connect' : 'Follow')))}
                       </button>
                     </div>
                   ))}

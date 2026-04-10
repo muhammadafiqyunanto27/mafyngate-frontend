@@ -3,115 +3,58 @@
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import ImageCropper from '../../components/ImageCropper';
 import { 
   User, 
+  Camera, 
+  Trash2, 
   Mail, 
   Shield, 
-  Camera, 
-  ChevronRight, 
-  Key, 
-  LogOut,
-  Clock,
   CheckCircle2,
-  Zap,
-  Activity,
-  MessageSquare,
-  CheckCircle,
   X,
   Lock,
-  LifeBuoy,
-  MessageCircle
+  Eye,
+  Settings,
+  Zap,
+  ShieldCheck,
+  ChevronRight,
+  Loader2,
+  ArrowRight,
+  UserCircle
 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 
 export default function ProfilePage() {
-  const { user, loading, updateProfile, updateAvatar, deleteAccount } = useAuth();
-  const fileInputRef = useRef(null);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [showCropper, setShowCropper] = useState(false);
-  const [avatarLoading, setAvatarLoading] = useState(false);
+  const { user, loading, updateUser, updateProfile } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [activities, setActivities] = useState([]);
-  const [showFullActivity, setShowFullActivity] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const fileInputRef = useRef(null);
   
   const [formData, setFormData] = useState({
     name: '',
-    email: ''
+    email: '',
+    bio: '',
+    isPrivate: false
   });
 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
+  useEffect(() => {
+    if (!loading && !user) router.push('/login');
+  }, [user, loading, router]);
 
   useEffect(() => {
     if (user) {
       setFormData({
         name: user.name || '',
-        email: user.email || ''
+        email: user.email || '',
+        bio: user.bio || '',
+        isPrivate: user.isPrivate || false
       });
     }
   }, [user]);
-
-  const fetchActivities = async () => {
-    try {
-      const res = await api.get('/user/activities');
-      setActivities(res.data.data);
-    } catch (err) {
-      console.error('Failed to fetch activities:', err);
-    }
-  };
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    } else if (user) {
-      fetchActivities();
-      const interval = setInterval(fetchActivities, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [user, loading, router]);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        return setMessage({ type: 'error', text: 'Ukuran file maksimal 2MB' });
-      }
-      const reader = new FileReader();
-      reader.onload = () => {
-        setSelectedImage(reader.result);
-        setShowCropper(true);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleCropComplete = async (blob) => {
-    setAvatarLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append('avatar', blob, 'avatar.jpg');
-      await updateAvatar(formData);
-      setMessage({ type: 'success', text: 'Profile picture updated!' });
-      setShowCropper(false);
-    } catch (err) {
-      setMessage({ type: 'error', text: 'Gagal mengupload foto' });
-    } finally {
-      setAvatarLoading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  if (loading || !user) return null;
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -120,334 +63,208 @@ export default function ProfilePage() {
     try {
       await updateProfile(formData);
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
-      setTimeout(() => {
-        setIsEditing(false);
-        setMessage({ type: '', text: '' });
-      }, 1500);
+      setIsEditing(false);
+      setTimeout(() => setMessage({ type: '', text: '' }), 1000);
     } catch (err) {
-      setMessage({ 
-        type: 'error', 
-        text: err.response?.data?.message || 'Failed to update profile' 
-      });
+      console.error('Update failed:', err);
+      setMessage({ type: 'error', text: err.response?.data?.message || 'Failed to update identity' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 2000);
     } finally {
       setUpdateLoading(false);
     }
   };
 
-  const handlePasswordUpdate = async (e) => {
-    e.preventDefault();
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      return setMessage({ type: 'error', text: 'New passwords do not match' });
-    }
-    setUpdateLoading(true);
-    setMessage({ type: '', text: '' });
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    setUploadLoading(true);
     try {
-      await api.patch('/user/password', {
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
+      await api.post('/user/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
-      setMessage({ type: 'success', text: 'Password changed successfully!' });
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setTimeout(() => {
-        setIsChangingPassword(false);
-        setMessage({ type: '', text: '' });
-      }, 1500);
+      await updateUser();
+      setMessage({ type: 'success', text: 'Avatar updated!' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 1000);
     } catch (err) {
-      setMessage({ 
-        type: 'error', 
-        text: err.response?.data?.message || 'Failed to change password' 
-      });
+      setMessage({ type: 'error', text: 'Failed to upload photo.' });
     } finally {
-      setUpdateLoading(false);
+      setUploadLoading(false);
     }
   };
 
-  const getActivityIcon = (type) => {
-    switch (type) {
-      case 'LOGIN': return Zap;
-      case 'REGISTER': return User;
-      case 'TASK_CREATED': return MessageSquare;
-      case 'TASK_COMPLETED': return CheckCircle;
-      case 'PROFILE_UPDATED': return User;
-      case 'PASSWORD_CHANGED': return Lock;
-      default: return Activity;
-    }
+  const deleteAvatar = async () => {
+    if (!window.confirm('Remove profile photo?')) return;
+    try {
+      await api.delete('/user/avatar');
+      await updateUser();
+      setMessage({ type: 'success', text: 'Avatar removed.' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 1000);
+    } catch (err) {}
   };
 
-  const getTimeAgo = (dateStr) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000);
-    
-    if (diff < 60) return 'Just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return date.toLocaleDateString();
-  };
+  if (loading || !user) return null;
 
-  // Direct Gmail Redirect
-  const openGmail = () => {
-    const email = "muhammadafiqyunanto@gmail.com";
-    const subject = encodeURIComponent("MafynGate | Support Request");
-    const body = encodeURIComponent("Description:\n\nUser: " + (user.name || user.email));
-    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`, '_blank');
+  const getAvatar = (avatar) => {
+    if (!avatar) return null;
+    return avatar.startsWith('http') ? avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${avatar}`;
   };
-
-  const sections = [
-    {
-      title: 'Personal Information',
-      description: 'Update your personal details and how others see you.',
-      icon: User,
-      fields: [
-        { label: 'Display Name', value: user.name || 'Not set', icon: User },
-        { label: 'Email Address', value: user.email, icon: Mail },
-      ]
-    },
-    {
-      title: 'Security Settings',
-      description: 'Manage your password and account security preferences.',
-      icon: Shield,
-      fields: [
-        { label: 'Password', value: '••••••••••••', icon: Key, action: () => setIsChangingPassword(true) },
-      ]
-    },
-    {
-      title: 'Support & Bug Report',
-      description: 'Found a glitch or need help? Contact our developer team.',
-      icon: LifeBuoy,
-      fields: [
-        { label: 'Email Report', value: 'Send formal bug report', icon: Mail, action: openGmail },
-        { label: 'WhatsApp Support', value: 'Instant technical chat', icon: MessageCircle, action: () => window.open('https://wa.me/6282219785260', '_blank') }
-      ]
-    }
-  ];
 
   return (
-    <DashboardLayout pageTitle="Profile">
-      <div className="max-w-5xl mx-auto space-y-10 selection:bg-primary/30">
+    <DashboardLayout pageTitle="Profile Management">
+      <div className="max-w-4xl mx-auto space-y-10 pb-20 selection:bg-primary/30">
         
-        {/* RESTORED: Profile Header (Full Size) */}
-        <section className="relative">
-          <div className="h-48 rounded-[2.5rem] bg-gradient-to-r from-indigo-700 via-primary-600 to-primary-800 shadow-2xl relative overflow-hidden flex items-end">
-            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:20px_20px]"></div>
-            
-            <div className="relative z-20 pl-[11.5rem] pb-[5px] hidden md:block">
-               <motion.h1 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-4xl font-black text-white drop-shadow-lg tracking-tight"
-               >
-                 {user.name || user.email.split('@')[0]}
-               </motion.h1>
-            </div>
+        {/* Profile Header */}
+        <section className="bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl relative">
+          <div className="h-32 bg-primary/10 relative">
+             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_#000_1px,_transparent_1px)] bg-[size:20px_20px]"></div>
           </div>
-          
-          <div className="px-8 -mt-16 flex flex-col md:flex-row items-end gap-6 relative z-10 font-sans">
-            <div className="relative group">
-              <input 
-                type="file" 
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                className="hidden"
-              />
-              <div className="w-32 h-32 rounded-3xl bg-card border-4 border-background p-1.5 shadow-2xl transition-transform group-hover:scale-105 duration-300 overflow-hidden">
+          <div className="p-8 md:p-10 pt-0 relative flex flex-col md:flex-row items-end gap-6 font-sans">
+            <div className="relative group -mt-12">
+              <div className="w-32 h-32 rounded-[2.5rem] bg-card border-[6px] border-background shadow-2xl overflow-hidden ring-1 ring-border/50">
                 {user.avatar ? (
-                  <img 
-                    src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} 
-                    className="w-full h-full rounded-2xl object-cover"
-                    alt={user.name}
-                  />
+                  <img src={getAvatar(user.avatar)} className="w-full h-full rounded-[2rem] object-cover" alt="Profile" />
                 ) : (
-                  <div className="w-full h-full rounded-2xl bg-gradient-to-tr from-primary to-indigo-400 flex items-center justify-center text-white text-4xl font-black shadow-inner uppercase">
+                  <div className="w-full h-full rounded-[2rem] bg-muted flex items-center justify-center text-primary text-4xl font-black uppercase">
                     {(user.name || user.email).charAt(0)}
+                  </div>
+                )}
+                {uploadLoading && (
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center rounded-[2rem]">
+                    <Loader2 className="w-6 h-6 text-white animate-spin" />
                   </div>
                 )}
               </div>
               <button 
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-2 -right-2 p-2.5 bg-primary text-white rounded-xl shadow-lg border-2 border-background hover:bg-primary-600 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 z-20 flex items-center justify-center"
+                onClick={() => fileInputRef.current.click()}
+                className="absolute bottom-1 -right-1 p-2.5 bg-primary text-white rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all border-4 border-background"
               >
-                <Camera className="w-4 h-4" />
+                <Camera size={16} />
               </button>
+              <input type="file" ref={fileInputRef} onChange={handleAvatarUpload} className="hidden" accept="image/*" />
             </div>
             
-            <div className="flex-1 flex flex-col self-start mt-[69px]">
-              <h1 className="text-2xl font-black text-foreground md:hidden mb-1">
-                {user.name || user.email.split('@')[0]}
-              </h1>
-              <div className="flex flex-col gap-0.5">
-                <p className="text-muted-foreground font-bold flex items-center gap-2 text-sm">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  {user.email}
-                </p>
-                <div className="text-[10px] font-black text-primary uppercase tracking-[0.2em] opacity-60 ml-4">
-                  Authenticated User
-                </div>
+            <div className="flex-1 flex flex-col pb-2">
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-black text-foreground uppercase tracking-tight truncate">
+                  {user.name || user.email.split('@')[0]}
+                </h1>
+                {user.isPrivate && <Lock size={18} className="text-amber-500" />}
               </div>
+              <p className="text-sm text-muted-foreground font-medium flex items-center gap-2 mt-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                {user.email}
+              </p>
             </div>
 
-            <div className="flex gap-3 pb-2">
-              <button 
+            <div className="flex gap-3 pb-2 w-full md:w-auto">
+               <button 
                 onClick={() => setIsEditing(true)}
-                className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary-600 transition-all active:scale-95"
-              >
-                Edit Profile
-              </button>
+                className="flex-1 md:flex-none px-6 py-3 rounded-2xl bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary-600 transition-all flex items-center justify-center gap-2"
+               >
+                 Edit Profile
+               </button>
+               <button 
+                onClick={() => router.push(`/profile/${user.id}`)}
+                className="flex-1 md:flex-none px-6 py-3 rounded-2xl bg-muted text-foreground text-[10px] font-black uppercase tracking-widest hover:bg-muted/80 transition-all flex items-center justify-center gap-2"
+               >
+                 Public Preview <ArrowRight size={14} />
+               </button>
             </div>
           </div>
         </section>
 
-        {/* Success/Error Toast (Original Size) */}
-        {message.text && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`fixed bottom-10 right-10 p-5 rounded-2xl shadow-2xl z-[150] border flex items-center gap-3 ${message.type === 'success' ? 'bg-emerald-500/90 text-white border-emerald-400' : 'bg-rose-500/90 text-white border-rose-400'}`}>
-             {message.type === 'success' ? <CheckCircle2 size={24} /> : <X size={24} />}
-             <p className="text-xs font-black uppercase tracking-widest italic">{message.text}</p>
-          </motion.div>
-        )}
+        {/* Bio & Details */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           <div className="md:col-span-2 space-y-8">
+              <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm">
+                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
+                    Profile Bio
+                 </h3>
+                 <div className="space-y-6">
+                    <p className="p-5 bg-muted/30 rounded-3xl text-sm font-medium leading-relaxed italic border border-border/5">
+                      {user.bio || "No bio yet..."}
+                    </p>
+                 </div>
+              </div>
+           </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-10">
-          
-          <div className="lg:col-span-2 space-y-8">
-            {sections.map((section, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm"
-              >
-                <div className="p-6 border-b border-border bg-muted/30">
-                   <h3 className="text-lg font-bold text-foreground flex items-center gap-2 uppercase tracking-tight italic">
-                      <section.icon className="w-5 h-5 text-primary" />
-                      {section.title}
-                   </h3>
-                   <p className="text-sm text-muted-foreground mt-1 font-medium">{section.description}</p>
+           <div className="space-y-6">
+              <div className="bg-card border border-border p-6 rounded-[2.5rem] flex items-center justify-between group">
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Status</p>
+                   <p className="text-sm font-black text-foreground">{user.isPrivate ? 'Private' : 'Public'}</p>
                 </div>
-                <div className="p-0">
-                  {section.fields.map((field, fIdx) => (
-                    <div 
-                      key={fIdx} 
-                      onClick={field.action}
-                      className={`p-6 flex items-center justify-between group cursor-pointer hover:bg-muted/30 transition-colors ${fIdx !== section.fields.length - 1 ? 'border-b border-border' : ''}`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="p-2.5 rounded-xl bg-muted text-muted-foreground group-hover:text-primary transition-colors">
-                          <field.icon className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-none">{field.label}</p>
-                          <p className="text-foreground font-semibold mt-1.5">{field.value}</p>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground opacity-30 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
-                    </div>
-                  ))}
+                <div className={`p-3 rounded-2xl ${user.isPrivate ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                   {user.isPrivate ? <Lock size={20} /> : <Eye size={20} />}
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              </div>
 
-          <div className="space-y-8">
-            {/* RESTORED: Full Activity Logic */}
-            <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
-               <h3 className="text-lg font-bold text-foreground flex items-center gap-2 mb-6 italic uppercase tracking-tight">
-                  <Clock className="w-5 h-5 text-primary" />
-                  Recent Activity
-               </h3>
-               <div className="space-y-6">
-                  {activities.length === 0 ? (
-                    <div className="text-center py-10 px-4 border-2 border-dashed border-border rounded-2xl">
-                       <Activity className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                       <p className="text-xs text-muted-foreground font-medium italic">No recent activity detected</p>
-                    </div>
-                  ) : (
-                    <>
-                      {(showFullActivity ? activities : activities.slice(0, 5)).map((activity, i, arr) => {
-                        const Icon = getActivityIcon(activity.type);
-                        return (
-                          <motion.div layout key={activity.id} className="flex gap-4 relative group">
-                             {i !== arr.length - 1 && <div className="absolute left-[19px] top-10 bottom-[-10px] w-0.5 bg-border"></div>}
-                             <div className={`z-10 w-10 min-w-10 h-10 rounded-full flex items-center justify-center border-2 border-background shadow-sm ${activity.type === 'TASK_COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-primary/10 text-primary'}`}>
-                                <Icon className="w-5 h-5" />
-                             </div>
-                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-foreground leading-tight truncate">{activity.message}</p>
-                                <p className="text-[10px] text-muted-foreground mt-1 uppercase font-black">{getTimeAgo(activity.createdAt)}</p>
-                             </div>
-                          </motion.div>
-                        )
-                      })}
-                      {activities.length > 5 && (
-                        <button onClick={() => setShowFullActivity(!showFullActivity)} className="w-full py-2.5 mt-2 border border-dashed border-border rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all">
-                          {showFullActivity ? 'Show Less' : `Show More (${activities.length - 5}+)`}
-                        </button>
-                      )}
-                    </>
-                  )}
-               </div>
-            </div>
-
-            {/* RESTORED: Dangerous Zone (Full Size) */}
-            <div className="p-6 rounded-3xl bg-rose-500/5 border border-rose-500/20 space-y-4">
-               <div className="flex items-center gap-3 text-rose-500">
-                  <div className="p-2 rounded-lg bg-rose-500/10"><LogOut className="w-5 h-5" /></div>
-                  <h4 className="font-bold">Dangerous Zone</h4>
-               </div>
-               <p className="text-xs text-muted-foreground font-medium leading-relaxed">Permanently delete your account and all associated data from our servers. This action is irreversible.</p>
-               <button 
-                onClick={async () => {
-                  if (window.confirm('ARE YOU ABSOLUTELY SURE? This action is permanent.')) {
-                    setUpdateLoading(true);
-                    try { await deleteAccount(); } catch (err) { alert('Failed to delete account'); } finally { setUpdateLoading(false); }
-                  }
-                }}
-                disabled={updateLoading}
-                className="w-full py-4 rounded-xl bg-rose-500 text-white text-xs font-black uppercase tracking-widest hover:bg-rose-600 shadow-lg shadow-rose-500/20 transition-all disabled:opacity-50"
-               >
-                  {updateLoading ? 'Processing...' : 'Delete Account'}
-               </button>
-            </div>
-          </div>
+              {user.avatar && (
+                <button 
+                  onClick={deleteAvatar}
+                  className="w-full py-4 rounded-2xl bg-rose-500/5 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all border border-rose-500/10 flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={12} /> Delete Photo
+                </button>
+              )}
+           </div>
         </div>
-      </div>
 
-      <AnimatePresence>
-        {isEditing && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsEditing(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-md rounded-3xl shadow-2xl p-6 hidden md:block">
-               {/* Modal Content - Kept original */}
-               <div className="flex justify-between items-center mb-6">
-                 <h2 className="text-xl font-bold">Edit Profile</h2>
-                 <button onClick={() => setIsEditing(false)} className="p-2 hover:bg-muted rounded-xl"><X /></button>
-               </div>
-               <form onSubmit={handleUpdate} className="space-y-4">
-                  <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl text-sm" placeholder="Name" />
-                  <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl text-sm" placeholder="Email" />
-                  <button type="submit" className="w-full py-4 bg-primary text-white font-bold rounded-xl">{updateLoading ? 'Saving...' : 'Save Changes'}</button>
-               </form>
+        {/* Modals & Notifications */}
+        <AnimatePresence>
+          {isEditing && (
+            <div key="edit-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsEditing(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+              <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8">
+                <div className="flex justify-between items-center mb-8">
+                  <h2 className="text-xl font-black uppercase tracking-tight">Update Details</h2>
+                  <button onClick={() => setIsEditing(false)} className="p-2 hover:bg-muted rounded-xl transition-all"><X /></button>
+                </div>
+                <form onSubmit={handleUpdate} className="space-y-5">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Display Name</label>
+                    <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-5 py-4 bg-muted border border-border rounded-2xl text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Bio</label>
+                    <textarea value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} className="w-full px-5 py-4 bg-muted border border-border rounded-2xl text-sm font-bold min-h-[120px] resize-none" />
+                  </div>
+                  
+                  <div className="p-5 bg-muted/40 rounded-3xl border border-border flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-tight">Private Mode</p>
+                      <p className="text-[10px] text-muted-foreground font-medium italic mt-0.5">Approval required to follow</p>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => setFormData({...formData, isPrivate: !formData.isPrivate})}
+                      className={`w-12 h-6 rounded-full transition-all relative ${formData.isPrivate ? 'bg-primary' : 'bg-muted-foreground/30'}`}
+                    >
+                      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-md ${formData.isPrivate ? 'left-7' : 'left-1'}`} />
+                    </button>
+                  </div>
+
+                  <button type="submit" className="w-full py-4 bg-primary text-white font-black uppercase tracking-widest text-sm rounded-2xl mt-4">
+                    {updateLoading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </form>
+              </motion.div>
+            </div>
+          )}
+
+          {message.text && (
+            <motion.div key="toast" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`fixed bottom-10 right-10 p-6 rounded-[2rem] shadow-2xl z-[150] border flex items-center gap-4 ${message.type === 'success' ? 'bg-emerald-500/90 text-white border-emerald-400' : 'bg-rose-500/90 text-white border-rose-400'}`}>
+               {message.type === 'success' ? <CheckCircle2 size={24} /> : <X size={24} />}
+               <p className="text-xs font-black uppercase tracking-[0.2em] italic">{message.text}</p>
             </motion.div>
-          </div>
-        )}
-        {isChangingPassword && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsChangingPassword(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-md rounded-3xl shadow-2xl p-6">
-               <h2 className="text-xl font-bold mb-6 italic italic italic">Security Update</h2>
-               <form onSubmit={handlePasswordUpdate} className="space-y-4">
-                  <input type="password" value={passwordData.currentPassword} onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})} className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl" placeholder="Old Password" />
-                  <input type="password" value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl" placeholder="New Password" />
-                  <input type="password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})} className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl" placeholder="Confirm" />
-                  <button type="submit" className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl">Confirm Security Update</button>
-               </form>
-            </motion.div>
-          </div>
-        )}
-        {showCropper && (
-          <ImageCropper image={selectedImage} onCropComplete={handleCropComplete} onCancel={() => setShowCropper(false)} loading={avatarLoading} />
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+
+      </div>
     </DashboardLayout>
   );
 }

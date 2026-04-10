@@ -7,7 +7,6 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  // loading is true while checking the initial session state
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -22,10 +21,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Alias for consistent naming
+  const updateUser = fetchUser;
+
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Automatically attempt to exchange HTTP-Only refresh cookie for access token
         const res = await api.post('/auth/refresh');
         setAccessToken(res.data.data.accessToken);
         await fetchUser();
@@ -65,16 +66,6 @@ export const AuthProvider = ({ children }) => {
     return res.data.data;
   };
 
-  const updateAvatar = async (formData) => {
-    const res = await api.patch('/user/avatar', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    setUser(res.data.data);
-    return res.data.data;
-  };
-
   const deleteAccount = async () => {
     await api.delete('/user/me');
     setAccessToken(null);
@@ -83,7 +74,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile, updateAvatar, deleteAccount, fetchUser }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      register, 
+      logout, 
+      updateProfile, 
+      deleteAccount, 
+      fetchUser,
+      updateUser
+    }}>
       {children}
     </AuthContext.Provider>
   );

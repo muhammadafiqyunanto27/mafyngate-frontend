@@ -14,7 +14,8 @@ import {
   MessageSquare,
   CheckSquare,
   Bell,
-  Send
+  Send,
+  UserPlus
 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import TodoList from '../../components/TodoList';
@@ -33,18 +34,20 @@ export default function DashboardPage() {
     unreadMessages: 0,
     tasksCount: 0,
     notifications: 0,
-    activities: []
+    activities: [],
+    pendingRequests: []
   });
 
   const fetchStats = useCallback(async () => {
     try {
-      const [connRes, todoRes, unreadRes, activityRes, notifRes, unreadConvRes] = await Promise.all([
+      const [connRes, todoRes, unreadRes, activityRes, notifRes, unreadConvRes, pendingRes] = await Promise.all([
         api.get('/user/connections'),
         api.get('/todo'),
         api.get('/user/chat/unread-count'),
         api.get('/user/activities'),
         api.get('/user/notifications/unread-count'),
-        api.get('/user/chat/unread-conversations')
+        api.get('/user/chat/unread-conversations'),
+        api.get('/user/requests/pending')
       ]);
       
       setDashboardStats({
@@ -53,7 +56,8 @@ export default function DashboardPage() {
         unreadMessages: unreadRes.data.count,
         tasksCount: todoRes.data.data.filter(t => !t.completed).length,
         notifications: notifRes.data.count,
-        activities: (activityRes.data.data || []).slice(0, 5)
+        activities: (activityRes.data.data || []).slice(0, 5),
+        pendingRequests: pendingRes.data.data || []
       });
     } catch (err) {
       console.error('Stats fetch failed', err);
@@ -62,33 +66,33 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
-    
+  }, [user, loading, router]);
+
+  useEffect(() => {
     if (user) {
       fetchStats();
-
-      if (socket) {
-        socket.on('receive_message', fetchStats);
-        socket.on('new_notification', fetchStats);
-        socket.on('unread_count', fetchStats);
-        socket.on('messages_deleted', fetchStats);
-        socket.on('message_updated', fetchStats);
-        socket.on('todo_updated', fetchStats);
-        socket.on('activity_logged', fetchStats);
-        socket.on('mark_read', fetchStats);
-
-        return () => {
-          socket.off('receive_message', fetchStats);
-          socket.off('new_notification', fetchStats);
-          socket.off('unread_count', fetchStats);
-          socket.off('messages_deleted', fetchStats);
-          socket.off('message_updated', fetchStats);
-          socket.off('todo_updated', fetchStats);
-          socket.off('activity_logged', fetchStats);
-          socket.off('mark_read', fetchStats);
-        };
-      }
     }
-  }, [user, loading, router, socket, fetchStats]);
+  }, [user, fetchStats]);
+
+  useEffect(() => {
+    if (!socket || !user) return;
+
+    const handleUpdate = () => fetchStats();
+
+    socket.on('connection_update', handleUpdate);
+    socket.on('new_notification', handleUpdate);
+    socket.on('new_message', handleUpdate);
+    socket.on('todo_updated', handleUpdate);
+    socket.on('activity_logged', handleUpdate);
+
+    return () => {
+      socket.off('connection_update', handleUpdate);
+      socket.off('new_notification', handleUpdate);
+      socket.off('new_message', handleUpdate);
+      socket.off('todo_updated', handleUpdate);
+      socket.off('activity_logged', handleUpdate);
+    };
+  }, [socket, user, fetchStats]);
 
   if (loading || !user) return null;
 
@@ -96,7 +100,7 @@ export default function DashboardPage() {
     { label: 'Unread Chats', value: dashboardStats.unreadMessages, change: 'Real-time', icon: MessageSquare, color: 'text-emerald-500 bg-emerald-500/10' },
     { label: 'Connections', value: dashboardStats.connections, change: 'Synced', icon: Users, color: 'text-blue-500 bg-blue-500/10' },
     { label: 'Active Tasks', value: dashboardStats.tasksCount, change: 'Sprint', icon: CheckSquare, color: 'text-amber-500 bg-amber-500/10' },
-    { label: 'Notifications', value: dashboardStats.notifications, change: 'Alert', icon: Bell, color: 'text-indigo-500 bg-indigo-500/10' },
+    { label: 'Pending Requests', value: dashboardStats.pendingRequests.length, change: 'Alert', icon: UserPlus, color: 'text-indigo-500 bg-indigo-500/10' },
   ];
 
   return (
@@ -172,6 +176,54 @@ export default function DashboardPage() {
              <div className="flex-1 bg-card border-y md:border border-border rounded-none md:rounded-[3rem] overflow-hidden shadow-sm hover:shadow-xl hover:border-primary/20 transition-all duration-500">
                 <TodoList />
              </div>
+             
+             {/* Pending Requests Section */}
+             {dashboardStats.pendingRequests && dashboardStats.pendingRequests.length > 0 && (
+                <div className="mt-8 bg-card border border-border rounded-[3rem] p-8 shadow-sm">
+                   <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-black text-foreground text-lg uppercase tracking-tight flex items-center gap-2">
+                         <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                         Connection Requests
+                      </h3>
+                      <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-black">{dashboardStats.pendingRequests.length} NEW</span>
+                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {dashboardStats.pendingRequests.map((req) => (
+                        <div key={req.id} className="p-4 rounded-[2rem] bg-muted/30 border border-border flex items-center justify-between gap-4">
+                           <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary">
+                                {req.follower.avatar ? <img src={req.follower.avatar.startsWith('http') ? req.follower.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${req.follower.avatar}`} className="w-full h-full object-cover rounded-xl" /> : req.follower.email.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                 <p className="text-sm font-bold truncate">{req.follower.name || req.follower.email.split('@')[0]}</p>
+                                 <p className="text-[10px] text-muted-foreground font-medium truncate italic opacity-60">Wants to connect</p>
+                              </div>
+                           </div>
+                           <div className="flex items-center gap-2">
+                              <button 
+                                onClick={async () => {
+                                  await api.post(`/user/requests/accept/${req.followerId}`);
+                                  fetchStats();
+                                }}
+                                className="p-2 bg-primary text-white rounded-xl shadow-lg hover:scale-105 transition-all"
+                              >
+                                <CheckSquare size={16} />
+                              </button>
+                              <button 
+                                onClick={async () => {
+                                  await api.post(`/user/requests/decline/${req.followerId}`);
+                                  fetchStats();
+                                }}
+                                className="p-2 bg-rose-500/10 text-rose-500 rounded-xl hover:bg-rose-500/20 transition-all"
+                              >
+                                <Plus size={16} className="rotate-45" />
+                              </button>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+             )}
           </div>
 
           {/* Right Side: Connections & Logs */}

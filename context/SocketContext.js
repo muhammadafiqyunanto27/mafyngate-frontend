@@ -82,6 +82,16 @@ export const SocketProvider = ({ children }) => {
         setUnreadCount(data.count);
       });
 
+      newSocket.on('unread_chats_count_refresh', () => {
+        const fetchUnread = async () => {
+          try {
+            const res = await api.get('/user/chat/unread-conversations');
+            setUnreadChatsCount(res.data.data.length);
+          } catch (err) {}
+        };
+        fetchUnread();
+      });
+
       newSocket.on('new_notification', (data) => {
         console.log('[Socket] New notification received:', data);
         
@@ -90,7 +100,12 @@ export const SocketProvider = ({ children }) => {
           return;
         }
 
-        setNotifications(prev => [data, ...prev]);
+        setNotifications(prev => {
+          // Check if notification with same ID already exists
+          const exists = prev.some(n => n.id === data.id);
+          if (exists) return prev;
+          return [data, ...prev];
+        });
         setToast(data);
         
         // Play notification sound

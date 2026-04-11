@@ -47,7 +47,9 @@ export default function SettingsPage() {
   const handlePasswordUpdate = async (e) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      return setMessage({ type: 'error', text: 'New passwords do not match' });
+      setMessage({ type: 'error', text: 'New passwords do not match' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 1000);
+      return;
     }
     setUpdateLoading(true);
     setMessage({ type: '', text: '' });
@@ -67,7 +69,7 @@ export default function SettingsPage() {
         type: 'error', 
         text: err.response?.data?.message || 'Failed to change password' 
       });
-      setTimeout(() => setMessage({ type: '', text: '' }), 2000);
+      setTimeout(() => setMessage({ type: '', text: '' }), 1000);
     } finally {
       setUpdateLoading(false);
     }
@@ -93,7 +95,7 @@ export default function SettingsPage() {
         type: 'error', 
         text: err.response?.data?.message || 'Email update failed' 
       });
-      setTimeout(() => setMessage({ type: '', text: '' }), 2000);
+      setTimeout(() => setMessage({ type: '', text: '' }), 1000);
     } finally {
       setUpdateLoading(false);
     }

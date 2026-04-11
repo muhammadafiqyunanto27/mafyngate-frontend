@@ -383,6 +383,7 @@ function MessagesContent() {
       } catch (err) {
         setMessage({ type: 'error', text: 'Upload failed' });
         setUploading(false);
+        setTimeout(() => setMessage({ type: '', text: '' }), 1000);
         return;
       }
       setUploading(false);
@@ -419,6 +420,7 @@ function MessagesContent() {
     if (file) {
       if (file.size > 20 * 1024 * 1024) {
         setMessage({ type: 'error', text: 'File too large (max 20MB)' });
+        setTimeout(() => setMessage({ type: '', text: '' }), 1000);
         return;
       }
       setSelectedFile(file);

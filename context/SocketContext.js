@@ -114,7 +114,7 @@ export const SocketProvider = ({ children }) => {
           audio.play().catch(() => {}); // Browsers might block auto-play
         } catch (e) {}
 
-        setTimeout(() => setToast(null), 5000);
+        setTimeout(() => setToast(null), 1000);
       });
 
       // --- Call Listeners ---

@@ -68,7 +68,7 @@ export default function ProfilePage() {
     } catch (err) {
       console.error('Update failed:', err);
       setMessage({ type: 'error', text: err.response?.data?.message || 'Failed to update identity' });
-      setTimeout(() => setMessage({ type: '', text: '' }), 2000);
+      setTimeout(() => setMessage({ type: '', text: '' }), 1000);
     } finally {
       setUpdateLoading(false);
     }
@@ -91,6 +91,7 @@ export default function ProfilePage() {
       setTimeout(() => setMessage({ type: '', text: '' }), 1000);
     } catch (err) {
       setMessage({ type: 'error', text: 'Failed to upload photo.' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 1000);
     } finally {
       setUploadLoading(false);
     }

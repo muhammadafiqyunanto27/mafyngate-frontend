@@ -96,6 +96,11 @@ function MessagesContent() {
         if (userToSelect) {
           setSelectedUser(userToSelect);
           if (window.innerWidth < 768) setShowChat(true);
+          
+          // CRITICAL FIX: Clear the URL parameter after processing it
+          // This prevents being "stuck" on this user when switching chats
+          const newUrl = window.location.pathname;
+          window.history.replaceState(null, '', newUrl);
         }
       }
     }

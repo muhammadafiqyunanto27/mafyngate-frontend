@@ -12,7 +12,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register, user, authLoading } = useAuth();
+  const { register, user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -51,8 +51,8 @@ export default function RegisterPage() {
         >
           {/* Logo */}
           <div className="flex flex-col items-center mb-10 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/40 mb-6 group hover:rotate-12 transition-transform duration-500">
-               <ShieldCheck className="w-9 h-9" />
+            <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl shadow-primary/40 mb-6 group hover:scale-105 transition-transform duration-500">
+               <img src="/logo.png?v=2" alt="MafynGate" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-2">Join MafynGate</h1>
             <p className="text-muted-foreground font-medium">Create your secure account today</p>
@@ -162,22 +162,15 @@ export default function RegisterPage() {
       <div className="hidden lg:flex flex-1 bg-slate-900 border-l border-white/5 items-center justify-center relative">
          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"></div>
          <div className="max-w-md text-center space-y-6 relative z-10 px-12">
-            <div className="flex justify-center -space-x-4 mb-4">
-               {[1,2,3,4].map(i => (
-                 <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className={`w-12 h-12 rounded-full border-4 border-slate-900 bg-slate-800 flex items-center justify-center text-xs font-bold text-white`}
-                 >
-                    {String.fromCharCode(64 + i)}
-                 </motion.div>
-               ))}
-               <div className="w-12 h-12 rounded-full border-4 border-slate-900 bg-primary flex items-center justify-center text-xs font-bold text-white">+99</div>
-            </div>
-            <h2 className="text-3xl font-bold text-white tracking-tight">Built for Teams</h2>
-            <p className="text-slate-400 leading-relaxed font-medium">Collaborate securely with shared workspaces and granular access control for every member of your organization.</p>
+            <motion.div 
+               animate={{ y: [0, -15, 0] }}
+               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+               className="p-4 rounded-[3rem] glass flex items-center justify-center shadow-primary/20 shadow-2xl overflow-hidden aspect-square mb-8 mx-auto w-48"
+            >
+               <img src="/logo.png?v=2" alt="MafynGate" className="w-full h-full object-cover rounded-[2.5rem]" />
+            </motion.div>
+            <h2 className="text-3xl font-bold text-white tracking-tight">Join the Future of Privacy</h2>
+            <p className="text-slate-400 leading-relaxed font-medium">Create your gateway to secure messaging, high-definition video calls, and instant smart notifications. All in one stateless, high-speed platform.</p>
          </div>
       </div>
     </div>

@@ -14,10 +14,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.get('/user/me');
       setUser(res.data.data);
+      return res.data.data;
     } catch (err) {
       setUser(null);
-    } finally {
-      setLoading(false);
+      throw err;
     }
   };
 
@@ -27,11 +27,16 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const res = await api.post('/auth/refresh');
-        setAccessToken(res.data.data.accessToken);
         await fetchUser();
       } catch (err) {
-        setUser(null);
+        try {
+          const res = await api.post('/auth/refresh');
+          setAccessToken(res.data.data.accessToken);
+          await fetchUser();
+        } catch (refreshErr) {
+          setUser(null);
+        }
+      } finally {
         setLoading(false);
       }
     };

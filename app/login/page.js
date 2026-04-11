@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, user, authLoading } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -51,8 +51,8 @@ export default function LoginPage() {
         >
           {/* Logo */}
           <div className="flex flex-col items-center mb-10 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/40 mb-6 group hover:rotate-12 transition-transform duration-500">
-               <ShieldCheck className="w-9 h-9" />
+            <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl shadow-primary/40 mb-6 group hover:scale-105 transition-transform duration-500">
+               <img src="/logo.png?v=2" alt="MafynGate" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-2">Welcome Back</h1>
             <p className="text-muted-foreground font-medium">Access your protected portal</p>
@@ -167,14 +167,14 @@ export default function LoginPage() {
          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-transparent"></div>
          <div className="max-w-md text-center space-y-6 relative z-10 px-12">
             <motion.div 
-               animate={{ y: [0, -20, 0] }}
+               animate={{ y: [0, -15, 0] }}
                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-               className="p-8 rounded-[3rem] glass flex items-center justify-center shadow-indigo-500/20 shadow-2xl"
+               className="p-4 rounded-[3rem] glass flex items-center justify-center shadow-indigo-500/20 shadow-2xl overflow-hidden aspect-square"
             >
-               <ShieldCheck className="w-32 h-32 text-indigo-400" />
+               <img src="/logo.png?v=2" alt="MafynGate" className="w-full h-full object-cover rounded-[2.5rem]" />
             </motion.div>
-            <h2 className="text-3xl font-bold text-white tracking-tight">Zero Trust Security</h2>
-            <p className="text-slate-400 leading-relaxed font-medium">Our platform uses advanced stateless token architectures to ensure your data remains unreachable by unauthorized actors.</p>
+            <h2 className="text-3xl font-bold text-white tracking-tight">The Ultimate Secure Gateway</h2>
+            <p className="text-slate-400 leading-relaxed font-medium">MafynGate is a high-performance messaging platform built for privacy. Experience real-time synchronization, end-to-end encryption, and a stateless architecture designed for the future of digital communication.</p>
          </div>
       </div>
     </div>

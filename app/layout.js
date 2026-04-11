@@ -12,8 +12,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "MafynGate",
-  description: "Advanced Computing Gateway",
+  title: "MafynGate - Secure Social Messaging",
+  description: "Secure Social Messaging & Advanced Computing Gateway",
+  icons: {
+    icon: '/favicon.png?v=3',
+    apple: '/apple-touch-icon.png?v=3',
+    shortcut: '/favicon.ico?v=3'
+  }
 };
 
 import { Providers } from "../components/Providers";

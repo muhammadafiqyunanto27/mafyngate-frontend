@@ -1,15 +1,27 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { motion } from 'framer-motion';
 
 export default function DashboardLayout({ children, pageTitle = 'Dashboard', fullWidth = false }) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
   // Default to closed as requested (true means collapsed)
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+
+  // 1. Auth Guard: Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   // Persistence logic: Retrieve from localStorage on mount
   useEffect(() => {
@@ -25,6 +37,8 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
     setIsCollapsed(value);
     localStorage.setItem('mafyn_sidebar_collapsed', JSON.stringify(value));
   };
+
+  if (loading || !user) return null;
 
   return (
     <div className="flex h-screen bg-background overflow-hidden relative selection:bg-primary/30">

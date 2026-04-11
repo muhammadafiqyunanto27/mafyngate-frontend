@@ -13,14 +13,26 @@ import {
   Video, 
   User, 
   MessageSquare,
+  Paperclip,
+  Image as ImageIcon,
+  File as FileIcon,
+  Download,
   CheckCheck,
   ArrowLeft,
   Trash2,
+  UserCircle,
+  Pencil,
+  Reply,
+  Pin,
+  PinOff,
+  Copy,
+  SquareSlash,
   X,
   EyeOff,
   Eye,
   Lock,
   AlertCircle,
+  CheckCircle2,
   Mail,
   Calendar
 } from 'lucide-react';
@@ -34,6 +46,7 @@ function MessagesContent() {
   const [selectedUser, setSelectedUser] = useState(null);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [editingMessage, setEditingMessage] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [newMessage, setNewMessage] = useState('');
@@ -49,6 +62,13 @@ function MessagesContent() {
   const [isDeletingConvo, setIsDeletingConvo] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
   const [recipientStatus, setRecipientStatus] = useState('offline'); // online, offline, typing
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [isSearchingInChat, setIsSearchingInChat] = useState(false);
+  const [innerSearchQuery, setInnerSearchQuery] = useState('');
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
   const messagesEndRef = useRef(null);
@@ -136,6 +156,15 @@ function MessagesContent() {
     } catch (err) {
       // Silent fail - probably just a normal search query
     }
+  };
+
+  const handlePinChat = async () => {
+    if (!selectedUser) return;
+    try {
+      await api.patch(`/user/chat/pin/${selectedUser.id}`);
+      fetchConnections();
+      setShowMenu(false);
+    } catch (err) {}
   };
 
   const handleDeleteConversation = async () => {
@@ -340,10 +369,76 @@ function MessagesContent() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedUser || !socket) return;
-    socket.emit('send_message', { content: newMessage, receiverId: selectedUser.id });
+    if ((!newMessage.trim() && !selectedFile) || !selectedUser || !socket) return;
+    
+    let fileData = null;
+    if (selectedFile) {
+      setUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        const res = await api.post('/user/chat/upload', formData);
+        fileData = res.data.data;
+        setSelectedFile(null);
+      } catch (err) {
+        setMessage({ type: 'error', text: 'Upload failed' });
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+
+    if (editingMessage) {
+      try {
+        await api.patch('/user/chat/message', { 
+          messageId: editingMessage.id, 
+          content: newMessage 
+        });
+        setEditingMessage(null);
+      } catch (err) {}
+    } else {
+      const type = fileData ? (fileData.type.startsWith('image/') ? 'IMAGE' : fileData.type.startsWith('video/') ? 'VIDEO' : fileData.type.startsWith('audio/') ? 'VOICE' : 'FILE') : 'TEXT';
+      socket.emit('send_message', { 
+        content: newMessage, 
+        receiverId: selectedUser.id,
+        type,
+        fileUrl: fileData?.url,
+        fileName: fileData?.name,
+        fileSize: fileData?.size,
+        parentId: replyingTo?.id
+      });
+      setReplyingTo(null);
+    }
+    
     setNewMessage('');
     if (textareaRef.current) textareaRef.current.style.height = '56px';
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 20 * 1024 * 1024) {
+        setMessage({ type: 'error', text: 'File too large (max 20MB)' });
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
+  const handleDeleteSingleMessage = async (msgId) => {
+    if (!confirm('Delete this message for everyone?')) return;
+    try {
+      await api.delete('/user/chat/messages', { data: { messageIds: [msgId], targetId: selectedUser.id } });
+      setMessages(prev => prev.filter(m => m.id !== msgId));
+      if (socket) socket.emit('messages_deleted', { targetId: selectedUser.id, messageIds: [msgId] });
+      fetchConnections();
+    } catch (err) {}
+  };
+
+  const handleCopyMessage = (content) => {
+    navigator.clipboard.writeText(content);
+    setMessage({ type: 'success', text: 'Copied to clipboard' });
+    setTimeout(() => setMessage({ type: '', text: '' }), 1000);
   };
 
   const getAvatar = (avatar) => {
@@ -353,6 +448,15 @@ function MessagesContent() {
 
   return (
     <DashboardLayout pageTitle="Messages" fullWidth>
+      <AnimatePresence>
+        {message.text && (
+          <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-[2000] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-xl border ${message.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-rose-500/10 border-rose-500/20 text-rose-500'}`}>
+            {message.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+            <span className="text-xs font-black uppercase tracking-widest">{message.text}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="h-[calc(100vh-4rem)] bg-card flex overflow-hidden selection:bg-primary/30">
         
         {/* Sidebar */}
@@ -405,7 +509,10 @@ function MessagesContent() {
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex justify-between items-center mb-0.5">
-                      <p className="font-bold truncate text-sm">{u.name || u.email.split('@')[0]}</p>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <p className="font-bold truncate text-sm">{u.name || u.email.split('@')[0]}</p>
+                        {u.isPinned && <Pin size={10} className="text-amber-500 fill-amber-500/20" />}
+                      </div>
                       {u.lastMessage && <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{new Date(u.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
                     </div>
                     <div className="flex items-center justify-between gap-2">
@@ -434,8 +541,9 @@ function MessagesContent() {
                     {selectedUser.avatar ? <img src={getAvatar(selectedUser.avatar)} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/10 text-primary flex items-center justify-center font-bold">{(selectedUser.name || selectedUser.email).charAt(0).toUpperCase()}</div>}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-black text-foreground uppercase tracking-tight text-sm md:text-base truncate cursor-pointer" onClick={() => setViewingProfile(selectedUser)}>
+                    <h3 className="font-black text-foreground uppercase tracking-tight text-sm md:text-base truncate cursor-pointer flex items-center gap-2" onClick={() => setViewingProfile(selectedUser)}>
                       {selectedUser.name || selectedUser.email.split('@')[0]}
+                      {selectedUser.isPinned && <Pin size={12} className="text-amber-500 fill-amber-500/20" />}
                     </h3>
                     <p className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 transition-colors duration-300 ${recipientStatus === 'typing' ? 'text-primary' : recipientStatus === 'online' ? 'text-emerald-500' : 'text-muted-foreground'}`}>
                       <span className={`w-1 h-1 rounded-full animate-pulse ${recipientStatus === 'offline' ? 'bg-muted-foreground' : 'bg-current'}`} /> 
@@ -458,11 +566,20 @@ function MessagesContent() {
                   >
                     <Video className="w-4 h-4" />
                   </button>
+                  <button 
+                    onClick={() => { setIsSearchingInChat(!isSearchingInChat); setInnerSearchQuery(''); }} 
+                    className={`p-2.5 rounded-xl transition-all ${isSearchingInChat ? 'bg-primary text-white shadow-lg' : 'hover:bg-muted text-muted-foreground'}`}
+                  >
+                    <Search className="w-4 h-4" />
+                  </button>
                   <button onClick={() => setShowMenu(!showMenu)} className={`p-2.5 rounded-xl transition-all ${showMenu ? 'bg-primary text-white shadow-lg' : 'hover:bg-muted text-muted-foreground'}`}><MoreVertical className="w-4 h-4" /></button>
                   <AnimatePresence>
                     {showMenu && (
                       <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} className="absolute right-0 top-14 w-56 bg-card border border-border rounded-2xl shadow-2xl z-[100] p-1.5">
                         <button onClick={() => { setViewingProfile(selectedUser); setShowMenu(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted transition-all text-xs font-bold uppercase tracking-wide text-foreground group"><User className="w-4 h-4 text-primary" /> View Profile</button>
+                        <button onClick={handlePinChat} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted transition-all text-xs font-bold uppercase tracking-wide text-foreground group">
+                          {selectedUser?.isPinned ? <><PinOff className="w-4 h-4 text-amber-500" /> Unpin Chat</> : <><Pin className="w-4 h-4 text-primary" /> Pin Chat</>}
+                        </button>
                         <button onClick={handleToggleHide} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-xs font-bold uppercase tracking-wide group ${isHiddenMode ? 'hover:bg-emerald-500/10 text-emerald-500' : 'hover:bg-indigo-500/10 text-indigo-500'}`}>{isHiddenMode ? <><Eye className="w-4 h-4" /> Unhide Chat</> : <><EyeOff className="w-4 h-4" /> Hide Conversation</>}</button>
                         <div className="h-px bg-border my-1 mx-2" /><button onClick={() => setIsDeletingConvo(true)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-rose-500/10 transition-all text-xs font-bold uppercase tracking-wide text-rose-500"><Trash2 className="w-4 h-4" /> Delete Chat</button>
                       </motion.div>
@@ -470,13 +587,84 @@ function MessagesContent() {
                   </AnimatePresence>
                 </div>
               </div>
+
+              {/* Inner Chat Search Bar */}
+              <AnimatePresence>
+                {isSearchingInChat && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-6 py-3 bg-muted/30 border-b border-border flex items-center gap-3 overflow-hidden">
+                    <Search className="w-3.5 h-3.5 text-primary" />
+                    <input 
+                      autoFocus
+                      type="text" 
+                      placeholder="Search messages..." 
+                      value={innerSearchQuery}
+                      onChange={(e) => setInnerSearchQuery(e.target.value)}
+                      className="flex-1 bg-transparent border-none outline-none text-[11px] font-bold uppercase tracking-widest text-foreground placeholder:text-muted-foreground/50"
+                    />
+                    {innerSearchQuery && (
+                      <span className="text-[10px] font-black text-primary uppercase mr-2 transition-all">
+                        {messages.filter(m => m.content?.toLowerCase().includes(innerSearchQuery.toLowerCase())).length} Found
+                      </span>
+                    )}
+                    <button onClick={() => { setIsSearchingInChat(false); setInnerSearchQuery(''); }} className="p-1 hover:bg-rose-500/10 text-rose-500 rounded-lg transition-all"><X size={14} /></button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 custom-scrollbar bg-card/10">
-                {messages.map((msg, i) => {
+                {messages
+                  .filter(m => !innerSearchQuery || (m.content && m.content.toLowerCase().includes(innerSearchQuery.toLowerCase())))
+                  .map((msg, i) => {
                   const isMine = msg.senderId === user?.id;
                   return (
-                    <div key={msg.id || i} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[85%] md:max-w-[70%] px-5 py-3.5 rounded-3xl shadow-sm text-sm font-medium break-words whitespace-pre-wrap ${isMine ? 'bg-primary text-white rounded-br-none shadow-primary/20' : 'bg-muted/50 text-foreground rounded-bl-none border border-border'}`}>
-                        {msg.content}<div className={`text-[9px] font-black uppercase mt-1.5 flex items-center gap-1 justify-end opacity-50 ${isMine ? 'text-white' : 'text-muted-foreground'}`}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{isMine && <CheckCheck className={`w-3 h-3 ${msg.isRead ? 'text-blue-300' : ''}`} />}</div>
+                    <div key={msg.id || i} className={`flex group ${isMine ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`flex items-center gap-2 max-w-[85%] md:max-w-[70%] ${isMine ? 'flex-row' : 'flex-row-reverse'}`}>
+                        <div className={`opacity-0 group-hover:opacity-100 flex ${isMine ? 'flex-col' : 'flex-col'} gap-1 transition-opacity self-center ${isMine ? 'pr-1' : 'pl-1'}`}>
+                          {isMine && (
+                            <>
+                              <button onClick={() => { setEditingMessage(msg); setNewMessage(msg.content); textareaRef.current?.focus(); }} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-primary transition-all" title="Edit"><Pencil size={12} /></button>
+                              <button onClick={() => handleDeleteSingleMessage(msg.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg text-muted-foreground hover:text-rose-500 transition-all" title="Delete"><Trash2 size={12} /></button>
+                            </>
+                          )}
+                          <button onClick={() => { setReplyingTo(msg); textareaRef.current?.focus(); }} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-primary transition-all" title="Reply"><Reply size={12} /></button>
+                          <button onClick={() => handleCopyMessage(msg.content)} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-primary transition-all" title="Copy"><Copy size={12} /></button>
+                        </div>
+                        <div className={`px-5 py-3.5 rounded-3xl shadow-sm text-sm font-medium break-words whitespace-pre-wrap ${isMine ? 'bg-primary text-white rounded-br-none shadow-primary/20' : 'bg-muted/50 text-foreground rounded-bl-none border border-border'}`}>
+                          {msg.parent && (
+                            <div className={`mb-3 p-3 rounded-2xl border-l-4 text-[11px] leading-relaxed max-w-full ${isMine ? 'bg-white/10 border-white/30 text-white/80' : 'bg-muted border-primary/30 text-muted-foreground'}`}>
+                               <p className="font-black uppercase tracking-widest text-[9px] mb-1 text-primary">Replying to {msg.parent.sender?.name || 'User'}</p>
+                               <p className="truncate line-clamp-2">{msg.parent.type === 'IMAGE' ? '📷 Image' : msg.parent.type === 'VIDEO' ? '🎥 Video' : msg.parent.type === 'FILE' ? '📁 File' : msg.parent.content}</p>
+                            </div>
+                          )}
+                          {msg.type === 'IMAGE' && (
+                            <div className="mb-2 relative group-img cursor-pointer overflow-hidden rounded-2xl border border-white/10" onClick={() => window.open(msg.fileUrl.startsWith('http') ? msg.fileUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${msg.fileUrl}`)}>
+                              <img src={msg.fileUrl.startsWith('http') ? msg.fileUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${msg.fileUrl}`} className="max-w-full h-auto rounded-xl hover:scale-105 transition-transform duration-500" />
+                            </div>
+                          )}
+                          {msg.type === 'VIDEO' && (
+                            <video controls className="max-w-full rounded-xl mb-2">
+                               <source src={msg.fileUrl.startsWith('http') ? msg.fileUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${msg.fileUrl}`} type="video/mp4" />
+                            </video>
+                          )}
+                          {msg.type === 'FILE' && (
+                            <div className={`flex items-center gap-3 p-3 rounded-2xl mb-2 border ${isMine ? 'bg-white/10 border-white/20' : 'bg-muted border-border'}`}>
+                               <FileIcon className="w-6 h-6 text-primary" />
+                               <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-bold truncate">{msg.fileName || 'Document'}</p>
+                                  <p className="text-[10px] opacity-60">{(msg.fileSize / 1024 / 1024).toFixed(2)} MB</p>
+                               </div>
+                               <a href={msg.fileUrl.startsWith('http') ? msg.fileUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${msg.fileUrl}`} download className="p-2 hover:bg-white/10 rounded-xl transition-all">
+                                  <Download className="w-4 h-4" />
+                               </a>
+                            </div>
+                          )}
+                          {msg.content && msg.content !== msg.fileName && <p>{msg.content}</p>}
+                          {msg.isEdited && <span className="text-[8px] italic opacity-50 ml-2">(edited)</span>}
+                          <div className={`text-[9px] font-black uppercase mt-1.5 flex items-center gap-1 justify-end opacity-50 ${isMine ? 'text-white' : 'text-muted-foreground'}`}>
+                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {isMine && <CheckCheck className={`w-3 h-3 ${msg.isRead ? 'text-blue-300' : ''}`} />}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
@@ -484,7 +672,47 @@ function MessagesContent() {
                 <div ref={messagesEndRef} />
               </div>
               <div className="p-4 md:px-10 md:pb-8">
+                {replyingTo && (
+                  <div className="flex items-center justify-between px-6 py-3 bg-muted border-x border-t border-border rounded-t-[2rem] mb-[-1px] animate-in fade-in slide-in-from-bottom-2 selection:bg-primary/20">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-1 h-8 rounded-full bg-primary" />
+                      <div className="min-w-0">
+                        <p className="text-[9px] font-black text-primary uppercase tracking-widest leading-none mb-1">Replying to {replyingTo.sender?.name || 'User'}</p>
+                        <p className="text-xs text-muted-foreground font-medium truncate italic">{replyingTo.type === 'IMAGE' ? '[Image]' : replyingTo.type === 'VIDEO' ? '[Video]' : replyingTo.type === 'FILE' ? '[File]' : replyingTo.content}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setReplyingTo(null)} className="p-2 hover:bg-rose-500/10 text-rose-500 rounded-xl transition-all"><X size={16} /></button>
+                  </div>
+                )}
+                {selectedFile && (
+                  <div className="flex items-center justify-between px-6 py-3 bg-primary/10 rounded-t-[2rem] border-x border-t border-primary/20 mb-[-1px] animate-in fade-in slide-in-from-bottom-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                        {selectedFile.type.startsWith('image/') ? <ImageIcon className="w-5 h-5 text-primary" /> : <FileIcon className="w-5 h-5 text-primary" />}
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-primary uppercase tracking-widest leading-none mb-1">{selectedFile.name}</p>
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase">Ready to send</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setSelectedFile(null)} className="p-2 hover:bg-rose-500/10 text-rose-500 rounded-xl transition-all"><X size={16} /></button>
+                  </div>
+                )}
+                {editingMessage && (
+                  <div className="flex items-center justify-between px-6 py-2 bg-primary/5 rounded-t-2xl border-x border-t border-primary/10 mb-[-1px]">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Pencil size={12} className="animate-pulse" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Editing Message</span>
+                    </div>
+                    <button onClick={() => { setEditingMessage(null); setNewMessage(''); }} className="text-muted-foreground hover:text-rose-500"><X size={14} /></button>
+                  </div>
+                )}
                 <form onSubmit={handleSendMessage} className="flex items-center gap-3 md:gap-4">
+                  <div className="flex items-center gap-1">
+                    <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all"><Paperclip size={20} /></button>
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all hidden md:block"><ImageIcon size={20} /></button>
+                  </div>
                   <div className="flex-1 relative">
                     <textarea 
                       ref={textareaRef} 

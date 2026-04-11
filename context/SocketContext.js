@@ -42,7 +42,7 @@ export const SocketProvider = ({ children }) => {
       
       const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
         auth: { token: accessToken },
-        transports: ['websocket', 'polling'], // Prioritize websocket
+        transports: ['polling', 'websocket'], // Start with polling for better compatibility
         reconnection: true,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 1000,

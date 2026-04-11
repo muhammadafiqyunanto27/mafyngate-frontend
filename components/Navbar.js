@@ -63,20 +63,41 @@ export default function Navbar({ onMenuClick, pageTitle }) {
     const targetIdStr = targetId.toString();
     const isFollow = action === 'follow';
     
-    setSearchResults(prev => prev.map(u => u.id === targetIdStr ? { ...u, isFollowing: isFollow } : u));
-    setNotifications(prev => prev.map(n => n.senderId === targetIdStr ? { ...n, isFollowingSender: isFollow } : n));
+    // Optimistic Update for Search Results
+    setSearchResults(prev => prev.map(u => {
+      if (u.id === targetIdStr) {
+        if (!isFollow) return { ...u, followStatus: 'NONE' };
+        const newStatus = u.isPrivate && !u.followsMe ? 'PENDING' : 'ACCEPTED';
+        return { ...u, followStatus: newStatus };
+      }
+      return u;
+    }));
+
+    // Optimistic Update for Notifications (Follow Back button)
+    setNotifications(prev => prev.map(n => {
+      if (n.senderId === targetIdStr && (n.type === 'FOLLOW' || n.type === 'CONNECTION_REQUEST')) {
+        return { ...n, isMutual: isFollow };
+      }
+      return n;
+    }));
 
     try {
       if (isFollow) {
-        await api.post(`/user/follow/${targetIdStr}`);
+        const res = await api.post(`/user/follow/${targetIdStr}`);
+        const status = res.data.status;
+        
+        setSearchResults(prev => prev.map(u => u.id === targetIdStr ? { ...u, followStatus: status } : u));
+        setNotifications(prev => prev.map(n => n.senderId === targetIdStr ? { ...n, isMutual: status === 'ACCEPTED' } : n));
+        
         if (socket) socket.emit('follow_user', { followingId: targetIdStr });
       } else {
         await api.delete(`/user/unfollow/${targetIdStr}`);
       }
     } catch (err) {
       console.error(`${action} action failed:`, err);
-      setSearchResults(prev => prev.map(u => u.id === targetIdStr ? { ...u, isFollowing: !isFollow } : u));
-      setNotifications(prev => prev.map(n => n.senderId === targetIdStr ? { ...n, isFollowingSender: !isFollow } : n));
+      // Revert if failed
+      setSearchResults(prev => prev.map(u => u.id === targetIdStr ? { ...u, followStatus: isFollow ? 'NONE' : 'ACCEPTED' } : u));
+      setNotifications(prev => prev.map(n => n.senderId === targetIdStr ? { ...n, isMutual: !isFollow } : n));
     }
   };
 
@@ -205,7 +226,11 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                                           <button 
                                             onClick={async () => {
                                               await api.post(`/user/requests/accept/${n.senderId}`);
-                                              removeNotification(n.id);
+                                              const senderName = n.content.split(' wants')[0] || 'A user';
+                                              setNotifications(prev => prev.map(notif => 
+                                                notif.id === n.id ? { ...notif, type: 'FOLLOW', content: `${senderName} is following you`, isMutual: notif.isFollowingSender || false } : notif
+                                              ));
+                                              setSearchResults(prev => prev.map(u => u.id === n.senderId ? { ...u, followStatus: 'ACCEPTED' } : u));
                                               if (socket) socket.emit('connection_update', { targetId: n.senderId, status: 'ACCEPTED' });
                                             }}
                                             className="px-2 py-1 bg-emerald-500/10 text-emerald-500 rounded-md text-[9px] font-black uppercase hover:bg-emerald-500/20"
@@ -216,6 +241,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                                             onClick={async () => {
                                               await api.post(`/user/requests/decline/${n.senderId}`);
                                               removeNotification(n.id);
+                                              setSearchResults(prev => prev.map(u => u.id === n.senderId ? { ...u, followStatus: 'NONE' } : u));
                                             }}
                                             className="px-2 py-1 bg-rose-500/10 text-rose-500 rounded-md text-[9px] font-black uppercase hover:bg-rose-500/20"
                                           >

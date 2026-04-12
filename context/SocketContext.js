@@ -270,13 +270,18 @@ export const SocketProvider = ({ children }) => {
       });
     }
 
+    // Only clear binary streams and peer connection immediately
     setStream(null);
     setRemoteStream(null);
-    setCall({ isReceivingCall: false, from: '', name: '', avatar: '', signal: null, type: 'voice' });
     
-    // Auto-hide the "Call Ended" message after 2 seconds
+    // We keep the 'name' and 'avatar' in the call state for 2 seconds 
+    // so the 'Call Ended' screen shows who we were talking to
+    setCall(prev => ({ ...prev, isReceivingCall: false, from: '', signal: null }));
+    
+    // Auto-hide the "Call Ended" message after 2 seconds and clear the identity then
     setTimeout(() => {
       setCallEnded(false);
+      setCall({ isReceivingCall: false, from: '', name: '', avatar: '', signal: null, type: 'voice' });
     }, 2000);
   };
 

@@ -44,6 +44,19 @@ export const CallOverlay = () => {
 
   const myVideo = useRef();
   const userVideo = useRef();
+  const backgroundVideo = useRef();
+  const [remoteVideoMeta, setRemoteVideoMeta] = useState({ width: 0, height: 0, aspect: 1 });
+
+  const handleMetadataLoaded = (e) => {
+    const video = e.target;
+    if (video) {
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      const aspect = width / height;
+      console.log(`[Video] Metadata loaded: ${width}x${height} (Aspect: ${aspect})`);
+      setRemoteVideoMeta({ width, height, aspect });
+    }
+  };
 
   useEffect(() => {
     if (myVideo.current) {
@@ -54,6 +67,9 @@ export const CallOverlay = () => {
   useEffect(() => {
     if (userVideo.current) {
       userVideo.current.srcObject = (callAccepted && remoteStream) ? remoteStream : null;
+    }
+    if (backgroundVideo.current) {
+      backgroundVideo.current.srcObject = (callAccepted && remoteStream) ? remoteStream : null;
     }
   }, [callAccepted, remoteStream]);
 
@@ -166,15 +182,32 @@ export const CallOverlay = () => {
 
             {/* Remote Video */}
             {callAccepted && !callEnded ? (
-              <div className="w-full h-full relative z-10">
+              <div className="w-full h-full relative z-10 flex items-center justify-center bg-black">
+                {/* Background Blur Layer for non-matching aspect ratios */}
+                <div className="absolute inset-0 z-0 overflow-hidden opacity-50">
+                   <video
+                    playsInline
+                    muted
+                    ref={backgroundVideo}
+                    autoPlay
+                    className={`w-full h-full object-cover blur-3xl scale-125 ${remoteIsMirrored ? 'scale-x-[-1]' : ''}`}
+                  />
+                </div>
+
                 <video
                   playsInline
                   ref={userVideo}
                   autoPlay
-                  className={`w-full h-full object-cover ${remoteIsMirrored ? 'scale-x-[-1]' : ''} ${!remoteVideoEnabled ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
+                  onLoadedMetadata={handleMetadataLoaded}
+                  className={`relative z-10 max-w-full max-h-full transition-all duration-500 
+                    ${remoteIsMirrored ? 'scale-x-[-1]' : ''} 
+                    ${!remoteVideoEnabled ? 'opacity-0' : 'opacity-100'}
+                    ${remoteVideoMeta.aspect > 1.2 ? 'w-full h-auto object-contain' : 'w-auto h-full object-contain md:object-cover md:w-full'}
+                  `}
                 />
+                
                 {!remoteVideoEnabled && (
-                  <div className="absolute inset-0 bg-zinc-950 flex flex-col items-center justify-center space-y-6">
+                  <div className="absolute inset-0 bg-zinc-950 z-20 flex flex-col items-center justify-center space-y-6">
                     <motion.div 
                       initial={{ scale: 0.9, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}

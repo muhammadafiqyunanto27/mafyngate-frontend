@@ -33,43 +33,38 @@ export const CallOverlay = () => {
     switchCamera,
     remoteIsMirrored,
     isMinimized,
-    setIsMinimized
+    setIsMinimized,
+    localVideoEnabled,
+    localAudioEnabled,
+    remoteVideoEnabled,
+    remoteAudioEnabled,
+    toggleMediaHardware,
+    upgradeToVideo
   } = useSocket();
 
   const myVideo = useRef();
   const userVideo = useRef();
-  const [isMicMuted, setIsMicMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(false);
 
   useEffect(() => {
-    if (stream && myVideo.current) {
-      myVideo.current.srcObject = stream;
+    if (myVideo.current) {
+      myVideo.current.srcObject = stream || null;
     }
   }, [stream]);
 
   useEffect(() => {
-    if (callAccepted && remoteStream && userVideo.current) {
-      userVideo.current.srcObject = remoteStream;
+    if (userVideo.current) {
+      userVideo.current.srcObject = (callAccepted && remoteStream) ? remoteStream : null;
     }
   }, [callAccepted, remoteStream]);
 
-  const toggleMic = () => {
-    if (stream) {
-      const audioTrack = stream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setIsMicMuted(!audioTrack.enabled);
-      }
-    }
-  };
-
-  const toggleVideo = () => {
-    if (stream) {
-      const videoTrack = stream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoOff(!videoTrack.enabled);
-      }
+  // Use hardware-level toggles from context
+  const handleToggleMic = () => toggleMediaHardware('audio');
+  
+  const handleToggleVideo = () => {
+    if (call.type === 'voice') {
+      upgradeToVideo();
+    } else {
+      toggleMediaHardware('video');
     }
   };
 
@@ -92,12 +87,21 @@ export const CallOverlay = () => {
       >
         <div className="relative flex-1 bg-black">
           {callAccepted && !callEnded ? (
-            <video
-              playsInline
-              ref={userVideo}
-              autoPlay
-              className={`w-full h-full object-cover ${remoteIsMirrored ? 'scale-x-[-1]' : ''}`}
-            />
+            <div className="w-full h-full relative">
+              <video
+                playsInline
+                ref={userVideo}
+                autoPlay
+                className={`w-full h-full object-cover ${remoteIsMirrored ? 'scale-x-[-1]' : ''} ${!remoteVideoEnabled ? 'opacity-0' : 'opacity-100'}`}
+              />
+              {!remoteVideoEnabled && (
+                <div className="absolute inset-0 bg-zinc-900 flex flex-col items-center justify-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+                    <VideoOff size={16} className="text-white/40" />
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
              <div className="w-full h-full flex items-center justify-center">
                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
@@ -162,12 +166,28 @@ export const CallOverlay = () => {
 
             {/* Remote Video */}
             {callAccepted && !callEnded ? (
-              <video
-                playsInline
-                ref={userVideo}
-                autoPlay
-                className={`w-full h-full object-cover relative z-10 ${remoteIsMirrored ? 'scale-x-[-1]' : ''}`}
-              />
+              <div className="w-full h-full relative z-10">
+                <video
+                  playsInline
+                  ref={userVideo}
+                  autoPlay
+                  className={`w-full h-full object-cover ${remoteIsMirrored ? 'scale-x-[-1]' : ''} ${!remoteVideoEnabled ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
+                />
+                {!remoteVideoEnabled && (
+                  <div className="absolute inset-0 bg-zinc-950 flex flex-col items-center justify-center space-y-6">
+                    <motion.div 
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="w-32 h-32 md:w-48 md:h-48 rounded-[3rem] bg-white/5 flex items-center justify-center border border-white/10"
+                    >
+                      <VideoOff size={48} className="text-white/20" />
+                    </motion.div>
+                    <div className="text-center">
+                      <p className="text-white/40 font-black uppercase tracking-widest text-xs">Partner Video Paused</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="relative z-10 w-full h-full flex flex-col items-center justify-center space-y-6">
                 <motion.div 
@@ -213,9 +233,9 @@ export const CallOverlay = () => {
                   muted
                   ref={myVideo}
                   autoPlay
-                  className={`w-full h-full object-cover ${isMirrored ? 'scale-x-[-1]' : ''}`}
+                  className={`w-full h-full object-cover ${isMirrored ? 'scale-x-[-1]' : ''} ${!localVideoEnabled ? 'opacity-0' : 'opacity-100'}`}
                 />
-                {isVideoOff && (
+                {!localVideoEnabled && (
                    <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center">
                      <VideoOff size={24} className="text-white/40" />
                    </div>
@@ -250,17 +270,19 @@ export const CallOverlay = () => {
                 ) : (
                   <>
                     <button 
-                        onClick={toggleMic}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isMicMuted ? 'bg-rose-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                        onClick={handleToggleMic}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${!localAudioEnabled ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                        title={localAudioEnabled ? "Mute Mic" : "Unmute Mic"}
                     >
-                      {isMicMuted ? <MicOff size={18} /> : <Mic size={18} />}
+                      {!localAudioEnabled ? <MicOff size={18} /> : <Mic size={18} />}
                     </button>
                     
                     <button 
-                        onClick={toggleVideo}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isVideoOff ? 'bg-rose-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                        onClick={handleToggleVideo}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${(!localVideoEnabled || call.type === 'voice') ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                        title={call.type === 'voice' ? "Upgrade to Video" : (localVideoEnabled ? "Turn Off Camera" : "Turn On Camera")}
                     >
-                      {isVideoOff ? <VideoOff size={18} /> : <Video size={18} />}
+                      {(!localVideoEnabled || call.type === 'voice') ? <VideoOff size={18} /> : <Video size={18} />}
                     </button>
 
                     <button 

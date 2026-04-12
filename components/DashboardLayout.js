@@ -18,10 +18,11 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
 
   // 1. Auth Guard: Redirect to login if not authenticated
   useEffect(() => {
-    if (!loading && !user) {
+    if (isMounted && !loading && !user) {
+      console.log('[AuthGuard] Unauthorized access detected, redirecting...');
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isMounted]);
 
   // Persistence logic: Retrieve from localStorage on mount
   useEffect(() => {

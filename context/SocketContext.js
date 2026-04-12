@@ -29,8 +29,22 @@ export const SocketProvider = ({ children }) => {
    const [remoteIsMirrored, setRemoteIsMirrored] = useState(false);
    const [isMinimized, setIsMinimized] = useState(false);
    const [facingMode, setFacingMode] = useState('user'); // 'user' or 'environment'
+   const [remoteVideoEnabled, setRemoteVideoEnabled] = useState(true);
+   const [remoteAudioEnabled, setRemoteAudioEnabled] = useState(true);
+   const [localVideoEnabled, setLocalVideoEnabled] = useState(true);
+   const [localAudioEnabled, setLocalAudioEnabled] = useState(true);
 
   const connectionRef = React.useRef();
+  const streamRef = React.useRef(null);
+  const callRef = React.useRef(call);
+  const targetUserRef = React.useRef(targetUser);
+  const socketRef = React.useRef(null);
+
+  // Keep refs in sync with state for use in long-lived socket listeners
+  useEffect(() => { streamRef.current = stream; }, [stream]);
+  useEffect(() => { callRef.current = call; }, [call]);
+  useEffect(() => { targetUserRef.current = targetUser; }, [targetUser]);
+  useEffect(() => { socketRef.current = socket; }, [socket]);
 
   useEffect(() => {
     activeChatIdRef.current = activeChatId;
@@ -142,6 +156,11 @@ export const SocketProvider = ({ children }) => {
         setRemoteIsMirrored(isMirrored);
       });
 
+      newSocket.on('remote_media_changed', ({ type, isEnabled }) => {
+        if (type === 'video') setRemoteVideoEnabled(isEnabled);
+        if (type === 'audio') setRemoteAudioEnabled(isEnabled);
+      });
+
       newSocket.on('unread_chats_count', (data) => {
         setUnreadChatsCount(data.count);
       });
@@ -208,43 +227,121 @@ export const SocketProvider = ({ children }) => {
   const handleEndCall = (shouldEmit = true) => {
     console.log('[Call] Ending call and cleaning up...');
     
-    if (shouldEmit && socket && (targetUser || call.from)) {
-      socket.emit('end_call', { to: targetUser || call.from });
-    }
+    // Use the latest values from refs to avoid stale closures in socket listeners
+    const currentStream = streamRef.current;
+    const currentPeer = connectionRef.current;
+    const currentTarget = targetUserRef.current || callRef.current.from;
+    const currentSocket = socketRef.current;
 
-    // 1. Destroy Peer Connection
-    if (connectionRef.current) {
-      try {
-        connectionRef.current.destroy();
-      } catch (e) {}
-    }
-
-    // 2. Stop All Media Tracks (Camera & Mic)
-    if (stream) {
-      stream.getTracks().forEach(track => {
-        track.stop();
-        console.log(`[Media] Track ${track.kind} stopped`);
-      });
-    }
-
-    // 3. Reset States
-    setStream(null);
-    setRemoteStream(null);
-    setCall({ isReceivingCall: false, from: '', name: '', avatar: '', signal: null, type: 'voice' });
+    // 1. Reset states IMMEDIATELY to stop UI loops
+    setIsCalling(false);
     setCallAccepted(false);
     setCallEnded(true);
-    setIsCalling(false);
     setTargetUser(null);
     setIsMinimized(false);
     setRemoteIsMirrored(false);
+    setRemoteVideoEnabled(true);
+    setRemoteAudioEnabled(true);
+    setLocalVideoEnabled(true);
+    setLocalAudioEnabled(true);
 
-    // 4. Final Cleanup
-    connectionRef.current = null;
+    // 2. Emit signal to partner
+    if (shouldEmit && currentSocket && currentTarget) {
+      console.log('[Socket] Emitting end_call to:', currentTarget);
+      currentSocket.emit('end_call', { to: currentTarget });
+    }
+
+    // 3. Destroy Peer Connection
+    if (currentPeer) {
+      try {
+        currentPeer.destroy();
+        console.log('[Media] Peer connection destroyed');
+      } catch (e) {
+        console.warn('[Cleanup] Peer destroy error:', e);
+      }
+      connectionRef.current = null;
+    }
+
+    // 4. Stop All Media Tracks (Camera & Mic) via hardware shutdown
+    if (currentStream) {
+      currentStream.getTracks().forEach(track => {
+        track.stop();
+        console.log(`[Media] Track ${track.kind} stopped permanently`);
+      });
+    }
+
+    setStream(null);
+    setRemoteStream(null);
+    setCall({ isReceivingCall: false, from: '', name: '', avatar: '', signal: null, type: 'voice' });
     
     // Auto-hide the "Call Ended" message after 2 seconds
     setTimeout(() => {
       setCallEnded(false);
     }, 2000);
+  };
+
+  const toggleMediaHardware = async (type) => {
+    if (!stream) return;
+
+    const currentTo = targetUser || call.from;
+
+    if (type === 'video') {
+      const videoTrack = stream.getVideoTracks()[0];
+      if (localVideoEnabled) {
+        // TURN OFF: Truly stop the track and release hardware
+        if (videoTrack) videoTrack.stop();
+        setLocalVideoEnabled(false);
+        if (socket && currentTo) {
+          socket.emit('media_state_changed', { to: currentTo, type: 'video', isEnabled: false });
+        }
+      } else {
+        // TURN ON / UPGRADE: Start a fresh track
+        try {
+          console.log('[Media] Powering on camera hardware...');
+          const newStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: facingMode }, 
+            audio: false 
+          });
+          const newVideoTrack = newStream.getVideoTracks()[0];
+          
+          if (connectionRef.current && videoTrack) {
+            console.log('[Media] Swapping tracks in peer connection');
+            connectionRef.current.replaceTrack(videoTrack, newVideoTrack, stream);
+          }
+          
+          // Update the stream tracks
+          if (videoTrack) stream.removeTrack(videoTrack);
+          stream.addTrack(newVideoTrack);
+          
+          setLocalVideoEnabled(true);
+          // If it was a voice call, treat this as an upgrade
+          if (call.type === 'voice') {
+            setCall(prev => ({ ...prev, type: 'video' }));
+          }
+
+          if (socket && currentTo) {
+            socket.emit('media_state_changed', { to: currentTo, type: 'video', isEnabled: true });
+          }
+        } catch (err) {
+          console.error('[Media] Failed to power on camera:', err);
+        }
+      }
+    }
+ else if (type === 'audio') {
+      const audioTrack = stream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setLocalAudioEnabled(audioTrack.enabled);
+        if (socket && currentTo) {
+          socket.emit('media_state_changed', { to: currentTo, type: 'audio', isEnabled: audioTrack.enabled });
+        }
+      }
+    }
+  };
+
+  const upgradeToVideo = async () => {
+    console.log('[Media] Triggering upgrade to video...');
+    await toggleMediaHardware('video');
   };
 
   const startCall = async (userIdToCall, type = 'video', recipientInfo = {}) => {
@@ -260,12 +357,23 @@ export const SocketProvider = ({ children }) => {
 
     try {
       console.log('[Media] Requesting access to camera/mic...');
+      // ALWAYS request video:true even for voice calls to warm up the connection
       const currentStream = await navigator.mediaDevices.getUserMedia({
-        video: type === 'video',
+        video: true,
         audio: true
       });
       
       console.log('[Media] Stream acquired successfully:', currentStream.id);
+      
+      // If voice call, immediately stop the video track to turn off the light
+      if (type === 'voice') {
+        const videoTrack = currentStream.getVideoTracks()[0];
+        if (videoTrack) {
+          videoTrack.stop();
+          setLocalVideoEnabled(false);
+        }
+      }
+
       setStream(currentStream);
 
       const Peer = (await import('simple-peer')).default;
@@ -306,10 +414,21 @@ export const SocketProvider = ({ children }) => {
     setCallAccepted(true);
     try {
       console.log('[Media] Answering call, requesting media...');
+      // ALWAYS request video:true to ensure connection consistency
       const currentStream = await navigator.mediaDevices.getUserMedia({
-        video: call.type === 'video',
+        video: true,
         audio: true
       });
+
+      // If voice call, immediately stop the video track
+      if (call.type === 'voice') {
+        const videoTrack = currentStream.getVideoTracks()[0];
+        if (videoTrack) {
+          videoTrack.stop();
+          setLocalVideoEnabled(false);
+        }
+      }
+
       setStream(currentStream);
 
       const Peer = (await import('simple-peer')).default;
@@ -385,7 +504,10 @@ export const SocketProvider = ({ children }) => {
       call, callAccepted, callEnded, stream, remoteStream, isCalling,
       startCall, answerCall, rejectCall, handleEndCall,
       isMirrored, toggleMirror, switchCamera,
-      remoteIsMirrored, isMinimized, setIsMinimized
+      remoteIsMirrored, isMinimized, setIsMinimized,
+      remoteVideoEnabled, remoteAudioEnabled,
+      localVideoEnabled, localAudioEnabled,
+      toggleMediaHardware, upgradeToVideo
     }}>
       {children}
     </SocketContext.Provider>

@@ -44,10 +44,22 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const res = await api.post('/auth/login', { email, password });
-    setAccessToken(res.data.data.accessToken);
-    setUser(res.data.data.user);
-    router.push('/dashboard');
+    setLoading(true);
+    try {
+      const res = await api.post('/auth/login', { email, password });
+      setAccessToken(res.data.data.accessToken);
+      setUser(res.data.data.user);
+      router.push('/dashboard');
+    } catch (err) {
+      setLoading(false);
+      throw err;
+    } finally {
+      // We don't set loading false here because router.push will 
+      // lead to a new mount or a re-init if needed, 
+      // but if the redirect fails, we should be able to recovery.
+      // However, fetchUser in initAuth will naturally handle the rest.
+      setTimeout(() => setLoading(false), 1000); 
+    }
   };
 
   const register = async (email, password) => {

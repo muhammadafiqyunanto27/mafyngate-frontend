@@ -19,15 +19,15 @@ export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  // 1. Redirect to dashboard if already logged in
+  // 1. Redirect to dashboard if already logged in (silent background check)
   useEffect(() => {
     if (!loading && user) {
       router.push('/dashboard');
     }
   }, [user, loading, router]);
 
-  // Prevent flicker
-  if (loading || user) return null;
+  // Removed the 'if (loading || user) return null' to ensure 
+  // visitors always see the Landing Page immediately.
   
   // Gmail Compose Function for Landing Page
   const openGmail = () => {

@@ -74,6 +74,8 @@ function MessagesContent() {
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const menuRef = useRef(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(null); // stores message for whom menu is open
+  const [swipeOffset, setSwipeOffset] = useState({}); // {msgId: xValue}
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -448,6 +450,99 @@ function MessagesContent() {
     return avatar.startsWith('http') ? avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${avatar}`;
   };
 
+  const MessageBubble = ({ msg, isMine, isMobileView }) => {
+    const isEditing = editingMessage?.id === msg.id;
+    
+    // Swipe Handler
+    const handleDragEnd = (_, info) => {
+      if (info.offset.x > 80) {
+        if (navigator.vibrate) navigator.vibrate(50);
+        setReplyingTo(msg);
+        if (textareaRef.current) textareaRef.current.focus();
+      }
+    };
+
+    // Long Press Handler
+    let pressTimer;
+    const startPress = () => {
+      pressTimer = setTimeout(() => {
+        if (navigator.vibrate) navigator.vibrate(50);
+        setMobileMenuOpen(msg);
+      }, 500);
+    };
+    const cancelPress = () => clearTimeout(pressTimer);
+
+    return (
+      <motion.div 
+        key={msg.id}
+        drag="x"
+        dragConstraints={{ left: 0, right: 100 }}
+        dragElastic={0.2}
+        onDragEnd={handleDragEnd}
+        className={`flex group relative px-4 md:px-0 ${isMine ? 'justify-end' : 'justify-start'}`}
+      >
+        {/* Swipe Indicator (Visible during drag) */}
+        <div className="absolute left-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-10 pointer-events-none transition-opacity">
+          <Reply className="w-6 h-6 text-primary" />
+        </div>
+
+        <div 
+          className={`flex items-start gap-2 max-w-[90%] sm:max-w-[85%] md:max-w-[450px] ${isMine ? 'flex-row' : 'flex-row-reverse'}`}
+          onTouchStart={isMobileView ? startPress : undefined}
+          onTouchEnd={isMobileView ? cancelPress : undefined}
+          onContextMenu={e => { e.preventDefault(); setMobileMenuOpen(msg); }}
+        >
+          {/* Desktop Actions (Hover only) */}
+          {!isMobileView && (
+            <div className="opacity-0 group-hover:opacity-100 flex flex-col gap-0.5 transition-opacity self-center shrink-0">
+               <button onClick={() => { setReplyingTo(msg); textareaRef.current?.focus(); }} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-all" title="Reply"><Reply size={12} /></button>
+               {isMine && <button onClick={() => { setEditingMessage(msg); setNewMessage(msg.content); textareaRef.current?.focus(); }} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-all" title="Edit"><Pencil size={12} /></button>}
+               <button onClick={() => handleCopyMessage(msg.content)} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-all" title="Copy"><Copy size={12} /></button>
+               {isMine && <button onClick={() => handleDeleteSingleMessage(msg.id)} title="Delete" className="p-1.5 hover:bg-rose-500/10 rounded-lg text-rose-500 transition-all"><Trash2 size={12} /></button>}
+            </div>
+          )}
+
+          <div className={`relative px-4 py-2.5 rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.1)] text-sm transition-all border ${isMine ? 'bg-primary text-white border-primary/20 rounded-tr-none' : 'bg-muted/40 text-foreground border-border rounded-tl-none'}`}>
+            {/* Reply Block */}
+            {msg.parent && (
+              <div 
+                onClick={() => {
+                   const parentMsg = document.getElementById(`msg-${msg.parent.id}`);
+                   if (parentMsg) parentMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}
+                className={`mb-2 p-2.5 rounded-xl border-l-[3px] text-[11px] cursor-pointer transition-colors max-w-full overflow-hidden ${isMine ? 'bg-white/10 border-white/40 text-white/90' : 'bg-muted border-primary/40 text-muted-foreground'}`}
+              >
+                <p className="font-extrabold text-[10px] mb-0.5 text-primary-foreground opacity-80">{msg.parent.sender?.name || 'User'}</p>
+                <p className="opacity-70 italic line-clamp-2 break-all">{msg.parent.content || '[Media]'}</p>
+              </div>
+            )}
+
+            {/* Media Content */}
+            {msg.type === 'IMAGE' && (
+              <img src={getAvatar(msg.fileUrl)} onClick={() => window.open(getAvatar(msg.fileUrl))} className="max-w-full rounded-xl mb-1.5 cursor-pointer hover:opacity-90 transition-opacity" />
+            )}
+            {msg.type === 'VIDEO' && (
+              <video controls className="max-w-full rounded-xl mb-1.5"><source src={getAvatar(msg.fileUrl)} type="video/mp4" /></video>
+            )}
+
+            {/* Text Content */}
+            {msg.content && (
+               <div className="mb-0.5 leading-relaxed break-all md:break-words whitespace-pre-wrap">
+                  {msg.content}
+               </div>
+            )}
+
+            {/* Meta (Time + Status) */}
+            <div className={`flex items-center justify-end gap-1.5 mt-1 opacity-60 text-[10px] uppercase font-black ${isMine ? 'text-white' : 'text-muted-foreground'}`}>
+              {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {isMine && <CheckCheck className={`w-3 h-3 ${msg.isRead ? 'text-blue-300' : ''}`} />}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
   return (
     <DashboardLayout pageTitle="Messages" fullWidth>
       <AnimatePresence>
@@ -537,18 +632,18 @@ function MessagesContent() {
           {selectedUser ? (
             <>
               <div className="p-4 md:p-6 border-b border-border flex items-center justify-between bg-background/50 backdrop-blur-md z-30">
-                <div className="flex items-center gap-4 min-w-0">
-                  {isMobileView && <button onClick={() => setShowChat(false)} className="p-2 mr-1"><ArrowLeft className="w-5 h-5" /></button>}
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl overflow-hidden border-2 border-background shadow-sm cursor-pointer" onClick={() => setViewingProfile(selectedUser)}>
+                <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+                  {isMobileView && <button onClick={() => setShowChat(false)} className="p-2 -ml-2 text-muted-foreground"><ArrowLeft className="w-5 h-5" /></button>}
+                  <div className="w-9 h-9 md:w-12 md:h-12 rounded-2xl overflow-hidden border-2 border-background shadow-sm cursor-pointer shrink-0" onClick={() => setViewingProfile(selectedUser)}>
                     {selectedUser.avatar ? <img src={getAvatar(selectedUser.avatar)} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/10 text-primary flex items-center justify-center font-bold">{(selectedUser.name || selectedUser.email).charAt(0).toUpperCase()}</div>}
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <h3 className="font-black text-foreground uppercase tracking-tight text-sm md:text-base truncate cursor-pointer flex items-center gap-2" onClick={() => setViewingProfile(selectedUser)}>
                       {selectedUser.name || selectedUser.email.split('@')[0]}
-                      {selectedUser.isPinned && <Pin size={12} className="text-amber-500 fill-amber-500/20" />}
+                      {selectedUser.isPinned && <Pin size={12} className="text-amber-500 shrink-0" />}
                     </h3>
-                    <p className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 transition-colors duration-300 ${recipientStatus === 'typing' ? 'text-primary' : recipientStatus === 'online' ? 'text-emerald-500' : 'text-muted-foreground'}`}>
-                      <span className={`w-1 h-1 rounded-full animate-pulse ${recipientStatus === 'offline' ? 'bg-muted-foreground' : 'bg-current'}`} /> 
+                    <p className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 truncate ${recipientStatus === 'typing' ? 'text-primary' : recipientStatus === 'online' ? 'text-emerald-500' : 'text-muted-foreground'}`}>
+                      <span className={`w-1 h-1 rounded-full animate-pulse shrink-0 ${recipientStatus === 'offline' ? 'bg-muted-foreground' : 'bg-current'}`} /> 
                       {recipientStatus === 'typing' ? 'Typing...' : recipientStatus === 'online' ? 'Online' : 'Offline'}
                     </p>
                   </div>
@@ -613,64 +708,18 @@ function MessagesContent() {
                 )}
               </AnimatePresence>
 
-              <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 custom-scrollbar bg-card/10">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-10 space-y-4 custom-scrollbar bg-card/10">
                 {messages
                   .filter(m => !innerSearchQuery || (m.content && m.content.toLowerCase().includes(innerSearchQuery.toLowerCase())))
-                  .map((msg, i) => {
-                  const isMine = msg.senderId === user?.id;
-                  return (
-                    <div key={msg.id || i} className={`flex group ${isMine ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`flex items-center gap-2 max-w-[85%] md:max-w-[70%] ${isMine ? 'flex-row' : 'flex-row-reverse'}`}>
-                        <div className={`opacity-0 group-hover:opacity-100 flex ${isMine ? 'flex-col' : 'flex-col'} gap-1 transition-opacity self-center ${isMine ? 'pr-1' : 'pl-1'}`}>
-                          {isMine && (
-                            <>
-                              <button onClick={() => { setEditingMessage(msg); setNewMessage(msg.content); textareaRef.current?.focus(); }} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-primary transition-all" title="Edit"><Pencil size={12} /></button>
-                              <button onClick={() => handleDeleteSingleMessage(msg.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg text-muted-foreground hover:text-rose-500 transition-all" title="Delete"><Trash2 size={12} /></button>
-                            </>
-                          )}
-                          <button onClick={() => { setReplyingTo(msg); textareaRef.current?.focus(); }} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-primary transition-all" title="Reply"><Reply size={12} /></button>
-                          <button onClick={() => handleCopyMessage(msg.content)} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-primary transition-all" title="Copy"><Copy size={12} /></button>
-                        </div>
-                        <div className={`px-5 py-3.5 rounded-3xl shadow-sm text-sm font-medium break-words whitespace-pre-wrap ${isMine ? 'bg-primary text-white rounded-br-none shadow-primary/20' : 'bg-muted/50 text-foreground rounded-bl-none border border-border'}`}>
-                          {msg.parent && (
-                            <div className={`mb-3 p-3 rounded-2xl border-l-4 text-[11px] leading-relaxed max-w-full ${isMine ? 'bg-white/10 border-white/30 text-white/80' : 'bg-muted border-primary/30 text-muted-foreground'}`}>
-                               <p className="font-black uppercase tracking-widest text-[9px] mb-1 text-primary">Replying to {msg.parent.sender?.name || 'User'}</p>
-                               <p className="truncate line-clamp-2">{msg.parent.type === 'IMAGE' ? '📷 Image' : msg.parent.type === 'VIDEO' ? '🎥 Video' : msg.parent.type === 'FILE' ? '📁 File' : msg.parent.content}</p>
-                            </div>
-                          )}
-                          {msg.type === 'IMAGE' && (
-                            <div className="mb-2 relative group-img cursor-pointer overflow-hidden rounded-2xl border border-white/10" onClick={() => window.open(msg.fileUrl.startsWith('http') ? msg.fileUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${msg.fileUrl}`)}>
-                              <img src={msg.fileUrl.startsWith('http') ? msg.fileUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${msg.fileUrl}`} className="max-w-full h-auto rounded-xl hover:scale-105 transition-transform duration-500" />
-                            </div>
-                          )}
-                          {msg.type === 'VIDEO' && (
-                            <video controls className="max-w-full rounded-xl mb-2">
-                               <source src={msg.fileUrl.startsWith('http') ? msg.fileUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${msg.fileUrl}`} type="video/mp4" />
-                            </video>
-                          )}
-                          {msg.type === 'FILE' && (
-                            <div className={`flex items-center gap-3 p-3 rounded-2xl mb-2 border ${isMine ? 'bg-white/10 border-white/20' : 'bg-muted border-border'}`}>
-                               <FileIcon className="w-6 h-6 text-primary" />
-                               <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-bold truncate">{msg.fileName || 'Document'}</p>
-                                  <p className="text-[10px] opacity-60">{(msg.fileSize / 1024 / 1024).toFixed(2)} MB</p>
-                               </div>
-                               <a href={msg.fileUrl.startsWith('http') ? msg.fileUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${msg.fileUrl}`} download className="p-2 hover:bg-white/10 rounded-xl transition-all">
-                                  <Download className="w-4 h-4" />
-                               </a>
-                            </div>
-                          )}
-                          {msg.content && msg.content !== msg.fileName && <p>{msg.content}</p>}
-                          {msg.isEdited && <span className="text-[8px] italic opacity-50 ml-2">(edited)</span>}
-                          <div className={`text-[9px] font-black uppercase mt-1.5 flex items-center gap-1 justify-end opacity-50 ${isMine ? 'text-white' : 'text-muted-foreground'}`}>
-                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            {isMine && <CheckCheck className={`w-3 h-3 ${msg.isRead ? 'text-blue-300' : ''}`} />}
-                          </div>
-                        </div>
-                      </div>
+                  .map((msg, i) => (
+                    <div id={`msg-${msg.id}`} key={msg.id || i}>
+                       <MessageBubble 
+                        msg={msg} 
+                        isMine={msg.senderId === user?.id} 
+                        isMobileView={isMobileView} 
+                      />
                     </div>
-                  );
-                })}
+                  ))}
                 <div ref={messagesEndRef} />
               </div>
               <div className="p-4 md:px-10 md:pb-8">
@@ -789,6 +838,37 @@ function MessagesContent() {
                <div className="space-y-3"><button onClick={handleDeleteConversation} className="w-full bg-rose-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl">Wipe History</button><button onClick={() => setIsDeletingConvo(false)} className="w-full text-foreground/50 text-[10px] font-black uppercase tracking-widest mt-2 hover:text-foreground text-center">Cancel</button></div>
              </motion.div>
            </div>
+        )}
+        {/* Mobile Action Menu (Long Press) */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileMenuOpen(null)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-[280px] overflow-hidden rounded-[2.5rem] shadow-2xl p-4">
+                <div className="mb-4 text-center">
+                   <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">Message Action</p>
+                   <p className="text-xs truncate font-bold px-4">{mobileMenuOpen.content || '[Media]'}</p>
+                </div>
+                <div className="space-y-2">
+                   <button onClick={() => { setReplyingTo(mobileMenuOpen); setMobileMenuOpen(null); textareaRef.current?.focus(); }} className="w-full flex items-center gap-4 px-6 py-4 rounded-3xl bg-primary/10 text-primary hover:bg-primary/20 transition-all">
+                      <Reply size={18} /><span className="text-xs font-black uppercase tracking-widest">Reply</span>
+                   </button>
+                   <button onClick={() => { handleCopyMessage(mobileMenuOpen.content); setMobileMenuOpen(null); }} className="w-full flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-muted transition-all text-muted-foreground">
+                      <Copy size={18} /><span className="text-xs font-black uppercase tracking-widest">Copy</span>
+                   </button>
+                   {mobileMenuOpen.senderId === user?.id && (
+                     <>
+                        <button onClick={() => { setEditingMessage(mobileMenuOpen); setNewMessage(mobileMenuOpen.content); setMobileMenuOpen(null); textareaRef.current?.focus(); }} className="w-full flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-muted transition-all text-muted-foreground">
+                           <Pencil size={18} /><span className="text-xs font-black uppercase tracking-widest">Edit</span>
+                        </button>
+                        <button onClick={() => { handleDeleteSingleMessage(mobileMenuOpen.id); setMobileMenuOpen(null); }} className="w-full flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-rose-500/10 text-rose-500 transition-all font-black">
+                           <Trash2 size={18} /><span className="text-xs uppercase tracking-widest">Delete</span>
+                        </button>
+                     </>
+                   )}
+                </div>
+                <button onClick={() => setMobileMenuOpen(null)} className="w-full mt-4 text-xs font-black uppercase tracking-widest text-muted-foreground/50 hover:text-muted-foreground transition-all py-2">Cancel</button>
+             </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </DashboardLayout>

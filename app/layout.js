@@ -15,9 +15,9 @@ export const metadata = {
   title: "MafynGate - Secure Social Messaging",
   description: "Secure Social Messaging & Advanced Computing Gateway",
   icons: {
-    icon: '/favicon.png?v=3',
-    apple: '/apple-touch-icon.png?v=3',
-    shortcut: '/favicon.ico?v=3'
+    icon: '/favicon.png?v=4',
+    apple: '/apple-touch-icon.png?v=4',
+    shortcut: '/favicon.ico?v=4'
   }
 };
 

@@ -124,7 +124,7 @@ export const SocketProvider = ({ children }) => {
         
         // Play notification sound
         try {
-          const audio = new Audio('/notification.mp3');
+          const audio = new Audio('/notification.wav');
           audio.play().catch(() => {}); // Browsers might block auto-play
         } catch (e) {}
 

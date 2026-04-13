@@ -200,11 +200,11 @@ export default function DashboardPage() {
                                   />
                                 ) : null}
                                 <div className={`w-full h-full items-center justify-center ${req.follower.avatar ? 'hidden' : 'flex'}`}>
-                                  {(req.follower.name || req.follower.email || "?").charAt(0).toUpperCase()}
+                                  {(req.follower.name || "?").charAt(0).toUpperCase()}
                                 </div>
                               </div>
-                              <div className="min-w-0">
-                                 <p className="text-sm font-bold truncate">{req.follower.name || req.follower.email.split('@')[0]}</p>
+                              <div className="min-w-0 flex-1">
+                                 <p className="text-sm font-bold truncate text-foreground">{req.follower.name}</p>
                                  <p className="text-[10px] text-muted-foreground font-medium truncate italic opacity-60">Wants to connect</p>
                               </div>
                            </div>
@@ -260,13 +260,13 @@ export default function DashboardPage() {
                                 />
                               ) : null}
                               <div className={`w-full h-full items-center justify-center ${conn.avatar ? 'hidden' : 'flex'}`}>
-                                {(conn.name || conn.email || "?").charAt(0).toUpperCase()}
+                                {(conn.name || "?").charAt(0).toUpperCase()}
                               </div>
                             </div>
                             <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-card"></div>
                           </div>
-                          <div>
-                            <p className="text-sm font-bold text-foreground truncate max-w-[120px] md:max-w-none">{conn.name || conn.email.split('@')[0]}</p>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold text-foreground truncate">{conn.name}</p>
                             <p className="text-[10px] font-black text-emerald-500 uppercase opacity-60 italic">Wait Message</p>
                           </div>
                         </div>

@@ -691,7 +691,7 @@ function MessagesContent() {
                   onClick={() => { if (selectedUser?.id !== u.id) { setMessages([]); setIsInitialLoad(true); } setSelectedUser(u); if (isMobileView) setShowChat(true); }}
                   className={`w-full p-4 rounded-3xl flex items-center gap-4 transition-all group ${selectedUser?.id === u.id ? 'bg-primary/10 text-primary shadow-sm border border-primary/10' : 'hover:bg-muted border border-transparent'}`}
                 >
-                  <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-background shadow-sm shrink-0" onClick={(e) => { e.stopPropagation(); setViewingProfile(u); }}>
+                  <div className={`${isMobileView ? 'w-10 h-10' : 'w-12 h-12'} rounded-2xl overflow-hidden border-2 border-background shadow-sm shrink-0`} onClick={(e) => { e.stopPropagation(); setViewingProfile(u); }}>
                     {u.avatar ? (
                       <img 
                         src={getAvatar(u.avatar)} 
@@ -699,14 +699,14 @@ function MessagesContent() {
                         onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                       />
                     ) : null}
-                    <div className={`w-full h-full items-center justify-center font-bold bg-primary/10 text-primary ${u.avatar ? 'hidden' : 'flex'}`}>
-                      {(u.name || u.email || "?").charAt(0).toUpperCase()}
+                    <div className={`w-full h-full items-center justify-center font-bold bg-primary/10 text-primary ${u.avatar ? 'hidden' : 'flex'} ${isMobileView ? 'text-xs' : ''}`}>
+                      {(u.name || "?").charAt(0).toUpperCase()}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex justify-between items-center mb-0.5">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <p className="font-bold truncate text-sm">{u.name}</p>
+                        <p className={`font-bold truncate ${isMobileView ? 'text-xs' : 'text-sm'}`}>{u.name}</p>
                         {u.isPinned && <Pin size={10} className="text-amber-500 fill-amber-500/20" />}
                       </div>
                       {u.lastMessage && <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{new Date(u.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
@@ -730,10 +730,10 @@ function MessagesContent() {
         <div className={`${isMobileView && !showChat ? 'hidden' : 'flex'} flex-1 flex-col bg-card relative overflow-hidden`}>
           {selectedUser ? (
             <>
-              <div className="p-4 md:p-6 border-b border-border flex items-center justify-between bg-background/50 backdrop-blur-md z-30">
+              <div className="p-3 md:p-6 border-b border-border flex items-center justify-between bg-background/50 backdrop-blur-md z-30">
                 <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
                   {isMobileView && <button onClick={() => setShowChat(false)} className="p-2 -ml-2 text-muted-foreground"><ArrowLeft className="w-5 h-5" /></button>}
-                  <div className="w-9 h-9 md:w-12 md:h-12 rounded-2xl overflow-hidden border-2 border-background shadow-sm cursor-pointer shrink-0" onClick={() => setViewingProfile(selectedUser)}>
+                  <div className={`${isMobileView ? 'w-8 h-8' : 'w-12 h-12'} rounded-2xl overflow-hidden border-2 border-background shadow-sm cursor-pointer shrink-0`} onClick={() => setViewingProfile(selectedUser)}>
                     {selectedUser.avatar ? (
                       <img 
                         src={getAvatar(selectedUser.avatar)} 
@@ -741,16 +741,16 @@ function MessagesContent() {
                         onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                       />
                     ) : null}
-                    <div className={`w-full h-full items-center justify-center font-bold bg-primary/10 text-primary ${selectedUser.avatar ? 'hidden' : 'flex'}`}>
-                      {(selectedUser.name || selectedUser.email || "?").charAt(0).toUpperCase()}
+                    <div className={`w-full h-full items-center justify-center font-bold bg-primary/10 text-primary ${selectedUser.avatar ? 'hidden' : 'flex'} ${isMobileView ? 'text-xs' : ''}`}>
+                      {(selectedUser.name || "?").charAt(0).toUpperCase()}
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-black text-foreground uppercase tracking-tight text-sm md:text-base truncate cursor-pointer flex items-center gap-2" onClick={() => setViewingProfile(selectedUser)}>
+                    <h3 className={`font-black text-foreground uppercase tracking-tight ${isMobileView ? 'text-xs' : 'text-base'} truncate cursor-pointer flex items-center gap-2`} onClick={() => setViewingProfile(selectedUser)}>
                       {selectedUser.name}
                       {selectedUser.isPinned && <Pin size={12} className="text-amber-500 shrink-0" />}
                     </h3>
-                    <p className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 truncate ${recipientStatus === 'typing' ? 'text-primary' : recipientStatus === 'online' ? 'text-emerald-500' : 'text-muted-foreground'}`}>
+                    <p className={`${isMobileView ? 'text-[9px]' : 'text-[10px]'} font-bold uppercase tracking-widest flex items-center gap-1 truncate ${recipientStatus === 'typing' ? 'text-primary' : recipientStatus === 'online' ? 'text-emerald-500' : 'text-muted-foreground'}`}>
                       <span className={`w-1 h-1 rounded-full animate-pulse shrink-0 ${recipientStatus === 'offline' ? 'bg-muted-foreground' : 'bg-current'}`} /> 
                       {recipientStatus === 'typing' ? 'Typing...' : recipientStatus === 'online' ? 'Online' : 'Offline'}
                     </p>

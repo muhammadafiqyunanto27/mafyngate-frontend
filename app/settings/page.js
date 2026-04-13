@@ -15,7 +15,8 @@ import {
   CheckCircle2,
   Lock,
   ArrowLeft,
-  AtSign
+  AtSign,
+  Bell
 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -112,7 +113,7 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout pageTitle="Account Settings">
-      <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 px-4 md:px-0 pb-20 selection:bg-primary/30">
+      <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 px-4 md:px-0 pt-6 md:pt-0 pb-20 selection:bg-primary/30">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row items-center md:justify-between gap-4 md:gap-0 pb-6 border-b border-border text-center md:text-left">
@@ -166,6 +167,28 @@ export default function SettingsPage() {
                       </div>
                     </div>
                     <ChevronRight size={14} className="text-muted-foreground group-hover:translate-x-1 transition-transform shrink-0" />
+                  </button>
+               </div>
+            </div>
+
+            {/* Notifications Section */}
+            <div className="bg-card border border-border rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-sm">
+               <div className="p-6 md:p-8 border-b border-border bg-muted/20">
+                  <h3 className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+                     <Bell size={14} className="md:w-4 md:h-4" /> Notification Gateway
+                  </h3>
+               </div>
+               <div className="p-6 md:p-10 text-center space-y-4">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-[2rem] bg-primary/10 text-primary flex items-center justify-center mx-auto mb-2">
+                     <Bell size={32} className="md:w-10 md:h-10" />
+                  </div>
+                  <h4 className="text-sm md:text-base font-black uppercase tracking-tight">Enable Push Alerts</h4>
+                  <p className="text-[11px] md:text-xs text-muted-foreground font-medium max-w-xs mx-auto leading-relaxed">Stay connected with real-time signals even when you're away from the gateway.</p>
+                  <button 
+                    onClick={() => window.requestMafynGateNotification?.()}
+                    className="px-8 py-4 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                  >
+                    Grant Access
                   </button>
                </div>
             </div>

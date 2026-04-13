@@ -146,7 +146,7 @@ export default function PublicProfilePage() {
                   />
                 ) : null}
                 <div className={`w-full h-full items-center justify-center text-primary text-4xl font-black uppercase ${profile.avatar ? 'hidden' : 'flex'}`}>
-                  {(profile.name || profile.email || '?').charAt(0)}
+                  {(profile.name || profile.id || '?').charAt(0)}
                 </div>
               </div>
             </div>
@@ -160,7 +160,7 @@ export default function PublicProfilePage() {
               </div>
               <p className="text-sm text-muted-foreground font-medium flex items-center gap-2 mt-1">
                 <span className={`w-1.5 h-1.5 rounded-full ${isLocked ? 'bg-muted-foreground/30' : 'bg-emerald-500 animate-pulse'}`}></span>
-                {isLocked ? 'Private Profile' : profile.email}
+                {isLocked ? 'Private Profile' : 'Gateway Connection Active'}
               </p>
             </div>
 

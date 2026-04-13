@@ -148,7 +148,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
                 key={item.path}
                 href={item.path}
                 onClick={() => isMobile && setIsMobileOpen(false)}
-                className={`flex items-center h-12 transition-all duration-200 group relative overflow-hidden ${isCollapsed && !isMobile ? 'justify-center w-full px-0' : 'px-4 gap-3'} ${isActive
+                className={`flex items-center ${isMobile ? 'h-10' : 'h-12'} transition-all duration-200 group relative overflow-hidden ${isCollapsed && !isMobile ? 'justify-center w-full px-0' : 'px-4 gap-3'} ${isActive
                   ? 'text-primary'
                   : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                 }`}
@@ -157,8 +157,8 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
                   <div className="absolute left-0 w-1 h-6 bg-primary rounded-r-full" />
                 )}
                 
-                <div className={`flex items-center justify-center flex-shrink-0 ${isCollapsed && !isMobile ? 'w-full h-full' : 'w-10 h-10'}`}>
-                  <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary' : 'group-hover:scale-105 transition-transform'}`} />
+                <div className={`flex items-center justify-center flex-shrink-0 ${isCollapsed && !isMobile ? 'w-full h-full' : (isMobile ? 'w-8 h-8' : 'w-10 h-10')}`}>
+                  <Icon className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} flex-shrink-0 ${isActive ? 'text-primary' : 'group-hover:scale-105 transition-transform'}`} />
                 </div>
 
                 {(!isCollapsed || isMobile) && (
@@ -188,29 +188,13 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
 
         {/* Footer Section */}
         <div className="p-4 border-t border-border flex-shrink-0 bg-card/30 overflow-hidden">
-          <button
-            onClick={() => window.requestMafynGateNotification?.()}
-            className={`w-full flex items-center h-12 mb-2 transition-all duration-200 rounded-xl group relative overflow-hidden ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-4 gap-3'} text-muted-foreground hover:bg-primary/10 hover:text-primary border border-transparent`}
-            title="Enable Notifications"
-          >
-            <div className={`flex items-center justify-center flex-shrink-0 ${isCollapsed && !isMobile ? 'w-full h-full' : 'w-10 h-10'}`}>
-              <Bell className="w-5 h-5 flex-shrink-0 opacity-80 group-hover:scale-110 transition-transform" />
-            </div>
-            {(!isCollapsed || isMobile) && (
-              <span className="font-bold text-sm truncate whitespace-nowrap">Enable Alerts</span>
-            )}
-            {(isCollapsed && !isMobile) && (
-               <div className="absolute left-full ml-3 invisible group-hover:visible bg-primary text-white text-[10px] font-bold uppercase tracking-widest py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-50 shadow-xl pointer-events-none whitespace-nowrap">
-                 Enable Notifications
-               </div>
-            )}
-          </button>
+
 
          <Link 
             href="/profile"
-            className={`flex items-center h-12 rounded-xl overflow-hidden hover:bg-muted/50 transition-all cursor-pointer group/user ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-2 gap-3'}`}
+            className={`flex items-center ${isMobile ? 'h-10' : 'h-12'} rounded-xl overflow-hidden hover:bg-muted/50 transition-all cursor-pointer group/user ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-2 gap-3'}`}
           >
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0 overflow-hidden group-hover/user:scale-105 transition-transform">
+            <div className={`${isMobile ? 'w-8 h-8' : 'w-9 h-9'} rounded-lg bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0 overflow-hidden group-hover/user:scale-105 transition-transform`}>
               {user.avatar ? (
                 <img 
                   src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} 
@@ -235,11 +219,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
 
           <button
             onClick={() => setShowLogoutModal(true)}
-            className={`w-full flex items-center h-12 mt-2 transition-all duration-200 rounded-xl group relative overflow-hidden ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-4 gap-3'} text-destructive hover:bg-rose-500/10 border border-transparent hover:border-rose-500/10`}
+            className={`w-full flex items-center ${isMobile ? 'h-10' : 'h-12'} mt-2 transition-all duration-200 rounded-xl group relative overflow-hidden ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-4 gap-3'} text-destructive hover:bg-rose-500/10 border border-transparent hover:border-rose-500/10`}
             aria-label="Sign out"
           >
-            <div className={`flex items-center justify-center flex-shrink-0 ${isCollapsed && !isMobile ? 'w-full h-full' : 'w-10 h-10'}`}>
-              <LogOut className="w-5 h-5 flex-shrink-0 opacity-80 group-hover:scale-105 transition-transform" />
+            <div className={`flex items-center justify-center flex-shrink-0 ${isCollapsed && !isMobile ? 'w-full h-full' : (isMobile ? 'w-8 h-8' : 'w-10 h-10')}`}>
+              <LogOut className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} flex-shrink-0 opacity-80 group-hover:scale-105 transition-transform`} />
             </div>
             {(!isCollapsed || isMobile) && (
               <span className="font-bold text-sm truncate whitespace-nowrap">Sign Out</span>

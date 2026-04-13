@@ -9,9 +9,9 @@ import {
   User,
   Calculator,
   LogOut,
-  ChevronLeft,
   ChevronRight,
-  Settings
+  Settings,
+  Bell
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -188,6 +188,24 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
 
         {/* Footer Section */}
         <div className="p-4 border-t border-border flex-shrink-0 bg-card/30 overflow-hidden">
+          <button
+            onClick={() => window.requestMafynGateNotification?.()}
+            className={`w-full flex items-center h-12 mb-2 transition-all duration-200 rounded-xl group relative overflow-hidden ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-4 gap-3'} text-muted-foreground hover:bg-primary/10 hover:text-primary border border-transparent`}
+            title="Enable Notifications"
+          >
+            <div className={`flex items-center justify-center flex-shrink-0 ${isCollapsed && !isMobile ? 'w-full h-full' : 'w-10 h-10'}`}>
+              <Bell className="w-5 h-5 flex-shrink-0 opacity-80 group-hover:scale-110 transition-transform" />
+            </div>
+            {(!isCollapsed || isMobile) && (
+              <span className="font-bold text-sm truncate whitespace-nowrap">Enable Alerts</span>
+            )}
+            {(isCollapsed && !isMobile) && (
+               <div className="absolute left-full ml-3 invisible group-hover:visible bg-primary text-white text-[10px] font-bold uppercase tracking-widest py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-50 shadow-xl pointer-events-none whitespace-nowrap">
+                 Enable Notifications
+               </div>
+            )}
+          </button>
+
          <Link 
             href="/profile"
             className={`flex items-center h-12 rounded-xl overflow-hidden hover:bg-muted/50 transition-all cursor-pointer group/user ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-2 gap-3'}`}

@@ -6,15 +6,10 @@ import { AuthProvider } from '../context/AuthContext';
 import { SocketProvider } from '../context/SocketContext';
 import { CallOverlay } from './CallOverlay';
 import { NotificationToast } from './NotificationToast';
+import PushNotificationManager from './PushNotificationManager';
 
 export function Providers({ children }) {
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(err => {
-        console.log('ServiceWorker registration failed: ', err);
-      });
-    }
-  }, []);
+  // Service worker registration is handled inside PushNotificationManager
 
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
@@ -23,6 +18,7 @@ export function Providers({ children }) {
           {children}
           <CallOverlay />
           <NotificationToast />
+          <PushNotificationManager />
         </SocketProvider>
       </AuthProvider>
     </ThemeProvider>

@@ -1,51 +1,55 @@
+// MafynGate Service Worker for Web Push Notifications
+
 self.addEventListener('push', function(event) {
-  const data = event.data ? event.data.json() : {};
-  const options = {
-    body: data.content || data.message || 'You have a new notification',
-    icon: '/globe.svg',
-    badge: '/window.svg',
-    vibrate: [200, 100, 200],
-    data: {
-      url: data.url || '/',
-      type: data.type,
-      senderId: data.senderId
-    }
-  };
+  if (!event.data) return;
 
-  if (data.type === 'FOLLOW') {
-    options.actions = [
-      { action: 'follback', title: 'Follow Back' }
-    ];
+  try {
+    const data = event.data.json();
+    const { title, body, icon, url, type } = data;
+
+    const options = {
+      body: body || 'You have a new notification',
+      icon: icon || '/logo.png', // Fallback to a default icon
+      badge: '/badge.png',
+      vibrate: type === 'CALL' ? [200, 100, 200, 100, 200, 100, 200] : [100, 50, 100],
+      data: {
+        url: url || '/messages',
+        type: type || 'CHAT'
+      },
+      tag: type === 'CALL' ? 'incoming-call' : 'new-chat',
+      renotify: true,
+      actions: type === 'CALL' ? [
+        { action: 'answer', title: 'Answer' },
+        { action: 'reject', title: 'Reject' }
+      ] : []
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(title || 'MafynGate', options)
+    );
+  } catch (err) {
+    console.error('[SW] Push error:', err);
   }
-
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'MafynGate', options)
-  );
 });
 
 self.addEventListener('notificationclick', function(event) {
-  const notification = event.notification;
-  const action = event.action;
-  const data = notification.data;
+  event.notification.close();
 
-  notification.close();
+  const urlToOpen = event.notification.data.url;
 
-  if (action === 'follback') {
-    // Redirect to profile and maybe handle auto-follow via query param or just show the profile
-    event.waitUntil(
-      clients.openWindow(`/profile/${data.senderId}?autofollow=true`)
-    );
-  } else {
-    // Normal click
-    let url = data.url;
-    if (data.type === 'CHAT') {
-      url = `/messages?userId=${data.senderId}`;
-    } else if (data.type === 'FOLLOW') {
-      url = `/profile/${data.senderId}`;
-    }
-    
-    event.waitUntil(
-      clients.openWindow(url)
-    );
-  }
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      // If a window is already open with the URL, focus it
+      for (let i = 0; i < clientList.length; i++) {
+        let client = clientList[i];
+        if (client.url.includes(urlToOpen) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise, open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
 });

@@ -142,12 +142,12 @@ export default function PublicProfilePage() {
                     src={profile.avatar.startsWith('http') ? profile.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${profile.avatar}`} 
                     className="w-full h-full rounded-[2rem] object-cover"
                     alt={profile.name}
+                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                   />
-                ) : (
-                  <div className="w-full h-full rounded-[2rem] bg-muted flex items-center justify-center text-primary text-4xl font-black uppercase">
-                    {(profile.name || profile.email || '?').charAt(0)}
-                  </div>
-                )}
+                ) : null}
+                <div className={`w-full h-full items-center justify-center text-primary text-4xl font-black uppercase ${profile.avatar ? 'hidden' : 'flex'}`}>
+                  {(profile.name || profile.email || '?').charAt(0)}
+                </div>
               </div>
             </div>
             

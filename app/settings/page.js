@@ -112,96 +112,96 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout pageTitle="Account Settings">
-      <div className="max-w-4xl mx-auto space-y-8 pb-20 selection:bg-primary/30">
+      <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 px-4 md:px-0 pb-20 selection:bg-primary/30">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-6 border-b border-border">
+        <div className="flex flex-col md:flex-row items-center md:justify-between gap-4 md:gap-0 pb-6 border-b border-border text-center md:text-left">
           <div>
-            <h1 className="text-3xl font-black text-foreground uppercase tracking-tight">Settings</h1>
-            <p className="text-sm text-muted-foreground font-medium italic">Manage your account security and support access.</p>
+            <h1 className="text-2xl md:text-3xl font-black text-foreground uppercase tracking-tight">Settings</h1>
+            <p className="text-xs md:text-sm text-muted-foreground font-medium italic">Manage your account security and support access.</p>
           </div>
-          <div className="w-14 h-14 rounded-3xl bg-primary/10 text-primary flex items-center justify-center">
-            <Shield size={32} />
+          <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl md:rounded-3xl bg-primary/10 text-primary flex items-center justify-center">
+            <Shield size={28} className="md:w-8 md:h-8" />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
-          <div className="md:col-span-2 space-y-8">
+          <div className="md:col-span-2 space-y-6 md:space-y-8">
             {/* Security Section */}
-            <div className="bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
-               <div className="p-8 border-b border-border bg-muted/20">
-                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
-                     <Lock size={16} /> Security & Identity
+            <div className="bg-card border border-border rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
+               <div className="p-6 md:p-8 border-b border-border bg-muted/20">
+                  <h3 className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+                     <Lock size={14} className="md:w-4 md:h-4" /> Security & Identity
                   </h3>
                </div>
-               <div className="p-2 space-y-1">
+               <div className="p-1 md:p-2 space-y-1">
                   <button 
                     onClick={() => setIsChangingPassword(true)}
-                    className="w-full p-6 flex items-center justify-between group hover:bg-muted/50 rounded-3xl transition-all"
+                    className="w-full p-5 md:p-6 flex items-center justify-between group hover:bg-muted/50 rounded-2xl md:rounded-3xl transition-all"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-2xl group-hover:scale-110 transition-transform">
-                        <Key size={20} />
+                    <div className="flex items-center gap-4 text-left">
+                      <div className="p-2.5 md:p-3 bg-indigo-500/10 text-indigo-500 rounded-xl md:rounded-2xl group-hover:scale-110 transition-transform">
+                        <Key size={18} className="md:w-5 md:h-5" />
                       </div>
-                      <div className="text-left">
-                        <p className="text-sm font-bold text-foreground">Change Password</p>
-                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">Update your security keys</p>
+                      <div>
+                        <p className="text-xs md:text-sm font-bold text-foreground">Change Password</p>
+                        <p className="text-[9px] md:text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">Update your security keys</p>
                       </div>
                     </div>
-                    <ChevronRight size={16} className="text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                    <ChevronRight size={14} className="text-muted-foreground group-hover:translate-x-1 transition-transform shrink-0" />
                   </button>
 
                   <button 
                     onClick={() => setIsChangingEmail(true)}
-                    className="w-full p-6 flex items-center justify-between group hover:bg-muted/50 rounded-3xl transition-all"
+                    className="w-full p-5 md:p-6 flex items-center justify-between group hover:bg-muted/50 rounded-2xl md:rounded-3xl transition-all"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-amber-500/10 text-amber-500 rounded-2xl group-hover:scale-110 transition-transform">
-                        <AtSign size={20} />
+                    <div className="flex items-center gap-4 text-left">
+                      <div className="p-2.5 md:p-3 bg-amber-500/10 text-amber-500 rounded-xl md:rounded-2xl group-hover:scale-110 transition-transform">
+                        <AtSign size={18} className="md:w-5 md:h-5" />
                       </div>
-                      <div className="text-left">
-                        <p className="text-sm font-bold text-foreground">Change Email</p>
-                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">Current: {user.email}</p>
+                      <div className="min-w-0">
+                        <p className="text-xs md:text-sm font-bold text-foreground">Change Email</p>
+                        <p className="text-[9px] md:text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5 truncate overflow-hidden">Current: {user.email}</p>
                       </div>
                     </div>
-                    <ChevronRight size={16} className="text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                    <ChevronRight size={14} className="text-muted-foreground group-hover:translate-x-1 transition-transform shrink-0" />
                   </button>
                </div>
             </div>
 
             {/* Support Section */}
-            <div className="bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-sm">
-               <div className="p-8 border-b border-border bg-muted/20">
-                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
-                     <LifeBuoy size={16} /> Support Gateway
+            <div className="bg-card border border-border rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-sm">
+               <div className="p-6 md:p-8 border-b border-border bg-muted/20">
+                  <h3 className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+                     <LifeBuoy size={14} className="md:w-4 md:h-4" /> Support Gateway
                   </h3>
                </div>
-               <div className="p-2 space-y-1">
-                  <button onClick={openGmail} className="w-full p-6 flex items-center justify-between group hover:bg-muted/50 rounded-3xl transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-primary/10 text-primary rounded-2xl">
-                        <Mail size={20} />
+               <div className="p-1 md:p-2 space-y-1">
+                  <button onClick={openGmail} className="w-full p-5 md:p-6 flex items-center justify-between group hover:bg-muted/50 rounded-2xl md:rounded-3xl transition-all">
+                    <div className="flex items-center gap-4 text-left">
+                      <div className="p-2.5 md:p-3 bg-primary/10 text-primary rounded-xl md:rounded-2xl shrink-0">
+                        <Mail size={18} className="md:w-5 md:h-5" />
                       </div>
-                      <div className="text-left">
-                        <p className="text-sm font-bold text-foreground">Email Developer</p>
-                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">Send bug report via Gmail</p>
+                      <div>
+                        <p className="text-xs md:text-sm font-bold text-foreground">Email Developer</p>
+                        <p className="text-[9px] md:text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">Send bug report via Gmail</p>
                       </div>
                     </div>
-                    <ChevronRight size={16} className="text-muted-foreground" />
+                    <ChevronRight size={14} className="text-muted-foreground shrink-0" />
                   </button>
 
-                  <button onClick={() => window.open('https://wa.me/6282219785260', '_blank')} className="w-full p-6 flex items-center justify-between group hover:bg-muted/50 rounded-3xl transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl">
-                        <MessageCircle size={20} />
+                  <button onClick={() => window.open('https://wa.me/6282219785260', '_blank')} className="w-full p-5 md:p-6 flex items-center justify-between group hover:bg-muted/50 rounded-2xl md:rounded-3xl transition-all">
+                    <div className="flex items-center gap-4 text-left">
+                      <div className="p-2.5 md:p-3 bg-emerald-500/10 text-emerald-500 rounded-xl md:rounded-2xl shrink-0">
+                        <MessageCircle size={18} className="md:w-5 md:h-5" />
                       </div>
-                      <div className="text-left">
-                        <p className="text-sm font-bold text-foreground">WhatsApp Support</p>
-                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">Instant technical feedback</p>
+                      <div>
+                        <p className="text-xs md:text-sm font-bold text-foreground">WhatsApp Support</p>
+                        <p className="text-[9px] md:text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">Instant technical feedback</p>
                       </div>
                     </div>
-                    <ChevronRight size={16} className="text-muted-foreground" />
+                    <ChevronRight size={14} className="text-muted-foreground shrink-0" />
                   </button>
                </div>
             </div>
@@ -209,12 +209,12 @@ export default function SettingsPage() {
 
           <div className="space-y-8">
             {/* Danger Zone */}
-            <div className="p-8 rounded-[2.5rem] bg-rose-500/5 border border-rose-500/20 space-y-6">
-               <div className="flex items-center gap-3 text-rose-500">
-                  <div className="p-3 rounded-2xl bg-rose-500/10"><LogOut size={20} /></div>
-                  <h4 className="font-black uppercase tracking-tight">Dangerous Zone</h4>
+<div className="p-6 md:p-8 rounded-3xl md:rounded-[2.5rem] bg-rose-500/5 border border-rose-500/20 space-y-5 md:space-y-6">
+               <div className="flex items-center gap-3 text-rose-500 justify-center md:justify-start">
+                  <div className="p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-rose-500/10 shrink-0"><LogOut size={18} className="md:w-5 md:h-5" /></div>
+                  <h4 className="font-black uppercase tracking-tight text-sm md:text-base">Dangerous Zone</h4>
                </div>
-               <p className="text-xs text-muted-foreground font-medium leading-relaxed italic">Warning: Permanently delete your operational gateway and all associated neural data. This cannot be undone.</p>
+               <p className="text-[11px] md:text-xs text-muted-foreground font-medium leading-relaxed italic text-center md:text-left">Warning: Permanently delete your operational gateway and all associated neural data. This cannot be undone.</p>
                <button 
                 onClick={async () => {
                   if (window.confirm('WIPE ALL DATA? This is irreversible.')) {
@@ -235,13 +235,12 @@ export default function SettingsPage() {
 
       <AnimatePresence>
         {/* Change Password Modal */}
-        {isChangingPassword && (
           <div key="pass-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsChangingPassword(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8">
-               <div className="flex justify-between items-center mb-8">
-                 <h2 className="text-xl font-black uppercase tracking-tight">Update Password</h2>
-                 <button onClick={() => setIsChangingPassword(false)} className="p-2 hover:bg-muted rounded-xl transition-all"><X /></button>
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-3xl md:rounded-[2.5rem] shadow-2xl p-6 md:p-8">
+               <div className="flex justify-between items-center mb-6 md:mb-8">
+                 <h2 className="text-lg md:text-xl font-black uppercase tracking-tight">Update Password</h2>
+                 <button onClick={() => setIsChangingPassword(false)} className="p-2 hover:bg-muted rounded-xl transition-all shrink-0"><X size={20} /></button>
                </div>
                <form onSubmit={handlePasswordUpdate} className="space-y-4">
                   <div className="space-y-1">
@@ -265,13 +264,12 @@ export default function SettingsPage() {
         )}
 
         {/* Change Email Modal */}
-        {isChangingEmail && (
           <div key="email-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsChangingEmail(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8">
-               <div className="flex justify-between items-center mb-8">
-                 <h2 className="text-xl font-black uppercase tracking-tight text-amber-500">Change Email</h2>
-                 <button onClick={() => setIsChangingEmail(false)} className="p-2 hover:bg-muted rounded-xl transition-all"><X /></button>
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-3xl md:rounded-[2.5rem] shadow-2xl p-6 md:p-8">
+               <div className="flex justify-between items-center mb-6 md:mb-8">
+                 <h2 className="text-lg md:text-xl font-black uppercase tracking-tight text-amber-500">Change Email</h2>
+                 <button onClick={() => setIsChangingEmail(false)} className="p-2 hover:bg-muted rounded-xl transition-all shrink-0"><X size={20} /></button>
                </div>
                <form onSubmit={handleEmailUpdate} className="space-y-4">
                   <div className="space-y-1 pb-4">

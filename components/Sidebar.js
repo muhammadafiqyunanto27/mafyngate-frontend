@@ -216,10 +216,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
                   src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} 
                   className="w-full h-full object-cover"
                   alt={user.name || 'User'}
+                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                 />
-              ) : (
-                (user.name || user.email).charAt(0).toUpperCase()
-              )}
+              ) : null}
+              <div className={`w-full h-full items-center justify-center ${user.avatar ? 'hidden' : 'flex'}`}>
+                {(user.name || user.email || "?").charAt(0).toUpperCase()}
+              </div>
             </div>
             {(!isCollapsed || isMobile) && (
               <div className="flex-1 min-w-0 overflow-hidden">

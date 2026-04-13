@@ -191,8 +191,17 @@ export default function DashboardPage() {
                       {dashboardStats.pendingRequests.map((req) => (
                         <div key={req.id} className="p-4 rounded-[2rem] bg-muted/30 border border-border flex items-center justify-between gap-4">
                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary">
-                                {req.follower.avatar ? <img src={req.follower.avatar.startsWith('http') ? req.follower.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${req.follower.avatar}`} className="w-full h-full object-cover rounded-xl" /> : req.follower.email.charAt(0).toUpperCase()}
+                              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary overflow-hidden">
+                                {req.follower.avatar ? (
+                                  <img 
+                                    src={req.follower.avatar.startsWith('http') ? req.follower.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${req.follower.avatar}`} 
+                                    className="w-full h-full object-cover" 
+                                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                                  />
+                                ) : null}
+                                <div className={`w-full h-full items-center justify-center ${req.follower.avatar ? 'hidden' : 'flex'}`}>
+                                  {(req.follower.name || req.follower.email || "?").charAt(0).toUpperCase()}
+                                </div>
                               </div>
                               <div className="min-w-0">
                                  <p className="text-sm font-bold truncate">{req.follower.name || req.follower.email.split('@')[0]}</p>
@@ -243,7 +252,16 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-4">
                           <div className="relative">
                             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center font-bold text-emerald-500 border border-emerald-500/20 overflow-hidden">
-                              {conn.avatar ? <img src={conn.avatar} className="w-full h-full object-cover" alt="" /> : conn.email.charAt(0).toUpperCase()}
+                              {conn.avatar ? (
+                                <img 
+                                  src={conn.avatar.startsWith('http') ? conn.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${conn.avatar}`} 
+                                  className="w-full h-full object-cover" 
+                                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                                />
+                              ) : null}
+                              <div className={`w-full h-full items-center justify-center ${conn.avatar ? 'hidden' : 'flex'}`}>
+                                {(conn.name || conn.email || "?").charAt(0).toUpperCase()}
+                              </div>
                             </div>
                             <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-card"></div>
                           </div>

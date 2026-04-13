@@ -12,6 +12,7 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadChatsCount, setUnreadChatsCount] = useState(0);
+  const [onlineUsers, setOnlineUsers] = useState({}); // userId -> 'online' | 'offline'
   const [notifications, setNotifications] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const activeChatIdRef = React.useRef(null);
@@ -94,6 +95,10 @@ export const SocketProvider = ({ children }) => {
 
       newSocket.on('unread_count', (data) => {
         setUnreadCount(data.count);
+      });
+      
+      newSocket.on('user_status', (data) => {
+        setOnlineUsers(prev => ({ ...prev, [data.userId]: data.status }));
       });
 
       newSocket.on('unread_chats_count_refresh', () => {
@@ -503,8 +508,8 @@ export const SocketProvider = ({ children }) => {
 
   return (
     <SocketContext.Provider value={{ 
-      socket, unreadCount, unreadChatsCount, notifications, toast, activeChatId,
-      setNotifications, setUnreadCount, setUnreadChatsCount, setActiveChatId,
+      socket, unreadCount, unreadChatsCount, notifications, toast, activeChatId, onlineUsers,
+      setNotifications, setUnreadCount, setUnreadChatsCount, setActiveChatId, setOnlineUsers,
       requestNotificationPermission, removeNotification, readAllNotifications, clearNotifications, clearNotificationsFromSender,
       call, callAccepted, callEnded, stream, remoteStream, isCalling,
       startCall, answerCall, rejectCall, handleEndCall,

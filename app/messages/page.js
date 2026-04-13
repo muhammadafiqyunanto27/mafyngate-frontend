@@ -37,14 +37,15 @@ import {
   Calendar,
   Mic,
   Square,
-  Check
+  Check,
+  FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 
 function MessagesContent() {
   const { user, fetchUser } = useAuth();
-  const { socket, startCall, isCalling: isInitiatingCall, clearNotificationsFromSender, setUnreadChatsCount, setActiveChatId } = useSocket();
+  const { socket, startCall, isCalling: isInitiatingCall, clearNotificationsFromSender, setUnreadChatsCount, setActiveChatId, onlineUsers, setOnlineUsers } = useSocket();
   const [users, setUsers] = useState([]); // This stores the current active set (normal or hidden)
   const [selectedUser, setSelectedUser] = useState(null);
   const searchParams = useSearchParams();
@@ -145,9 +146,16 @@ function MessagesContent() {
 
   const fetchConnections = async () => {
     try {
-      // isHiddenMode flag in API is not needed if we handle it correctly here
       const res = await api.get('/user/connections');
-      setUsers(res.data.data);
+      const connectionData = res.data.data;
+      setUsers(connectionData);
+      
+      // Request initial statuses for all these users
+      if (socket) {
+        connectionData.forEach(u => {
+          socket.emit('get_user_status', { targetId: u.id });
+        });
+      }
     } catch (err) { console.error(err); }
   };
 
@@ -684,12 +692,21 @@ function MessagesContent() {
                   className={`w-full p-4 rounded-3xl flex items-center gap-4 transition-all group ${selectedUser?.id === u.id ? 'bg-primary/10 text-primary shadow-sm border border-primary/10' : 'hover:bg-muted border border-transparent'}`}
                 >
                   <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-background shadow-sm shrink-0" onClick={(e) => { e.stopPropagation(); setViewingProfile(u); }}>
-                    {u.avatar ? <img src={getAvatar(u.avatar)} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center font-bold bg-primary/10 text-primary">{(u.name || u.email).charAt(0).toUpperCase()}</div>}
+                    {u.avatar ? (
+                      <img 
+                        src={getAvatar(u.avatar)} 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                      />
+                    ) : null}
+                    <div className={`w-full h-full items-center justify-center font-bold bg-primary/10 text-primary ${u.avatar ? 'hidden' : 'flex'}`}>
+                      {(u.name || u.email || "?").charAt(0).toUpperCase()}
+                    </div>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex justify-between items-center mb-0.5">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <p className="font-bold truncate text-sm">{u.name || u.email.split('@')[0]}</p>
+                        <p className="font-bold truncate text-sm">{u.name}</p>
                         {u.isPinned && <Pin size={10} className="text-amber-500 fill-amber-500/20" />}
                       </div>
                       {u.lastMessage && <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{new Date(u.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
@@ -717,11 +734,20 @@ function MessagesContent() {
                 <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
                   {isMobileView && <button onClick={() => setShowChat(false)} className="p-2 -ml-2 text-muted-foreground"><ArrowLeft className="w-5 h-5" /></button>}
                   <div className="w-9 h-9 md:w-12 md:h-12 rounded-2xl overflow-hidden border-2 border-background shadow-sm cursor-pointer shrink-0" onClick={() => setViewingProfile(selectedUser)}>
-                    {selectedUser.avatar ? <img src={getAvatar(selectedUser.avatar)} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/10 text-primary flex items-center justify-center font-bold">{(selectedUser.name || selectedUser.email).charAt(0).toUpperCase()}</div>}
+                    {selectedUser.avatar ? (
+                      <img 
+                        src={getAvatar(selectedUser.avatar)} 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                      />
+                    ) : null}
+                    <div className={`w-full h-full items-center justify-center font-bold bg-primary/10 text-primary ${selectedUser.avatar ? 'hidden' : 'flex'}`}>
+                      {(selectedUser.name || selectedUser.email || "?").charAt(0).toUpperCase()}
+                    </div>
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="font-black text-foreground uppercase tracking-tight text-sm md:text-base truncate cursor-pointer flex items-center gap-2" onClick={() => setViewingProfile(selectedUser)}>
-                      {selectedUser.name || selectedUser.email.split('@')[0]}
+                      {selectedUser.name}
                       {selectedUser.isPinned && <Pin size={12} className="text-amber-500 shrink-0" />}
                     </h3>
                     <p className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 truncate ${recipientStatus === 'typing' ? 'text-primary' : recipientStatus === 'online' ? 'text-emerald-500' : 'text-muted-foreground'}`}>
@@ -905,10 +931,50 @@ function MessagesContent() {
              <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative bg-card border border-border w-full max-w-[280px] overflow-hidden rounded-[2.5rem] shadow-2xl">
                <div className="h-20 bg-gradient-to-r from-primary to-indigo-600 relative"><button onClick={() => setViewingProfile(null)} className="absolute top-4 right-4 p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-all"><X className="w-4 h-4" /></button></div>
                <div className="px-5 pb-6 text-center -mt-10">
-                 <div className="relative inline-block"><div className="w-20 h-20 rounded-[1.5rem] border-4 border-background overflow-hidden bg-muted shadow-lg">{viewingProfile.avatar ? <img src={getAvatar(viewingProfile.avatar)} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl font-bold bg-primary text-white">{(viewingProfile.name || viewingProfile.email).charAt(0).toUpperCase()}</div>}</div><div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-background shadow-sm"></div></div>
-                 <h2 className="text-lg font-black mt-2 uppercase tracking-tight truncate px-2">{viewingProfile.name || 'Anonymous'}</h2><p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60 mb-6 truncate px-4">{viewingProfile.email}</p>
-                 <div className="grid grid-cols-2 gap-2 mb-6"><div className="p-2 bg-muted/50 rounded-2xl border border-border"><p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Status</p><p className="text-[9px] font-bold text-emerald-500 uppercase">Available</p></div><div className="p-2 bg-muted/50 rounded-2xl border border-border"><p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Mutuals</p><p className="text-[9px] font-bold uppercase truncate">Connected</p></div></div>
-                 <div className="space-y-2 text-left"><div className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border border-border/50"><Mail className="w-4 h-4 text-primary shrink-0" /><div className="min-w-0"><p className="text-[7px] font-black uppercase text-muted-foreground">Email</p><p className="text-[10px] font-bold truncate">{viewingProfile.email}</p></div></div></div>
+                 <div className="relative inline-block">
+                    <div className="w-20 h-20 rounded-[1.5rem] border-4 border-background overflow-hidden bg-muted shadow-lg">
+                      {viewingProfile.avatar ? (
+                        <img 
+                          src={getAvatar(viewingProfile.avatar)} 
+                          className="w-full h-full object-cover" 
+                          onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                        />
+                      ) : null}
+                      <div className={`w-full h-full items-center justify-center text-2xl font-bold bg-primary text-white ${viewingProfile.avatar ? 'hidden' : 'flex'}`}>
+                        {(viewingProfile.name || viewingProfile.email || "?").charAt(0).toUpperCase()}
+                      </div>
+                    </div>
+                    <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-background shadow-sm ${onlineUsers[viewingProfile.id] === 'online' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
+                 </div>
+                 <h2 className="text-lg font-black mt-2 uppercase tracking-tight truncate px-2">{viewingProfile.name || 'Anonymous'}</h2>
+                 <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60 mb-6 truncate px-4">Secure Profile</p>
+                 
+                 <div className="grid grid-cols-2 gap-2 mb-6">
+                    <div className="p-2 bg-muted/50 rounded-2xl border border-border">
+                       <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Status</p>
+                       <p className={`text-[9px] font-bold uppercase ${onlineUsers[viewingProfile.id] === 'online' ? 'text-emerald-500' : 'text-slate-400'}`}>
+                          {onlineUsers[viewingProfile.id] === 'online' ? 'Active' : 'Offline'}
+                       </p>
+                    </div>
+                    <div className="p-2 bg-muted/50 rounded-2xl border border-border">
+                       <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Member Since</p>
+                       <p className="text-[9px] font-bold uppercase truncate">
+                          {viewingProfile.createdAt ? new Date(viewingProfile.createdAt).toLocaleDateString([], { month: 'short', year: 'numeric' }) : 'Join Date Hidden'}
+                       </p>
+                    </div>
+                 </div>
+                 
+                 <div className="space-y-2 text-left">
+                    <div className="flex flex-col gap-1 p-3 bg-muted/30 rounded-xl border border-border/50">
+                       <div className="flex items-center gap-2 mb-1">
+                          <FileText className="w-3 h-3 text-primary shrink-0" />
+                          <p className="text-[7px] font-black uppercase text-muted-foreground">Biography</p>
+                       </div>
+                       <p className="text-[10px] font-bold text-foreground leading-relaxed italic">
+                          {viewingProfile.bio || "No biography provided by user."}
+                       </p>
+                    </div>
+                 </div>
                  <button onClick={() => setViewingProfile(null)} className="w-full mt-6 py-3 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Close</button>
                </div>
              </motion.div>

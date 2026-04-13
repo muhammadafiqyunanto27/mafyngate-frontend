@@ -235,6 +235,7 @@ export default function SettingsPage() {
 
       <AnimatePresence>
         {/* Change Password Modal */}
+        {isChangingPassword && (
           <div key="pass-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsChangingPassword(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
             <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-3xl md:rounded-[2.5rem] shadow-2xl p-6 md:p-8">
@@ -264,6 +265,7 @@ export default function SettingsPage() {
         )}
 
         {/* Change Email Modal */}
+        {isChangingEmail && (
           <div key="email-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsChangingEmail(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
             <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-3xl md:rounded-[2.5rem] shadow-2xl p-6 md:p-8">

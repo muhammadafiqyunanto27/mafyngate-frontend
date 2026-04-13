@@ -36,7 +36,8 @@ import {
   Mail,
   Calendar,
   Mic,
-  Square
+  Square,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
@@ -610,7 +611,13 @@ function MessagesContent() {
             {/* Meta (Time + Status) */}
             <div className={`flex items-center justify-end gap-1.5 mt-1 opacity-60 text-[10px] uppercase font-black ${isMine ? 'text-white' : 'text-muted-foreground'}`}>
               {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              {isMine && <CheckCheck className={`w-3 h-3 ${msg.isRead ? 'text-blue-300' : ''}`} />}
+              {isMine && (
+                msg.isRead ? (
+                  <CheckCheck className="w-3.5 h-3.5 text-blue-300 drop-shadow-sm" />
+                ) : (
+                  <Check className="w-3 h-3 opacity-70" />
+                )
+              )}
             </div>
           </div>
         </div>

@@ -34,7 +34,9 @@ import {
   AlertCircle,
   CheckCircle2,
   Mail,
-  Calendar
+  Calendar,
+  Mic,
+  Square
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
@@ -68,8 +70,15 @@ function MessagesContent() {
   const [replyingTo, setReplyingTo] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const recordingTimerRef = useRef(null);
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -82,8 +91,56 @@ function MessagesContent() {
       if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    };
   }, []);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const file = new File([audioBlob], `VN_${Date.now()}.webm`, { type: 'audio/webm' });
+        setSelectedFile(file);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      recordingTimerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Microphone permission denied' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 2000);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      clearInterval(recordingTimerRef.current);
+    }
+  };
+
+  const cancelRecording = () => {
+     if (mediaRecorderRef.current && isRecording) {
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+        clearInterval(recordingTimerRef.current);
+        audioChunksRef.current = [];
+     }
+  };
 
   const fetchConnections = async () => {
     try {
@@ -370,8 +427,9 @@ function MessagesContent() {
   }, [messages, isInitialLoad]);
 
   const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if ((!newMessage.trim() && !selectedFile) || !selectedUser || !socket) return;
+    e?.preventDefault();
+    if (isSending || (!newMessage.trim() && !selectedFile) || !selectedUser || !socket) return;
+    setIsSending(true);
     
     let fileData = null;
     if (selectedFile) {
@@ -406,8 +464,8 @@ function MessagesContent() {
         receiverId: selectedUser.id,
         type,
         fileUrl: fileData?.url,
-        fileName: fileData?.name,
-        fileSize: fileData?.size,
+        fileName: fileData?.name || selectedFile?.name,
+        fileSize: fileData?.size || selectedFile?.size,
         parentId: replyingTo?.id
       });
       setReplyingTo(null);
@@ -415,6 +473,7 @@ function MessagesContent() {
     
     setNewMessage('');
     if (textareaRef.current) textareaRef.current.style.height = '56px';
+    setIsSending(false);
   };
 
   const handleFileSelect = (e) => {
@@ -517,12 +576,28 @@ function MessagesContent() {
               </div>
             )}
 
-            {/* Media Content */}
             {msg.type === 'IMAGE' && (
               <img src={getAvatar(msg.fileUrl)} onClick={() => window.open(getAvatar(msg.fileUrl))} className="max-w-full rounded-xl mb-1.5 cursor-pointer hover:opacity-90 transition-opacity" />
             )}
             {msg.type === 'VIDEO' && (
               <video controls className="max-w-full rounded-xl mb-1.5"><source src={getAvatar(msg.fileUrl)} type="video/mp4" /></video>
+            )}
+            {msg.type === 'VOICE' && (
+              <audio controls className="max-w-full rounded-full mb-1.5 min-w-[200px]" style={{ height: '40px' }}>
+                <source src={getAvatar(msg.fileUrl)} type="audio/mpeg" />
+              </audio>
+            )}
+            {msg.type === 'FILE' && (
+              <a href={getAvatar(msg.fileUrl)} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 bg-background/50 rounded-xl hover:bg-background/80 transition-colors mb-1.5 border border-current/10">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-current/20 bg-current/5">
+                   <FileIcon size={20} className="text-current" />
+                </div>
+                <div className="min-w-0 flex-1">
+                   <p className="font-bold text-sm truncate">{msg.fileName || 'Attachment'}</p>
+                   <p className="text-[10px] opacity-70 mt-0.5">{msg.fileSize ? (msg.fileSize / 1024 / 1024).toFixed(2) + ' MB' : 'Document'}</p>
+                </div>
+                <Download size={16} className="shrink-0 opacity-70" />
+              </a>
             )}
 
             {/* Text Content */}
@@ -729,7 +804,7 @@ function MessagesContent() {
                       <div className="w-1 h-8 rounded-full bg-primary" />
                       <div className="min-w-0">
                         <p className="text-[9px] font-black text-primary uppercase tracking-widest leading-none mb-1">Replying to {replyingTo.sender?.name || 'User'}</p>
-                        <p className="text-xs text-muted-foreground font-medium truncate italic">{replyingTo.type === 'IMAGE' ? '[Image]' : replyingTo.type === 'VIDEO' ? '[Video]' : replyingTo.type === 'FILE' ? '[File]' : replyingTo.content}</p>
+                        <p className="text-xs text-muted-foreground font-medium truncate italic">{replyingTo.type === 'IMAGE' ? '[Image]' : replyingTo.type === 'VIDEO' ? '[Video]' : replyingTo.type === 'VOICE' ? '[Voice Note]' : replyingTo.type === 'FILE' ? '[Document]' : replyingTo.content}</p>
                       </div>
                     </div>
                     <button onClick={() => setReplyingTo(null)} className="p-2 hover:bg-rose-500/10 text-rose-500 rounded-xl transition-all"><X size={16} /></button>
@@ -760,34 +835,52 @@ function MessagesContent() {
                 )}
                 <form onSubmit={handleSendMessage} className="flex items-center gap-3 md:gap-4">
                   <div className="flex items-center gap-1">
-                    <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all"><Paperclip size={20} /></button>
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground transition-all hidden md:block"><ImageIcon size={20} /></button>
+                    <input type="file" disabled={isSending} ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
+                    <button type="button" disabled={isSending} onClick={() => fileInputRef.current?.click()} className={`p-2.5 rounded-xl transition-all ${isSending ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-muted text-muted-foreground'}`}><Paperclip size={20} /></button>
+                    <button type="button" disabled={isSending} onClick={() => { if(fileInputRef.current) { fileInputRef.current.accept = "image/*,video/*"; fileInputRef.current.click(); setTimeout(() => {if(fileInputRef.current) fileInputRef.current.accept = ""}, 1000)} }} className={`p-2.5 rounded-xl transition-all hidden md:block ${isSending ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-muted text-muted-foreground'}`}><ImageIcon size={20} /></button>
                   </div>
                   <div className="flex-1 relative">
-                    <textarea 
-                      ref={textareaRef} 
-                      placeholder="Type your message..." 
-                      value={newMessage} 
-                      onChange={(e) => { 
-                        setNewMessage(e.target.value); 
-                        e.target.style.height = 'auto'; 
-                        e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
-                        
-                        // Typing indicator
-                        if (socket && selectedUser) {
-                          socket.emit('typing', { to: selectedUser.id });
-                          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-                          typingTimeoutRef.current = setTimeout(() => {
-                            socket.emit('stop_typing', { to: selectedUser.id });
-                          }, 2000);
-                        }
-                      }} 
-                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }} 
-                      className="w-full px-6 py-4 bg-muted border border-border rounded-[2rem] focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm min-h-[58px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar" 
-                    />
+                    {isRecording ? (
+                      <div className="w-full flex items-center justify-between px-6 py-4 bg-muted border border-border rounded-[2rem] min-h-[58px]">
+                        <div className="flex items-center gap-3 text-rose-500 font-bold animate-pulse">
+                          <Mic className="w-5 h-5" /> Recording: {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                        </div>
+                        <button type="button" onClick={cancelRecording} className="text-muted-foreground hover:text-rose-500 transition-all font-bold text-xs uppercase tracking-widest flex items-center gap-1.5"><Trash2 className="w-4 h-4" />Cancel</button>
+                      </div>
+                    ) : (
+                      <textarea 
+                        ref={textareaRef} 
+                        disabled={isSending}
+                        placeholder="Type your message..." 
+                        value={newMessage} 
+                        onChange={(e) => { 
+                          setNewMessage(e.target.value); 
+                          e.target.style.height = 'auto'; 
+                          e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                          
+                          // Typing indicator
+                          if (socket && selectedUser) {
+                            socket.emit('typing', { to: selectedUser.id });
+                            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+                            typingTimeoutRef.current = setTimeout(() => {
+                              socket.emit('stop_typing', { to: selectedUser.id });
+                            }, 2000);
+                          }
+                        }} 
+                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }} 
+                        className={`w-full px-6 py-4 bg-muted border border-border rounded-[2rem] focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm min-h-[58px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar ${isSending ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                      />
+                    )}
                   </div>
-                  <button type="submit" className="p-4 bg-primary text-white rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all"><Send className="w-5 h-5" /></button>
+                  {isRecording ? (
+                     <button type="button" onClick={stopRecording} className="p-4 bg-rose-500 text-white rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all"><Square className="w-5 h-5" /></button>
+                  ) : newMessage.trim() || selectedFile ? (
+                     <button type="submit" disabled={isSending} className={`p-4 rounded-2xl shadow-xl transition-all ${isSending ? 'bg-primary/50 text-white/50 cursor-not-allowed flex items-center justify-center' : 'bg-primary text-white hover:scale-105 active:scale-95 flex items-center justify-center'}`}>
+                       {isSending ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-5 h-5" />}
+                     </button>
+                  ) : (
+                     <button type="button" disabled={isSending} onMouseDown={startRecording} className={`p-4 rounded-2xl shadow-xl transition-all flex items-center justify-center ${isSending ? 'bg-primary/50 text-white/50 cursor-not-allowed' : 'bg-primary text-white hover:scale-105 active:scale-95'}`}><Mic className="w-5 h-5" /></button>
+                  )}
                 </form>
               </div>
             </>

@@ -251,11 +251,18 @@ export const SocketProvider = ({ children }) => {
     const currentPeer = connectionRef.current;
     const currentTarget = targetUserRef.current || callRef.current.from;
     const currentSocket = socketRef.current;
+    
+    // Check if there was actually an active call or calling process
+    const wasActive = isCalling || callAccepted || callRef.current.isReceivingCall;
 
     // 1. Reset states IMMEDIATELY to stop UI loops
     setIsCalling(false);
     setCallAccepted(false);
-    setCallEnded(true);
+    
+    // Only show "Call Ended" message if there was an actual call happening
+    if (wasActive) {
+      setCallEnded(true);
+    }
     setTargetUser(null);
     setIsMinimized(false);
     setRemoteIsMirrored(false);

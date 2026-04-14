@@ -171,7 +171,21 @@ export const SocketProvider = ({ children }) => {
       });
 
       setSocket(newSocket);
-      return () => newSocket.disconnect();
+      return () => {
+        newSocket.disconnect();
+        // Ensure call is ended and hardware released on unmount or socket change
+        handleEndCall(false);
+      };
+    } else {
+      // If user logs out, ensure everything is stopped
+      handleEndCall(false);
+    }
+  }, [user]);
+
+  // Secondary backup effect to ensure media stops if user vanishes
+  useEffect(() => {
+    if (!user) {
+      handleEndCall(false);
     }
   }, [user]);
 

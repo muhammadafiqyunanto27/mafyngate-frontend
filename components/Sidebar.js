@@ -187,14 +187,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
         </nav>
 
         {/* Footer Section */}
-        <div className="p-4 border-t border-border flex-shrink-0 bg-card/30 overflow-hidden">
+        <div className="p-3 border-t border-border flex-shrink-0 bg-card/30 overflow-hidden">
 
 
          <Link 
             href="/profile"
-            className={`flex items-center ${isMobile ? 'h-10' : 'h-12'} rounded-xl overflow-hidden hover:bg-muted/50 transition-all cursor-pointer group/user ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-2 gap-3'}`}
+            className={`flex items-center ${isMobile ? 'h-9' : 'h-10'} rounded-xl overflow-hidden hover:bg-muted/50 transition-all cursor-pointer group/user ${isCollapsed && !isMobile ? 'justify-center px-0' : 'px-1.5 gap-2.5'}`}
           >
-            <div className={`${isMobile ? 'w-8 h-8' : 'w-9 h-9'} rounded-lg bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0 overflow-hidden group-hover/user:scale-105 transition-transform`}>
+            <div className={`${isMobile ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-sm flex-shrink-0 overflow-hidden group-hover/user:scale-105 transition-transform`}>
               {user.avatar ? (
                 <img 
                   src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} 
@@ -209,10 +209,10 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
             </div>
             {(!isCollapsed || isMobile) && (
               <div className="flex-1 min-w-0 overflow-hidden">
-                <p className="text-xs font-bold truncate text-foreground uppercase tracking-widest leading-none mb-1 group-hover/user:text-primary transition-colors">
+                <p className="text-[11px] font-extrabold truncate text-foreground uppercase tracking-tight leading-none mb-0.5 group-hover/user:text-primary transition-colors">
                   {user.name || user.email.split('@')[0]}
                 </p>
-                <p className="text-[10px] text-muted-foreground truncate opacity-70 uppercase tracking-tighter">Public Identity</p>
+                <p className="text-[9px] text-muted-foreground truncate opacity-70 uppercase tracking-tighter">Identity</p>
               </div>
             )}
           </Link>

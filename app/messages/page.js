@@ -655,7 +655,7 @@ function MessagesContent() {
         
         {/* Sidebar */}
         <div className={`${isMobileView && showChat ? 'hidden' : 'flex'} w-full md:w-80 lg:w-96 border-r border-border flex-col bg-muted/5`}>
-          <div className="p-6 space-y-6">
+          <div className="p-4 px-5 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {isHiddenMode && (
@@ -673,14 +673,14 @@ function MessagesContent() {
             </div>
             
             <div className="relative group">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"><Search className="w-4 h-4" /></div>
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"><Search className="w-3.5 h-3.5" /></div>
               <input 
                 type="text" 
                 suppressHydrationWarning
                 placeholder={isHiddenMode ? 'Search hidden...' : 'Search chats...'} 
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
-                className="w-full pl-12 pr-4 py-3 bg-muted border border-border rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm" 
+                className="w-full pl-11 pr-4 py-2.5 bg-muted border border-border rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold text-xs" 
               />
             </div>
           </div>
@@ -696,9 +696,9 @@ function MessagesContent() {
                 <button
                   key={u.id}
                   onClick={() => { if (selectedUser?.id !== u.id) { setMessages([]); setIsInitialLoad(true); } setSelectedUser(u); if (isMobileView) setShowChat(true); }}
-                  className={`w-full p-4 rounded-3xl flex items-center gap-4 transition-all group ${selectedUser?.id === u.id ? 'bg-primary/10 text-primary shadow-sm border border-primary/10' : 'hover:bg-muted border border-transparent'}`}
+                  className={`w-full p-3 rounded-2xl flex items-center gap-3 transition-all group ${selectedUser?.id === u.id ? 'bg-primary/10 text-primary shadow-sm border border-primary/10' : 'hover:bg-muted border border-transparent'}`}
                 >
-                  <div className={`${isMobileView ? 'w-10 h-10' : 'w-12 h-12'} rounded-2xl overflow-hidden border-2 border-background shadow-sm shrink-0`} onClick={(e) => { e.stopPropagation(); setViewingProfile(u); }}>
+                  <div className={`${isMobileView ? 'w-9 h-9' : 'w-10 h-10'} rounded-xl overflow-hidden border-2 border-background shadow-sm shrink-0`} onClick={(e) => { e.stopPropagation(); setViewingProfile(u); }}>
                     {u.avatar ? (
                       <img 
                         src={getAvatar(u.avatar)} 
@@ -737,10 +737,10 @@ function MessagesContent() {
         <div className={`${isMobileView && !showChat ? 'hidden' : 'flex'} flex-1 flex-col bg-card relative overflow-hidden`}>
           {selectedUser ? (
             <>
-              <div className="p-3 md:p-6 border-b border-border flex items-center justify-between bg-background/50 backdrop-blur-md z-30">
-                <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+              <div className="p-2.5 md:p-4 border-b border-border flex items-center justify-between bg-background/50 backdrop-blur-md z-30">
+                <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
                   {isMobileView && <button onClick={() => setShowChat(false)} className="p-2 -ml-2 text-muted-foreground"><ArrowLeft className="w-5 h-5" /></button>}
-                  <div className={`${isMobileView ? 'w-8 h-8' : 'w-12 h-12'} rounded-2xl overflow-hidden border-2 border-background shadow-sm cursor-pointer shrink-0`} onClick={() => setViewingProfile(selectedUser)}>
+                  <div className={`${isMobileView ? 'w-8 h-8' : 'w-10 h-10'} rounded-xl overflow-hidden border-2 border-background shadow-sm cursor-pointer shrink-0`} onClick={() => setViewingProfile(selectedUser)}>
                     {selectedUser.avatar ? (
                       <img 
                         src={getAvatar(selectedUser.avatar)} 
@@ -767,24 +767,24 @@ function MessagesContent() {
                   <button 
                     disabled={isInitiatingCall}
                     onClick={() => startCall(selectedUser.id, 'voice', selectedUser)} 
-                    className={`p-2.5 rounded-xl transition-all ${isInitiatingCall ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted text-muted-foreground'}`}
+                    className={`p-2 rounded-lg transition-all ${isInitiatingCall ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted text-muted-foreground'}`}
                   >
-                    <Phone className="w-4 h-4" />
+                    <Phone className="w-3.5 h-3.5" />
                   </button>
                   <button 
                     disabled={isInitiatingCall}
                     onClick={() => startCall(selectedUser.id, 'video', selectedUser)} 
-                    className={`p-2.5 rounded-xl transition-all ${isInitiatingCall ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted text-muted-foreground'}`}
+                    className={`p-2 rounded-lg transition-all ${isInitiatingCall ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted text-muted-foreground'}`}
                   >
-                    <Video className="w-4 h-4" />
+                    <Video className="w-3.5 h-3.5" />
                   </button>
                   <button 
                     onClick={() => { setIsSearchingInChat(!isSearchingInChat); setInnerSearchQuery(''); }} 
-                    className={`p-2.5 rounded-xl transition-all ${isSearchingInChat ? 'bg-primary text-white shadow-lg' : 'hover:bg-muted text-muted-foreground'}`}
+                    className={`p-2 rounded-lg transition-all ${isSearchingInChat ? 'bg-primary text-white shadow-lg' : 'hover:bg-muted text-muted-foreground'}`}
                   >
-                    <Search className="w-4 h-4" />
+                    <Search className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => setShowMenu(!showMenu)} className={`p-2.5 rounded-xl transition-all ${showMenu ? 'bg-primary text-white shadow-lg' : 'hover:bg-muted text-muted-foreground'}`}><MoreVertical className="w-4 h-4" /></button>
+                  <button onClick={() => setShowMenu(!showMenu)} className={`p-2 rounded-lg transition-all ${showMenu ? 'bg-primary text-white shadow-lg' : 'hover:bg-muted text-muted-foreground'}`}><MoreVertical className="w-3.5 h-3.5" /></button>
                   <AnimatePresence>
                     {showMenu && (
                       <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} className="absolute right-0 top-14 w-56 bg-card border border-border rounded-2xl shadow-2xl z-[100] p-1.5">

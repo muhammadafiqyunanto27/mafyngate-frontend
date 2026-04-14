@@ -90,8 +90,10 @@ export default function ProfilePage() {
       setMessage({ type: 'success', text: 'Avatar updated!' });
       setTimeout(() => setMessage({ type: '', text: '' }), 1000);
     } catch (err) {
-      setMessage({ type: 'error', text: 'Failed to upload photo.' });
-      setTimeout(() => setMessage({ type: '', text: '' }), 1000);
+      console.error('Avatar upload failed:', err);
+      const errorMsg = err.response?.data?.message || 'Failed to upload photo. Ensure file is an image and under 2MB.';
+      setMessage({ type: 'error', text: errorMsg });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     } finally {
       setUploadLoading(false);
     }

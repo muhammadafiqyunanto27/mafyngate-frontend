@@ -368,9 +368,16 @@ function MessagesContent() {
           targetUser.unreadCount = (targetUser.unreadCount || 0) + 1;
         }
         
-        // Remove from current position and move to top
-        updatedUsers.splice(userIndex, 1);
-        return [targetUser, ...updatedUsers];
+        updatedUsers[userIndex] = targetUser;
+
+        // Sort: Pinned first, then by last message time
+        return updatedUsers.sort((a, b) => {
+          if (a.isPinned && !b.isPinned) return -1;
+          if (!a.isPinned && b.isPinned) return 1;
+          const timeA = a.lastMessage ? new Date(a.lastMessage.createdAt).getTime() : 0;
+          const timeB = b.lastMessage ? new Date(b.lastMessage.createdAt).getTime() : 0;
+          return timeB - timeA;
+        });
       });
     };
 

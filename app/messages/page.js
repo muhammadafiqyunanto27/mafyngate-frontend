@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
+import { getMediaUrl } from '../../lib/url';
 
 const MessageBubble = memo(({ 
   msg, 
@@ -54,11 +55,8 @@ const MessageBubble = memo(({
   onDelete, 
   textareaRef 
 }) => {
-  const getAvatar = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http')) return url;
-    return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${url.startsWith('/') ? '' : '/'}${url.replace(/\\/g, '/')}`;
-  };
+  // getMediaUrl replaces the local getAvatar logic
+
 
   let pressTimer;
   const startPress = () => {
@@ -105,18 +103,24 @@ const MessageBubble = memo(({
           )}
 
           {msg.type === 'IMAGE' && (
-            <img src={getAvatar(msg.fileUrl)} onClick={() => window.open(getAvatar(msg.fileUrl))} className="max-w-full rounded-xl mb-1.5 cursor-pointer hover:opacity-90 transition-opacity" />
+            <img src={getMediaUrl(msg.fileUrl)} onClick={() => window.open(getMediaUrl(msg.fileUrl))} className="max-w-full rounded-xl mb-1.5 cursor-pointer hover:opacity-90 transition-opacity" />
           )}
           {msg.type === 'VIDEO' && (
-            <video controls className="max-w-full rounded-xl mb-1.5"><source src={getAvatar(msg.fileUrl)} type="video/mp4" /></video>
+            <video controls className="max-w-full rounded-xl mb-1.5 shadow-inner bg-black/20">
+              <source src={getMediaUrl(msg.fileUrl)} />
+              Your browser does not support the video tag.
+            </video>
           )}
           {msg.type === 'VOICE' && (
             <audio controls className={`max-w-full rounded-full mb-1 min-w-[200px] opacity-70 hover:opacity-100 transition-opacity scale-[0.95] origin-left`} style={{ height: '32px' }}>
-              <source src={msg.fileUrl} type="audio/webm" />
+              <source src={getMediaUrl(msg.fileUrl)} type="audio/webm" />
+              <source src={getMediaUrl(msg.fileUrl)} type="audio/ogg" />
+              <source src={getMediaUrl(msg.fileUrl)} type="audio/mp3" />
             </audio>
           )}
           {msg.type === 'FILE' && (
-            <a href={getAvatar(msg.fileUrl)} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 bg-background/50 rounded-xl hover:bg-background/80 transition-colors mb-1.5 border border-current/10">
+            <a href={getMediaUrl(msg.fileUrl)} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 bg-background/50 rounded-xl hover:bg-background/80 transition-colors mb-1.5 border border-current/10">
+
               <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-current/20 bg-current/5">
                  <FileIcon size={20} className="text-current" />
               </div>
@@ -627,10 +631,8 @@ function MessagesContent() {
     setTimeout(() => setMessage({ type: '', text: '' }), 1000);
   };
 
-  const getAvatar = (avatar) => {
-    if (!avatar) return null;
-    return avatar.startsWith('http') ? avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${avatar}`;
-  };
+  // Use centralized getMediaUrl instead of local getAvatar
+
 
   return (
     <DashboardLayout pageTitle="Messages" fullWidth>
@@ -693,7 +695,7 @@ function MessagesContent() {
                   <div className={`${isMobileView ? 'w-9 h-9' : 'w-10 h-10'} rounded-xl overflow-hidden border-2 border-background shadow-sm shrink-0`} onClick={(e) => { e.stopPropagation(); setViewingProfile(u); }}>
                     {u.avatar ? (
                       <img 
-                        src={getAvatar(u.avatar)} 
+                        src={getMediaUrl(u.avatar)} 
                         className="w-full h-full object-cover" 
                         onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                       />
@@ -735,7 +737,7 @@ function MessagesContent() {
                   <div className={`${isMobileView ? 'w-8 h-8' : 'w-10 h-10'} rounded-xl overflow-hidden border-2 border-background shadow-sm cursor-pointer shrink-0`} onClick={() => setViewingProfile(selectedUser)}>
                     {selectedUser.avatar ? (
                       <img 
-                        src={getAvatar(selectedUser.avatar)} 
+                        src={getMediaUrl(selectedUser.avatar)} 
                         className="w-full h-full object-cover" 
                         onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                       />

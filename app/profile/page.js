@@ -24,6 +24,7 @@ import {
 import DashboardLayout from '../../components/DashboardLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
+import { getMediaUrl } from '../../lib/url';
 
 export default function ProfilePage() {
   const { user, loading, updateUser, updateProfile } = useAuth();
@@ -111,10 +112,8 @@ export default function ProfilePage() {
 
   if (loading || !user) return null;
 
-  const getAvatar = (avatar) => {
-    if (!avatar) return null;
-    return avatar.startsWith('http') ? avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${avatar}`;
-  };
+  // Use centralized getMediaUrl instead
+
 
   return (
     <DashboardLayout pageTitle="Profile Management">
@@ -129,7 +128,7 @@ export default function ProfilePage() {
             <div className="relative group -mt-12">
               <div className="w-32 h-32 rounded-[2.5rem] bg-card border-[6px] border-background shadow-2xl overflow-hidden ring-1 ring-border/50">
                 {user.avatar ? (
-                  <img src={getAvatar(user.avatar)} className="w-full h-full rounded-[2rem] object-cover" alt="Profile" />
+                  <img src={getMediaUrl(user.avatar)} className="w-full h-full rounded-[2rem] object-cover" alt="Profile" />
                 ) : (
                   <div className="w-full h-full rounded-[2rem] bg-muted flex items-center justify-center text-primary text-4xl font-black uppercase">
                     {(user.name || user.email).charAt(0)}

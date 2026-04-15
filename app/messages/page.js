@@ -125,20 +125,22 @@ const MessageBubble = memo(({
           )}
 
           {msg.type === 'IMAGE' && (
-            <img 
-              src={getMediaUrl(msg.fileUrl)} 
-              onClick={() => onZoomMedia(msg)} 
-              className="max-w-full rounded-xl mb-0.5 cursor-pointer hover:opacity-90 transition-opacity" 
-            />
+            <div className="max-w-[320px] max-h-[320px] overflow-hidden rounded-2xl mb-1 cursor-pointer hover:opacity-95 transition-all shadow-sm">
+              <img 
+                src={getMediaUrl(msg.fileUrl)} 
+                onClick={() => onZoomMedia(msg)} 
+                className="w-full h-full object-cover" 
+              />
+            </div>
           )}
           {msg.type === 'VIDEO' && (
-            <div className="relative cursor-pointer" onClick={() => onZoomMedia(msg)}>
-              <video className="max-w-full rounded-xl mb-0.5 shadow-inner bg-black/20 pointer-events-none">
+            <div className="relative max-w-[320px] max-h-[320px] overflow-hidden rounded-2xl mb-1 cursor-pointer group shadow-sm bg-black/10" onClick={() => onZoomMedia(msg)}>
+              <video className="w-full h-full object-cover pointer-events-none">
                 <source src={getMediaUrl(msg.fileUrl)} />
               </video>
-              <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-xl hover:bg-black/20 transition-all">
-                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
-                  <Play size={20} className="text-white fill-white ml-0.5" />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-all">
+                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+                  <Play size={24} className="text-white fill-white ml-0.5" />
                 </div>
               </div>
             </div>

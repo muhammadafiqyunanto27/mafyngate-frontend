@@ -53,7 +53,9 @@ const MessageBubble = memo(({
   onEdit, 
   onCopy, 
   onDelete, 
-  textareaRef 
+  textareaRef,
+  swipeOffset,
+  setSwipeOffset
 }) => {
   // getMediaUrl replaces the local getAvatar logic
 
@@ -865,6 +867,8 @@ function MessagesContent() {
                          onCopy={handleCopyMessage}
                          onDelete={handleDeleteSingleMessage}
                          textareaRef={textareaRef}
+                         swipeOffset={swipeOffset}
+                         setSwipeOffset={setSwipeOffset}
                        />
                     </div>
                   ))}

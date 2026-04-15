@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import api from '../lib/api';
+import { API_URL } from '../lib/config';
 
 const SocketContext = createContext();
 
@@ -55,9 +56,9 @@ export const SocketProvider = ({ children }) => {
     if (user) {
       const accessToken = localStorage.getItem('accessToken');
       
-      const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
+      const newSocket = io(API_URL, {
         auth: { token: accessToken },
-        transports: ['polling', 'websocket'], // Start with polling for better compatibility
+        transports: ['websocket', 'polling'], // Prioritize websocket for stability on Railway/Vercel
         reconnection: true,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 1000,

@@ -38,7 +38,8 @@ import {
   Mic,
   Square,
   Check,
-  FileText
+  FileText,
+  Play
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
@@ -1083,7 +1084,7 @@ function MessagesContent() {
                     <div className="w-20 h-20 rounded-[1.5rem] border-4 border-background overflow-hidden bg-muted shadow-lg">
                       {viewingProfile.avatar ? (
                         <img 
-                          src={getAvatar(viewingProfile.avatar)} 
+                          src={getMediaUrl(viewingProfile.avatar)} 
                           className="w-full h-full object-cover" 
                           onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                         />

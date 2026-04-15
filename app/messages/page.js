@@ -125,17 +125,15 @@ const MessageBubble = memo(({
           )}
 
           {msg.type === 'IMAGE' && (
-            <div className="max-w-[320px] max-h-[320px] overflow-hidden rounded-2xl mb-1 cursor-pointer hover:opacity-95 transition-all shadow-sm">
-              <img 
-                src={getMediaUrl(msg.fileUrl)} 
-                onClick={() => onZoomMedia(msg)} 
-                className="w-full h-full object-cover" 
-              />
-            </div>
+            <img 
+              src={getMediaUrl(msg.fileUrl)} 
+              onClick={() => onZoomMedia(msg)} 
+              className="max-w-full max-h-[320px] rounded-2xl mb-1 cursor-pointer hover:opacity-90 transition-all object-cover" 
+            />
           )}
           {msg.type === 'VIDEO' && (
-            <div className="relative max-w-[320px] max-h-[320px] overflow-hidden rounded-2xl mb-1 cursor-pointer group shadow-sm bg-black/10" onClick={() => onZoomMedia(msg)}>
-              <video className="w-full h-full object-cover pointer-events-none">
+            <div className="relative inline-block max-w-full rounded-2xl overflow-hidden mb-1 cursor-pointer group" onClick={() => onZoomMedia(msg)}>
+              <video className="max-w-full max-h-[320px] object-cover pointer-events-none">
                 <source src={getMediaUrl(msg.fileUrl)} />
               </video>
               <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-all">

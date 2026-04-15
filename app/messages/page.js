@@ -157,7 +157,7 @@ const MessageBubble = memo(({
                  <FileIcon size={20} className="text-current" />
               </div>
               <div className="min-w-0 flex-1">
-                 <p className="font-bold text-sm truncate">Attachment</p>
+                 <p className="font-bold text-sm truncate">{msg.fileName || 'Attachment'}</p>
                  <p className="text-[10px] opacity-70 mt-0.5">{msg.fileSize ? (msg.fileSize / 1024 / 1024).toFixed(2) + ' MB' : 'Document'}</p>
               </div>
               <Download size={16} className="shrink-0 opacity-70" />
@@ -618,7 +618,7 @@ function MessagesContent() {
 
   const handleSendMessage = async (e) => {
     e?.preventDefault();
-    if (isSending || (!newMessage.trim() && !selectedFile) || !selectedUser || !socket) return;
+    if (isSending || (!newMessage.trim() && !selectedFile && !pendingMedia) || !selectedUser || !socket) return;
     setIsSending(true);
     
     let fileData = null;

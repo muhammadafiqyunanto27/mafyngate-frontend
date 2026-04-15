@@ -55,7 +55,8 @@ const MessageBubble = memo(({
   onDelete, 
   textareaRef,
   swipeOffset,
-  setSwipeOffset
+  setSwipeOffset,
+  onZoomMedia
 }) => {
   // getMediaUrl replaces the local getAvatar logic
 
@@ -76,9 +77,10 @@ const MessageBubble = memo(({
       className={`flex group relative px-4 md:px-0 ${isMine ? 'justify-end' : 'justify-start'}`}
     >
       <motion.div 
-        drag={isMobileView ? "x" : false}
+        drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.7}
+        onDragStart={() => cancelPress()}
         onDrag={(e, info) => {
           if (Math.abs(info.offset.x) > 10) {
             setSwipeOffset(prev => ({ ...prev, [msg.id]: info.offset.x }));
@@ -122,13 +124,23 @@ const MessageBubble = memo(({
           )}
 
           {msg.type === 'IMAGE' && (
-            <img src={getMediaUrl(msg.fileUrl)} onClick={() => window.open(getMediaUrl(msg.fileUrl))} className="max-w-full rounded-xl mb-1.5 cursor-pointer hover:opacity-90 transition-opacity" />
+            <img 
+              src={getMediaUrl(msg.fileUrl)} 
+              onClick={() => onZoomMedia(msg)} 
+              className="max-w-full rounded-xl mb-0.5 cursor-pointer hover:opacity-90 transition-opacity" 
+            />
           )}
           {msg.type === 'VIDEO' && (
-            <video controls className="max-w-full rounded-xl mb-1.5 shadow-inner bg-black/20">
-              <source src={getMediaUrl(msg.fileUrl)} />
-              Your browser does not support the video tag.
-            </video>
+            <div className="relative cursor-pointer" onClick={() => onZoomMedia(msg)}>
+              <video className="max-w-full rounded-xl mb-0.5 shadow-inner bg-black/20 pointer-events-none">
+                <source src={getMediaUrl(msg.fileUrl)} />
+              </video>
+              <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-xl hover:bg-black/20 transition-all">
+                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                  <Play size={20} className="text-white fill-white ml-0.5" />
+                </div>
+              </div>
+            </div>
           )}
           {msg.type === 'VOICE' && (
             <audio controls className={`max-w-full rounded-full mb-1 min-w-[200px] opacity-70 hover:opacity-100 transition-opacity scale-[0.95] origin-left`} style={{ height: '32px' }}>
@@ -170,20 +182,28 @@ const MessageBubble = memo(({
         </div>
         
         {/* Swipe Handle Indicator */}
-        {isMobileView && (
-          <motion.div 
-            style={{ 
-              opacity: swipeOffset[msg.id] ? Math.min(Math.abs(swipeOffset[msg.id]) / 50, 1) : 0,
-              x: isMine ? (swipeOffset[msg.id] || 0) : (swipeOffset[msg.id] || 0),
-              scale: swipeOffset[msg.id] ? Math.min(Math.abs(swipeOffset[msg.id]) / 60, 1.2) : 0,
-              right: isMine ? 'auto' : -30,
-              left: isMine ? -30 : 'auto',
-            }}
-            className="absolute top-1/2 -translate-y-1/2 text-primary"
-          >
-            <Reply size={20} />
-          </motion.div>
-        )}
+        <AnimatePresence>
+          {swipeOffset[msg.id] && (
+            <motion.div 
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ 
+                scale: Math.min(Math.abs(swipeOffset[msg.id]) / 40, 1.2),
+                opacity: Math.min(Math.abs(swipeOffset[msg.id]) / 30, 1),
+                x: isMine ? (swipeOffset[msg.id] < 0 ? swipeOffset[msg.id] : 0) : (swipeOffset[msg.id] > 0 ? swipeOffset[msg.id] : 0)
+              }}
+              exit={{ scale: 0, opacity: 0 }}
+              style={{ 
+                right: isMine ? 'auto' : -40,
+                left: isMine ? -40 : 'auto',
+              }}
+              className="absolute top-1/2 -translate-y-1/2 text-primary z-0"
+            >
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Reply size={16} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </motion.div>
   );
@@ -233,6 +253,10 @@ function MessagesContent() {
   const menuRef = useRef(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(null); // stores message for whom menu is open
   const [swipeOffset, setSwipeOffset] = useState({}); // {msgId: xValue}
+  
+  const [lightboxMedia, setLightboxMedia] = useState(null);
+  const [pendingMedia, setPendingMedia] = useState(null);
+  const [pendingPreviewUrl, setPendingPreviewUrl] = useState(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -594,13 +618,16 @@ function MessagesContent() {
     setIsSending(true);
     
     let fileData = null;
-    if (selectedFile) {
+    let fileToUpload = pendingMedia || selectedFile;
+    if (fileToUpload) {
       setUploading(true);
       try {
         const formData = new FormData();
-        formData.append('file', selectedFile);
+        formData.append('file', fileToUpload);
         const res = await api.post('/user/chat/upload', formData);
         fileData = res.data.data;
+        setPendingMedia(null);
+        setPendingPreviewUrl(null);
         setSelectedFile(null);
       } catch (err) {
         setMessage({ type: 'error', text: 'Upload failed' });
@@ -646,7 +673,9 @@ function MessagesContent() {
         setTimeout(() => setMessage({ type: '', text: '' }), 1000);
         return;
       }
-      setSelectedFile(file);
+      setPendingMedia(file);
+      const url = URL.createObjectURL(file);
+      setPendingPreviewUrl(url);
     }
   };
 
@@ -852,29 +881,73 @@ function MessagesContent() {
                 )}
               </AnimatePresence>
 
-              <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 space-y-2 custom-scrollbar bg-card/5">
-                {messages
-                  .filter(m => !innerSearchQuery || (m.content && m.content.toLowerCase().includes(innerSearchQuery.toLowerCase())))
-                  .map((msg, i) => (
-                    <div id={`msg-${msg.id}`} key={msg.id || i}>
-                        <MessageBubble 
-                         msg={msg} 
-                         isMine={msg.senderId === user?.id} 
-                         isMobileView={isMobileView} 
-                         onMobileMenu={setMobileMenuOpen}
-                         onReply={setReplyingTo}
-                         onEdit={(m) => { setEditingMessage(m); setNewMessage(m.content); }}
-                         onCopy={handleCopyMessage}
-                         onDelete={handleDeleteSingleMessage}
-                         textareaRef={textareaRef}
-                         swipeOffset={swipeOffset}
-                         setSwipeOffset={setSwipeOffset}
-                       />
-                    </div>
-                  ))}
+              <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar space-y-4 md:space-y-6" id="chat-scroller">
+                {messages.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center opacity-20 pointer-events-none">
+                    <MessageSquare className="w-16 h-16 mb-4" />
+                    <p className="text-sm font-black uppercase tracking-[0.2em]">End-to-End Encrypted</p>
+                  </div>
+                ) : (
+                  messages.map((msg) => (
+                    <MessageBubble 
+                      key={msg.id} 
+                      msg={msg} 
+                      isMine={msg.senderId === user?.id} 
+                      isMobileView={isMobileView}
+                      onMobileMenu={setMobileMenuOpen}
+                      onReply={setReplyingTo}
+                      onEdit={(m) => { setEditingMessage(m); setNewMessage(m.content); }}
+                      onCopy={handleCopyMessage}
+                      onDelete={handleDeleteSingleMessage}
+                      textareaRef={textareaRef}
+                      swipeOffset={swipeOffset}
+                      setSwipeOffset={setSwipeOffset}
+                      onZoomMedia={setLightboxMedia}
+                    />
+                  ))
+                )}
                 <div ref={messagesEndRef} />
               </div>
-              <div className="p-4 md:px-10 md:pb-8 relative">
+
+              {/* Input Area */}
+              <div className="p-3 md:p-6 bg-background/50 backdrop-blur-3xl z-40 relative">
+                {/* Pending Media Preview */}
+                <AnimatePresence>
+                  {pendingMedia && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20, scale: 0.9 }} 
+                      animate={{ opacity: 1, y: 0, scale: 1 }} 
+                      exit={{ opacity: 0, y: 20, scale: 0.9 }} 
+                      className="absolute bottom-[calc(100%+10px)] left-4 right-4 bg-card/90 backdrop-blur-2xl border border-primary/20 rounded-[2rem] p-4 shadow-2xl z-50 overflow-hidden"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="w-20 h-20 rounded-2xl bg-muted overflow-hidden border border-border shrink-0">
+                          {pendingMedia.type.startsWith('image/') ? (
+                            <img src={pendingPreviewUrl} className="w-full h-full object-cover" />
+                          ) : pendingMedia.type.startsWith('video/') ? (
+                            <video src={pendingPreviewUrl} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
+                              <FileIcon size={24} />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0 pt-1">
+                          <p className="font-black text-xs uppercase tracking-tight truncate">{pendingMedia.name}</p>
+                          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">
+                            {(pendingMedia.size / 1024 / 1024).toFixed(2)} MB • Ready to send
+                          </p>
+                        </div>
+                        <button 
+                          onClick={() => { setPendingMedia(null); setPendingPreviewUrl(null); }}
+                          className="p-2 bg-rose-500/10 text-rose-500 rounded-full hover:bg-rose-500/20 transition-all"
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <AnimatePresence mode="wait">
                   {replyingTo && (
                     <motion.div 
@@ -1109,6 +1182,54 @@ function MessagesContent() {
                 </div>
                 <button onClick={() => setMobileMenuOpen(null)} className="w-full mt-4 text-xs font-black uppercase tracking-widest text-muted-foreground/50 hover:text-muted-foreground transition-all py-2">Cancel</button>
              </motion.div>
+          </div>
+        )}
+        {/* Lightbox / Zoomed Media */}
+        {lightboxMedia && (
+          <div className="fixed inset-0 z-[600] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setLightboxMedia(null)} 
+              className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl"
+            />
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }} 
+              animate={{ scale: 1, opacity: 1 }} 
+              exit={{ scale: 0.8, opacity: 0 }} 
+              className="relative max-w-5xl max-h-[90vh] w-full flex flex-col items-center justify-center"
+            >
+              <button 
+                onClick={() => setLightboxMedia(null)} 
+                className="absolute -top-12 right-0 p-2 text-white/50 hover:text-white transition-all flex items-center gap-2 group"
+              >
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100">Close</span>
+                <X size={24} />
+              </button>
+              
+              {lightboxMedia.type === 'IMAGE' ? (
+                <img 
+                  src={getMediaUrl(lightboxMedia.fileUrl)} 
+                  className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" 
+                />
+              ) : lightboxMedia.type === 'VIDEO' ? (
+                <video 
+                  controls 
+                  autoPlay 
+                  className="max-w-full max-h-full rounded-2xl shadow-2xl bg-black"
+                >
+                  <source src={getMediaUrl(lightboxMedia.fileUrl)} />
+                </video>
+              ) : null}
+              
+              <div className="mt-4 p-4 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 text-center max-w-sm">
+                 <p className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Sent by {lightboxMedia.senderId === user?.id ? 'You' : 'Friend'}</p>
+                 <p className="text-white/40 text-[9px] font-bold mt-1">
+                   {new Date(lightboxMedia.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                 </p>
+              </div>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>

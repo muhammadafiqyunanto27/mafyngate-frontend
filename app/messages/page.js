@@ -157,7 +157,7 @@ const MessageBubble = memo(({
                  <FileIcon size={20} className="text-current" />
               </div>
               <div className="min-w-0 flex-1">
-                 <p className="font-bold text-sm truncate">{msg.fileName || 'Attachment'}</p>
+                 <p className="font-bold text-sm truncate">Attachment</p>
                  <p className="text-[10px] opacity-70 mt-0.5">{msg.fileSize ? (msg.fileSize / 1024 / 1024).toFixed(2) + ' MB' : 'Document'}</p>
               </div>
               <Download size={16} className="shrink-0 opacity-70" />
@@ -166,7 +166,10 @@ const MessageBubble = memo(({
 
           {msg.content && msg.type !== 'VOICE' && (
              <div className="mb-0.5 leading-relaxed break-all md:break-words whitespace-pre-wrap">
-                {msg.content}
+                {(msg.type === 'IMAGE' || msg.type === 'VIDEO') 
+                  ? (msg.content !== '[Photo]' && msg.content !== '[Video]' && msg.content !== msg.fileName ? msg.content : null)
+                  : msg.content
+                }
              </div>
           )}
 
@@ -912,41 +915,74 @@ function MessagesContent() {
 
               {/* Input Area */}
               <div className="p-3 md:p-6 bg-background/50 backdrop-blur-3xl z-40 relative">
-                {/* Pending Media Preview */}
+                {/* WhatsApp Style Full-screen Media Preview */}
                 <AnimatePresence>
                   {pendingMedia && (
                     <motion.div 
-                      initial={{ opacity: 0, y: 20, scale: 0.9 }} 
-                      animate={{ opacity: 1, y: 0, scale: 1 }} 
-                      exit={{ opacity: 0, y: 20, scale: 0.9 }} 
-                      className="absolute bottom-[calc(100%+10px)] left-4 right-4 bg-card/90 backdrop-blur-2xl border border-primary/20 rounded-[2rem] p-4 shadow-2xl z-50 overflow-hidden"
+                      initial={{ opacity: 0 }} 
+                      animate={{ opacity: 1 }} 
+                      exit={{ opacity: 0 }} 
+                      className="fixed inset-0 z-[500] bg-slate-950 flex flex-col"
                     >
-                      <div className="flex items-start gap-4">
-                        <div className="w-20 h-20 rounded-2xl bg-muted overflow-hidden border border-border shrink-0">
-                          {pendingMedia.type.startsWith('image/') ? (
-                            <img src={pendingPreviewUrl} className="w-full h-full object-cover" />
-                          ) : pendingMedia.type.startsWith('video/') ? (
-                            <video src={pendingPreviewUrl} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
-                              <FileIcon size={24} />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0 pt-1">
-                          <p className="font-black text-xs uppercase tracking-tight truncate">
-                            {pendingMedia.type.startsWith('image/') ? 'Photo' : pendingMedia.type.startsWith('video/') ? 'Video' : pendingMedia.name}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">
-                            {(pendingMedia.size / 1024 / 1024).toFixed(2)} MB • Ready to send
-                          </p>
-                        </div>
+                      {/* Close Header */}
+                      <div className="p-4 flex items-center justify-between z-10">
                         <button 
                           onClick={() => { setPendingMedia(null); setPendingPreviewUrl(null); }}
-                          className="p-2 bg-rose-500/10 text-rose-500 rounded-full hover:bg-rose-500/20 transition-all"
+                          className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all"
                         >
-                          <X size={18} />
+                          <ArrowLeft size={24} />
                         </button>
+                        <div className="flex flex-col items-end">
+                          <p className="text-white font-black text-xs uppercase tracking-widest">Preview</p>
+                          <p className="text-white/40 text-[10px] uppercase font-bold">{(pendingMedia.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                      </div>
+
+                      {/* Large Media Preview */}
+                      <div className="flex-1 flex items-center justify-center p-4">
+                        {pendingMedia.type.startsWith('image/') ? (
+                          <motion.img 
+                            layoutId="media-preview"
+                            src={pendingPreviewUrl} 
+                            className="max-w-full max-h-[70vh] object-contain rounded-2xl shadow-2xl" 
+                          />
+                        ) : pendingMedia.type.startsWith('video/') ? (
+                          <video 
+                            src={pendingPreviewUrl} 
+                            controls 
+                            className="max-w-full max-h-[70vh] rounded-2xl shadow-2xl bg-black" 
+                          />
+                        ) : (
+                          <div className="p-12 bg-white/5 rounded-[3rem] border border-white/10 flex flex-col items-center gap-4">
+                            <FileIcon size={60} className="text-primary" />
+                            <p className="text-white font-black text-sm uppercase tracking-widest">{pendingMedia.name}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Caption & Send Area (WhatsApp Style) */}
+                      <div className="p-6 bg-gradient-to-t from-black/80 to-transparent">
+                          <div className="max-w-2xl mx-auto flex items-end gap-4">
+                             <div className="flex-1 bg-white/10 backdrop-blur-3xl border border-white/20 rounded-[2rem] p-4 flex items-center gap-4 group focus-within:border-primary/50 transition-all">
+                                <textarea 
+                                  placeholder="Add a caption..." 
+                                  value={newMessage}
+                                  onChange={(e) => {
+                                    setNewMessage(e.target.value);
+                                    e.target.style.height = 'auto';
+                                    e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                                  }}
+                                  className="flex-1 bg-transparent border-none outline-none text-white text-sm font-medium resize-none min-h-[24px] max-h-[120px]"
+                                />
+                             </div>
+                             <button 
+                               onClick={handleSendMessage}
+                               disabled={isSending}
+                               className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all shrink-0"
+                             >
+                               {isSending ? <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={24} className="ml-1" />}
+                             </button>
+                          </div>
                       </div>
                     </motion.div>
                   )}
@@ -1159,53 +1195,62 @@ function MessagesContent() {
           </div>
         )}
         {/* Lightbox / Zoomed Media */}
-        {lightboxMedia && (
-          <div className="fixed inset-0 z-[600] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              onClick={() => setLightboxMedia(null)} 
-              className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl"
-            />
-            <motion.div 
-              initial={{ scale: 0.8, opacity: 0 }} 
-              animate={{ scale: 1, opacity: 1 }} 
-              exit={{ scale: 0.8, opacity: 0 }} 
-              className="relative max-w-5xl max-h-[90vh] w-full flex flex-col items-center justify-center"
-            >
-              <button 
+        <AnimatePresence>
+          {lightboxMedia && (
+            <div className="fixed inset-0 z-[600] flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }} 
                 onClick={() => setLightboxMedia(null)} 
-                className="absolute -top-12 right-0 p-2 text-white/50 hover:text-white transition-all flex items-center gap-2 group"
+                className="absolute inset-0 bg-slate-950/98 backdrop-blur-xl"
+              />
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0, y: 20 }} 
+                animate={{ scale: 1, opacity: 1, y: 0 }} 
+                exit={{ scale: 0.95, opacity: 0, y: 20 }} 
+                className="relative max-w-5xl max-h-[85vh] w-full flex flex-col items-center justify-center pointer-events-none"
               >
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100">Close</span>
-                <X size={24} />
-              </button>
-              
-              {lightboxMedia.type === 'IMAGE' ? (
-                <img 
-                  src={getMediaUrl(lightboxMedia.fileUrl)} 
-                  className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" 
-                />
-              ) : lightboxMedia.type === 'VIDEO' ? (
-                <video 
-                  controls 
-                  autoPlay 
-                  className="max-w-full max-h-full rounded-2xl shadow-2xl bg-black"
+                <div className="absolute top-0 right-0 p-4 pointer-events-auto">
+                   <button 
+                    onClick={() => setLightboxMedia(null)} 
+                    className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+                
+                <div className="w-full h-full flex items-center justify-center pointer-events-auto">
+                  {lightboxMedia.type === 'IMAGE' ? (
+                    <img 
+                      src={getMediaUrl(lightboxMedia.fileUrl)} 
+                      className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl" 
+                    />
+                  ) : lightboxMedia.type === 'VIDEO' ? (
+                    <video 
+                      controls 
+                      autoPlay 
+                      className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl bg-black"
+                    >
+                      <source src={getMediaUrl(lightboxMedia.fileUrl)} />
+                    </video>
+                  ) : null}
+                </div>
+                
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-6 p-4 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 text-center max-w-sm pointer-events-auto"
                 >
-                  <source src={getMediaUrl(lightboxMedia.fileUrl)} />
-                </video>
-              ) : null}
-              
-              <div className="mt-4 p-4 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 text-center max-w-sm">
-                 <p className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Sent by {lightboxMedia.senderId === user?.id ? 'You' : 'Friend'}</p>
-                 <p className="text-white/40 text-[9px] font-bold mt-1">
-                   {new Date(lightboxMedia.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
-                 </p>
-              </div>
-            </motion.div>
-          </div>
-        )}
+                   <p className="text-white text-[10px] font-black uppercase tracking-[0.2em] mb-1">Sent by {lightboxMedia.senderId === user?.id ? 'You' : 'Friend'}</p>
+                   <p className="text-white/40 text-[9px] font-bold uppercase tracking-widest">
+                     {new Date(lightboxMedia.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                   </p>
+                </motion.div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </AnimatePresence>
     </DashboardLayout>
   );

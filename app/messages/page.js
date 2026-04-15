@@ -63,7 +63,7 @@ const MessageBubble = memo(({
     pressTimer = setTimeout(() => {
       if (navigator.vibrate) navigator.vibrate(50);
       onMobileMenu(msg);
-    }, 500);
+    }, 800);
   };
   const cancelPress = () => clearTimeout(pressTimer);
 
@@ -73,7 +73,24 @@ const MessageBubble = memo(({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       className={`flex group relative px-4 md:px-0 ${isMine ? 'justify-end' : 'justify-start'}`}
     >
-      <div 
+      <motion.div 
+        drag={isMobileView ? "x" : false}
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.7}
+        onDrag={(e, info) => {
+          if (Math.abs(info.offset.x) > 10) {
+            setSwipeOffset(prev => ({ ...prev, [msg.id]: info.offset.x }));
+          }
+        }}
+        onDragEnd={(e, info) => {
+          // If swiped enough, trigger reply
+          if (Math.abs(info.offset.x) > 60) {
+            if (navigator.vibrate) navigator.vibrate(20);
+            onReply(msg);
+            textareaRef.current?.focus();
+          }
+          setSwipeOffset(prev => ({ ...prev, [msg.id]: 0 }));
+        }}
         className={`flex items-start gap-2 max-w-[90%] sm:max-w-[85%] md:max-w-[450px] ${isMine ? 'flex-row' : 'flex-row-reverse'}`}
         onTouchStart={isMobileView ? startPress : undefined}
         onTouchEnd={isMobileView ? cancelPress : undefined}
@@ -149,7 +166,23 @@ const MessageBubble = memo(({
             )}
           </div>
         </div>
-      </div>
+        
+        {/* Swipe Handle Indicator */}
+        {isMobileView && (
+          <motion.div 
+            style={{ 
+              opacity: swipeOffset[msg.id] ? Math.min(Math.abs(swipeOffset[msg.id]) / 50, 1) : 0,
+              x: isMine ? (swipeOffset[msg.id] || 0) : (swipeOffset[msg.id] || 0),
+              scale: swipeOffset[msg.id] ? Math.min(Math.abs(swipeOffset[msg.id]) / 60, 1.2) : 0,
+              right: isMine ? 'auto' : -30,
+              left: isMine ? -30 : 'auto',
+            }}
+            className="absolute top-1/2 -translate-y-1/2 text-primary"
+          >
+            <Reply size={20} />
+          </motion.div>
+        )}
+      </motion.div>
     </motion.div>
   );
 });
@@ -837,50 +870,73 @@ function MessagesContent() {
                   ))}
                 <div ref={messagesEndRef} />
               </div>
-              <div className="p-4 md:px-10 md:pb-8">
-                {replyingTo && (
-                  <div className="flex items-center justify-between px-6 py-3 bg-muted border-x border-t border-border rounded-t-[2rem] mb-[-1px] animate-in fade-in slide-in-from-bottom-2 selection:bg-primary/20">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-1 h-8 rounded-full bg-primary" />
-                      <div className="min-w-0">
-                        <p className="text-[9px] font-black text-primary uppercase tracking-widest leading-none mb-1">Replying to {replyingTo.sender?.name || 'User'}</p>
-                        <p className="text-xs text-muted-foreground font-medium truncate italic">{replyingTo.type === 'IMAGE' ? '[Image]' : replyingTo.type === 'VIDEO' ? '[Video]' : replyingTo.type === 'VOICE' ? '[Voice Note]' : replyingTo.type === 'FILE' ? '[Document]' : replyingTo.content}</p>
+              <div className="p-4 md:px-10 md:pb-8 relative">
+                <AnimatePresence mode="wait">
+                  {replyingTo && (
+                    <motion.div 
+                      key="reply-bar"
+                      initial={{ height: 0, opacity: 0, y: 10 }}
+                      animate={{ height: 'auto', opacity: 1, y: 0 }}
+                      exit={{ height: 0, opacity: 0, y: 10 }}
+                      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                      className="flex items-center justify-between px-6 py-3 bg-muted border-x border-t border-border rounded-t-[2rem] mb-[-1px] selection:bg-primary/20 overflow-hidden"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-1 h-8 rounded-full bg-primary" />
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-black text-primary uppercase tracking-widest leading-none mb-1">Replying to {replyingTo.sender?.name || 'User'}</p>
+                          <p className="text-xs text-muted-foreground font-medium truncate italic">{replyingTo.type === 'IMAGE' ? '[Image]' : replyingTo.type === 'VIDEO' ? '[Video]' : replyingTo.type === 'VOICE' ? '[Voice Note]' : replyingTo.type === 'FILE' ? '[Document]' : replyingTo.content}</p>
+                        </div>
                       </div>
-                    </div>
-                    <button onClick={() => setReplyingTo(null)} className="p-2 hover:bg-rose-500/10 text-rose-500 rounded-xl transition-all"><X size={16} /></button>
-                  </div>
-                )}
-                {selectedFile && (
-                  <div className="flex items-center justify-between px-6 py-3 bg-primary/10 rounded-t-[2rem] border-x border-t border-primary/20 mb-[-1px] animate-in fade-in slide-in-from-bottom-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                        {selectedFile.type.startsWith('image/') ? (
-                          <ImageIcon className="w-5 h-5 text-primary" />
-                        ) : selectedFile.type.startsWith('audio/') ? (
-                          <Mic className="w-5 h-5 text-primary" />
-                        ) : (
-                          <FileIcon className="w-5 h-5 text-primary" />
-                        )}
+                      <button onClick={() => setReplyingTo(null)} className="p-2 hover:bg-rose-500/10 text-rose-500 rounded-xl transition-all"><X size={16} /></button>
+                    </motion.div>
+                  )}
+                  {selectedFile && (
+                    <motion.div 
+                      key="file-bar"
+                      initial={{ height: 0, opacity: 0, y: 10 }}
+                      animate={{ height: 'auto', opacity: 1, y: 0 }}
+                      exit={{ height: 0, opacity: 0, y: 10 }}
+                      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                      className="flex items-center justify-between px-6 py-3 bg-primary/10 rounded-t-[2rem] border-x border-t border-primary/20 mb-[-1px] overflow-hidden"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                          {selectedFile.type.startsWith('image/') ? (
+                            <ImageIcon className="w-5 h-5 text-primary" />
+                          ) : selectedFile.type.startsWith('audio/') ? (
+                            <Mic className="w-5 h-5 text-primary" />
+                          ) : (
+                            <FileIcon className="w-5 h-5 text-primary" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-primary uppercase tracking-widest leading-none mb-1">
+                            {selectedFile.type.startsWith('audio/') ? 'Voice Note' : selectedFile.name}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-bold uppercase">Ready to send</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-black text-primary uppercase tracking-widest leading-none mb-1">
-                          {selectedFile.type.startsWith('audio/') ? 'Voice Note' : selectedFile.name}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground font-bold uppercase">Ready to send</p>
+                      <button onClick={() => setSelectedFile(null)} className="p-2 hover:bg-rose-500/10 text-rose-500 rounded-xl transition-all"><X size={16} /></button>
+                    </motion.div>
+                  )}
+                  {editingMessage && (
+                    <motion.div 
+                      key="edit-bar"
+                      initial={{ height: 0, opacity: 0, y: 10 }}
+                      animate={{ height: 'auto', opacity: 1, y: 0 }}
+                      exit={{ height: 0, opacity: 0, y: 10 }}
+                      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                      className="flex items-center justify-between px-6 py-2 bg-primary/5 rounded-t-2xl border-x border-t border-primary/10 mb-[-1px] overflow-hidden"
+                    >
+                      <div className="flex items-center gap-2 text-primary">
+                        <Pencil size={12} className="animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Editing Message</span>
                       </div>
-                    </div>
-                    <button onClick={() => setSelectedFile(null)} className="p-2 hover:bg-rose-500/10 text-rose-500 rounded-xl transition-all"><X size={16} /></button>
-                  </div>
-                )}
-                {editingMessage && (
-                  <div className="flex items-center justify-between px-6 py-2 bg-primary/5 rounded-t-2xl border-x border-t border-primary/10 mb-[-1px]">
-                    <div className="flex items-center gap-2 text-primary">
-                      <Pencil size={12} className="animate-pulse" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Editing Message</span>
-                    </div>
-                    <button onClick={() => { setEditingMessage(null); setNewMessage(''); }} className="text-muted-foreground hover:text-rose-500"><X size={14} /></button>
-                  </div>
-                )}
+                      <button onClick={() => { setEditingMessage(null); setNewMessage(''); }} className="text-muted-foreground hover:text-rose-500"><X size={14} /></button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <form onSubmit={handleSendMessage} className="flex items-center gap-3 md:gap-4 p-2 bg-card/40 backdrop-blur-2xl border border-border/50 rounded-[2.5rem] shadow-lg">
                   <div className="flex items-center gap-1 pl-1">
                     <input type="file" disabled={isSending} ref={fileInputRef} onChange={handleFileSelect} className="hidden" />

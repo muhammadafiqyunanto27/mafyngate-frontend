@@ -934,7 +934,9 @@ function MessagesContent() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0 pt-1">
-                          <p className="font-black text-xs uppercase tracking-tight truncate">{pendingMedia.name}</p>
+                          <p className="font-black text-xs uppercase tracking-tight truncate">
+                            {pendingMedia.type.startsWith('image/') ? 'Photo' : pendingMedia.type.startsWith('video/') ? 'Video' : pendingMedia.name}
+                          </p>
                           <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">
                             {(pendingMedia.size / 1024 / 1024).toFixed(2)} MB • Ready to send
                           </p>
@@ -967,35 +969,6 @@ function MessagesContent() {
                         </div>
                       </div>
                       <button onClick={() => setReplyingTo(null)} className="p-2 hover:bg-rose-500/10 text-rose-500 rounded-xl transition-all"><X size={16} /></button>
-                    </motion.div>
-                  )}
-                  {selectedFile && (
-                    <motion.div 
-                      key="file-bar"
-                      initial={{ height: 0, opacity: 0, y: 10 }}
-                      animate={{ height: 'auto', opacity: 1, y: 0 }}
-                      exit={{ height: 0, opacity: 0, y: 10 }}
-                      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                      className="flex items-center justify-between px-6 py-3 bg-primary/10 rounded-t-[2rem] border-x border-t border-primary/20 mb-[-1px] overflow-hidden"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                          {selectedFile.type.startsWith('image/') ? (
-                            <ImageIcon className="w-5 h-5 text-primary" />
-                          ) : selectedFile.type.startsWith('audio/') ? (
-                            <Mic className="w-5 h-5 text-primary" />
-                          ) : (
-                            <FileIcon className="w-5 h-5 text-primary" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-xs font-black text-primary uppercase tracking-widest leading-none mb-1">
-                            {selectedFile.type.startsWith('audio/') ? 'Voice Note' : selectedFile.name}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground font-bold uppercase">Ready to send</p>
-                        </div>
-                      </div>
-                      <button onClick={() => setSelectedFile(null)} className="p-2 hover:bg-rose-500/10 text-rose-500 rounded-xl transition-all"><X size={16} /></button>
                     </motion.div>
                   )}
                   {editingMessage && (

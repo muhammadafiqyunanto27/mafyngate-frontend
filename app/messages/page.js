@@ -586,7 +586,7 @@ function MessagesContent() {
         content: newMessage, 
         receiverId: selectedUser.id,
         type,
-        fileUrl: fileData?.url,
+        fileUrl: fileData?.path || fileData?.url,
         fileName: fileData?.name || selectedFile?.name,
         fileSize: fileData?.size || selectedFile?.size,
         parentId: replyingTo?.id

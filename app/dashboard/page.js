@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import api from '../../lib/api';
+import { getMediaUrl } from '../../lib/url';
 import { 
   Users, 
   Activity, 
@@ -194,7 +195,7 @@ export default function DashboardPage() {
                               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary overflow-hidden">
                                 {req.follower.avatar ? (
                                   <img 
-                                    src={req.follower.avatar.startsWith('http') ? req.follower.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${req.follower.avatar}`} 
+                                    src={getMediaUrl(req.follower.avatar)} 
                                     className="w-full h-full object-cover" 
                                     onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                                   />
@@ -254,7 +255,7 @@ export default function DashboardPage() {
                             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center font-bold text-emerald-500 border border-emerald-500/20 overflow-hidden">
                               {conn.avatar ? (
                                 <img 
-                                  src={conn.avatar.startsWith('http') ? conn.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${conn.avatar}`} 
+                                  src={getMediaUrl(conn.avatar)} 
                                   className="w-full h-full object-cover" 
                                   onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                                 />

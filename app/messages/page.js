@@ -992,13 +992,13 @@ function MessagesContent() {
                     )}
                   </div>
                   {isRecording ? (
-                     <button type="button" onClick={stopRecording} className="p-3 bg-rose-500 text-white rounded-full shadow-lg hover:rotate-90 transition-all"><Square className="w-4 h-4" /></button>
+                     <button type="button" onClick={stopRecording} className="w-11 h-11 bg-rose-500 text-white rounded-full shadow-lg hover:rotate-90 transition-all flex items-center justify-center shrink-0"><Square className="w-4 h-4" /></button>
                   ) : newMessage.trim() || selectedFile ? (
-                     <button type="submit" disabled={isSending} className={`p-3 rounded-full shadow-xl transition-all pr-4 pl-4 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-105 active:scale-95'}`}>
-                       {isSending ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-5 h-5" />}
+                     <button type="submit" disabled={isSending} className={`w-11 h-11 rounded-full shadow-xl transition-all flex items-center justify-center shrink-0 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-105 active:scale-95'}`}>
+                       {isSending ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={20} className="ml-0.5" />}
                      </button>
                   ) : (
-                     <button type="button" disabled={isSending} onMouseDown={startRecording} className={`p-3 rounded-full shadow-lg transition-all pr-4 pl-4 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-110 active:scale-90'}`}><Mic className="w-5 h-5" /></button>
+                     <button type="button" disabled={isSending} onMouseDown={startRecording} className={`w-11 h-11 rounded-full shadow-lg transition-all flex items-center justify-center shrink-0 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-110 active:scale-90'}`}><Mic size={20} /></button>
                   )}
                 </form>
               </div>
@@ -1071,9 +1071,9 @@ function MessagesContent() {
                            <button 
                              onClick={handleSendMessage}
                              disabled={isSending}
-                             className="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(var(--primary-rgb),0.4)] hover:scale-105 active:scale-95 transition-all shrink-0"
+                             className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(var(--primary-rgb),0.4)] hover:scale-105 active:scale-95 transition-all shrink-0"
                            >
-                             {isSending ? <div className="w-7 h-7 border-3 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={28} className="ml-1" />}
+                             {isSending ? <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={24} className="ml-0.5" />}
                            </button>
                         </div>
                     </div>

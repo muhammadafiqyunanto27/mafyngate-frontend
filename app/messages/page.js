@@ -958,7 +958,7 @@ function MessagesContent() {
                     <button type="button" disabled={isSending} onClick={() => fileInputRef.current?.click()} className={`p-2 rounded-full transition-all ${isSending ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-white/5 text-primary'}`}><Paperclip size={20} /></button>
                     <button type="button" disabled={isSending} onClick={() => { if(fileInputRef.current) { fileInputRef.current.accept = "image/*,video/*"; fileInputRef.current.click(); setTimeout(() => {if(fileInputRef.current) fileInputRef.current.accept = ""}, 1000)} }} className={`p-2 rounded-full transition-all hidden md:block ${isSending ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-white/5 text-primary'}`}><ImageIcon size={20} /></button>
                   </div>
-                  <div className="flex-1 relative">
+                  <div className="flex-1 relative flex items-center min-h-[40px]">
                     {isRecording ? (
                       <div className="w-full flex items-center justify-between px-4 py-2 bg-rose-500/10 border border-rose-500/20 rounded-full">
                         <div className="flex items-center gap-3 text-rose-500 font-bold animate-pulse text-[10px] uppercase tracking-widest">
@@ -971,7 +971,9 @@ function MessagesContent() {
                       <textarea 
                         ref={textareaRef} 
                         disabled={isSending}
+                        rows={1}
                         placeholder="Say something..." 
+                        style={{ height: '22px' }}
                         value={newMessage} 
                         onChange={(e) => { 
                           setNewMessage(e.target.value); 
@@ -987,7 +989,7 @@ function MessagesContent() {
                           }
                         }} 
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }} 
-                        className={`w-full px-1 py-1 bg-transparent border-none focus:outline-none transition-all font-normal text-sm min-h-[20px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar leading-[20px] ${isSending ? 'opacity-50' : ''}`} 
+                        className={`w-full px-2 py-0 bg-transparent border-none focus:outline-none transition-all font-medium text-sm max-h-[120px] resize-none overflow-y-auto custom-scrollbar leading-[22px] ${isSending ? 'opacity-50' : ''}`} 
                       />
                     )}
                   </div>

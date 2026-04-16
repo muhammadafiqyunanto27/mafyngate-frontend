@@ -987,7 +987,7 @@ function MessagesContent() {
                           }
                         }} 
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }} 
-                        className={`w-full px-2 py-1 bg-transparent border-none focus:outline-none transition-all font-medium text-sm min-h-[28px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar leading-none placeholder:leading-[28px] ${isSending ? 'opacity-50' : ''}`} 
+                        className={`w-full px-1 py-1 bg-transparent border-none focus:outline-none transition-all font-normal text-sm min-h-[20px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar leading-[20px] ${isSending ? 'opacity-50' : ''}`} 
                       />
                     )}
                   </div>

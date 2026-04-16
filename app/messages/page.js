@@ -914,7 +914,7 @@ function MessagesContent() {
               </div>
 
               {/* Input Area */}
-              <div className="p-3 md:p-6 bg-background/50 backdrop-blur-3xl z-40 relative">
+              <div className="px-3 py-1.5 md:px-6 md:py-2 bg-background/50 backdrop-blur-3xl z-40 relative">
                 <AnimatePresence mode="wait">
                   {replyingTo && (
                     <motion.div 
@@ -952,7 +952,7 @@ function MessagesContent() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-                <form onSubmit={handleSendMessage} className="flex items-center gap-1 md:gap-2 p-1.5 bg-slate-900 border border-white/5 rounded-full shadow-2xl">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-1 p-1 bg-slate-950 border border-white/5 rounded-full shadow-2xl">
                   <div className="flex items-center gap-0.5">
                     <input type="file" disabled={isSending} ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
                     <button type="button" disabled={isSending} onClick={() => fileInputRef.current?.click()} className={`p-2 rounded-full transition-all ${isSending ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-white/5 text-primary'}`}><Paperclip size={20} /></button>
@@ -987,7 +987,7 @@ function MessagesContent() {
                           }
                         }} 
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }} 
-                        className={`w-full px-2 py-1.5 bg-transparent border-none focus:outline-none transition-all font-medium text-sm min-h-[34px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar leading-relaxed ${isSending ? 'opacity-50' : ''}`} 
+                        className={`w-full px-2 py-1 bg-transparent border-none focus:outline-none transition-all font-medium text-sm min-h-[28px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar leading-none placeholder:leading-[28px] ${isSending ? 'opacity-50' : ''}`} 
                       />
                     )}
                   </div>

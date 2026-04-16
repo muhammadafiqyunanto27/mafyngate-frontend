@@ -987,7 +987,7 @@ function MessagesContent() {
                           }
                         }} 
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }} 
-                        className={`w-full px-2 py-2 bg-transparent border-none focus:outline-none transition-all font-medium text-sm min-h-[38px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar ${isSending ? 'opacity-50' : ''}`} 
+                        className={`w-full px-3 py-[10px] bg-transparent border-none focus:outline-none transition-all font-medium text-sm min-h-[40px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar leading-relaxed ${isSending ? 'opacity-50' : ''}`} 
                       />
                     )}
                   </div>
@@ -1065,7 +1065,7 @@ function MessagesContent() {
                                   e.target.style.height = 'auto';
                                   e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
                                 }}
-                                className="flex-1 bg-transparent border-none outline-none text-white text-sm font-medium resize-none min-h-[28px] max-h-[120px] custom-scrollbar"
+                                className="flex-1 bg-transparent border-none outline-none text-white text-sm font-medium resize-none min-h-[24px] py-1 max-h-[120px] custom-scrollbar leading-relaxed"
                               />
                            </div>
                            <button 

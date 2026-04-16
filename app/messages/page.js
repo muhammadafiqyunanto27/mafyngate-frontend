@@ -96,7 +96,7 @@ const MessageBubble = memo(({
           }
           setSwipeOffset(prev => ({ ...prev, [msg.id]: 0 }));
         }}
-        className={`flex items-start gap-2 max-w-[90%] sm:max-w-[85%] md:max-w-[450px] ${isMine ? 'flex-row' : 'flex-row-reverse'}`}
+        className={`flex items-start gap-2 max-w-[85%] md:max-w-[75%] lg:max-w-[65%] w-fit ${isMine ? 'flex-row' : 'flex-row-reverse'}`}
         onTouchStart={isMobileView ? startPress : undefined}
         onTouchEnd={isMobileView ? cancelPress : undefined}
         onContextMenu={e => { e.preventDefault(); onMobileMenu(msg); }}
@@ -110,7 +110,13 @@ const MessageBubble = memo(({
           </div>
         )}
 
-        <div className={`relative px-3 py-2 rounded-2xl shadow-sm text-sm transition-all border ${isMine ? 'bg-primary/20 backdrop-blur-2xl text-white border-primary/30 rounded-tr-none' : 'bg-muted/80 backdrop-blur-2xl text-foreground border-border/50 rounded-tl-none shadow-md'}`}>
+        <div className={`relative px-3 py-2 rounded-xl shadow-sm text-sm transition-all border w-fit ${isMine ? 'bg-primary/20 backdrop-blur-2xl text-white border-primary/30 rounded-tr-none' : 'bg-muted/80 backdrop-blur-2xl text-foreground border-border/50 rounded-tl-none shadow-md'}`}>
+          {/* WhatsApp Tail Implementation */}
+          {isMine ? (
+            <div className="absolute top-[-1px] right-[-8px] w-3 h-3 bg-primary/20 border-t border-r border-primary/30" style={{ clipPath: 'polygon(0 0, 0 100%, 100% 0)' }} />
+          ) : (
+            <div className="absolute top-[-1px] left-[-8px] w-3 h-3 bg-muted/80 border-t border-l border-border/50" style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 0)' }} />
+          )}
           {msg.parent && (
             <div 
               onClick={() => {
@@ -164,8 +170,9 @@ const MessageBubble = memo(({
             </a>
           )}
 
+          {/* Content with high-fidelity wrapping */}
           {msg.content && msg.type !== 'VOICE' && (
-             <div className="mb-0.5 leading-relaxed break-all md:break-words whitespace-pre-wrap">
+             <div className="mb-0.5 leading-normal whitespace-pre-wrap [overflow-wrap:anywhere] [word-break:break-word]">
                 {(msg.type === 'IMAGE' || msg.type === 'VIDEO') 
                   ? (msg.content !== '[Photo]' && msg.content !== '[Video]' && msg.content !== msg.fileName ? msg.content : null)
                   : msg.content
@@ -173,16 +180,18 @@ const MessageBubble = memo(({
              </div>
           )}
 
-          <div className={`flex items-center justify-end gap-1.5 mt-0.5 opacity-60 text-[9px] uppercase font-medium ${isMine ? 'text-white' : 'text-muted-foreground'}`}>
-            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {/* Integrated Metadata Flow */}
+          <div className={`flex items-center justify-end gap-1 mt-0.5 opacity-70 text-[10px] uppercase font-bold tracking-tight select-none float-right ml-4 mb-[-2px] ${isMine ? 'text-blue-200' : 'text-muted-foreground'}`}>
+            <span className="text-[9px] font-medium">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             {isMine && (
               msg.isRead ? (
-                <CheckCheck className="w-3.5 h-3.5 text-blue-300 drop-shadow-sm" strokeWidth={3} />
+                <CheckCheck className="w-3.5 h-3.5 text-blue-300 drop-shadow-sm" strokeWidth={3.5} />
               ) : (
-                <Check className="w-3 h-3 opacity-70" strokeWidth={3} />
+                <Check className="w-3.5 h-3.5 opacity-80" strokeWidth={3.5} />
               )
             )}
           </div>
+          <div className="clear-both" />
         </div>
         
         {/* Swipe Handle Indicator */}
@@ -952,11 +961,11 @@ function MessagesContent() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-                <form onSubmit={handleSendMessage} className="flex items-center gap-1 p-1 bg-slate-950 border border-white/5 rounded-full shadow-2xl">
-                  <div className="flex items-center gap-0.5">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-1.5 p-1.5 bg-slate-950 border border-white/5 rounded-full shadow-2xl">
+                  <div className="flex items-center gap-0.5 ml-1">
                     <input type="file" disabled={isSending} ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
-                    <button type="button" disabled={isSending} onClick={() => fileInputRef.current?.click()} className={`p-2 rounded-full transition-all ${isSending ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-white/5 text-primary'}`}><Paperclip size={20} /></button>
-                    <button type="button" disabled={isSending} onClick={() => { if(fileInputRef.current) { fileInputRef.current.accept = "image/*,video/*"; fileInputRef.current.click(); setTimeout(() => {if(fileInputRef.current) fileInputRef.current.accept = ""}, 1000)} }} className={`p-2 rounded-full transition-all hidden md:block ${isSending ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-white/5 text-primary'}`}><ImageIcon size={20} /></button>
+                    <button type="button" disabled={isSending} onClick={() => fileInputRef.current?.click()} className={`p-2 rounded-full transition-all text-primary/70 hover:text-primary ${isSending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5'}`}><Paperclip size={20} /></button>
+                    <button type="button" disabled={isSending} onClick={() => { if(fileInputRef.current) { fileInputRef.current.accept = "image/*,video/*"; fileInputRef.current.click(); setTimeout(() => {if(fileInputRef.current) fileInputRef.current.accept = ""}, 1000)} }} className={`p-2 rounded-full transition-all text-primary/70 hover:text-primary hidden md:block ${isSending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5'}`}><ImageIcon size={20} /></button>
                   </div>
                   <div className="flex-1 relative flex items-center min-h-[40px]">
                     {isRecording ? (

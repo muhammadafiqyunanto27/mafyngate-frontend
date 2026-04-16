@@ -952,11 +952,11 @@ function MessagesContent() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-                <form onSubmit={handleSendMessage} className="flex items-center gap-3 md:gap-4 p-2 bg-card/40 backdrop-blur-2xl border border-border/50 rounded-[2.5rem] shadow-lg">
-                  <div className="flex items-center gap-1 pl-1">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-1 md:gap-2 p-1.5 bg-slate-900 border border-white/5 rounded-full shadow-2xl">
+                  <div className="flex items-center gap-0.5">
                     <input type="file" disabled={isSending} ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
-                    <button type="button" disabled={isSending} onClick={() => fileInputRef.current?.click()} className={`p-2 rounded-xl transition-all ${isSending ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-muted text-primary'}`}><Paperclip size={20} /></button>
-                    <button type="button" disabled={isSending} onClick={() => { if(fileInputRef.current) { fileInputRef.current.accept = "image/*,video/*"; fileInputRef.current.click(); setTimeout(() => {if(fileInputRef.current) fileInputRef.current.accept = ""}, 1000)} }} className={`p-2 rounded-xl transition-all hidden md:block ${isSending ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-muted text-primary'}`}><ImageIcon size={20} /></button>
+                    <button type="button" disabled={isSending} onClick={() => fileInputRef.current?.click()} className={`p-2 rounded-full transition-all ${isSending ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-white/5 text-primary'}`}><Paperclip size={20} /></button>
+                    <button type="button" disabled={isSending} onClick={() => { if(fileInputRef.current) { fileInputRef.current.accept = "image/*,video/*"; fileInputRef.current.click(); setTimeout(() => {if(fileInputRef.current) fileInputRef.current.accept = ""}, 1000)} }} className={`p-2 rounded-full transition-all hidden md:block ${isSending ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-white/5 text-primary'}`}><ImageIcon size={20} /></button>
                   </div>
                   <div className="flex-1 relative">
                     {isRecording ? (
@@ -987,18 +987,18 @@ function MessagesContent() {
                           }
                         }} 
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }} 
-                        className={`w-full px-3 py-[10px] bg-transparent border-none focus:outline-none transition-all font-medium text-sm min-h-[40px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar leading-relaxed ${isSending ? 'opacity-50' : ''}`} 
+                        className={`w-full px-2 py-1.5 bg-transparent border-none focus:outline-none transition-all font-medium text-sm min-h-[34px] max-h-[120px] resize-none overflow-y-auto custom-scrollbar leading-relaxed ${isSending ? 'opacity-50' : ''}`} 
                       />
                     )}
                   </div>
                   {isRecording ? (
-                     <button type="button" onClick={stopRecording} className="w-11 h-11 bg-rose-500 text-white rounded-full shadow-lg hover:rotate-90 transition-all flex items-center justify-center shrink-0"><Square className="w-4 h-4" /></button>
+                     <button type="button" onClick={stopRecording} className="w-9 h-9 bg-rose-500 text-white rounded-full shadow-lg hover:rotate-90 transition-all flex items-center justify-center shrink-0"><Square size={14} /></button>
                   ) : newMessage.trim() || selectedFile ? (
-                     <button type="submit" disabled={isSending} className={`w-11 h-11 rounded-full shadow-xl transition-all flex items-center justify-center shrink-0 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-105 active:scale-95'}`}>
-                       {isSending ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={20} className="ml-0.5" />}
+                     <button type="submit" disabled={isSending} className={`w-9 h-9 rounded-full shadow-xl transition-all flex items-center justify-center shrink-0 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-105 active:scale-95'}`}>
+                       {isSending ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={16} className="ml-0.5" />}
                      </button>
                   ) : (
-                     <button type="button" disabled={isSending} onMouseDown={startRecording} className={`w-11 h-11 rounded-full shadow-lg transition-all flex items-center justify-center shrink-0 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-110 active:scale-90'}`}><Mic size={20} /></button>
+                     <button type="button" disabled={isSending} onMouseDown={startRecording} className={`w-9 h-9 rounded-full shadow-lg transition-all flex items-center justify-center shrink-0 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-110 active:scale-90'}`}><Mic size={18} /></button>
                   )}
                 </form>
               </div>

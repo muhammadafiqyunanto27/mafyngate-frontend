@@ -116,6 +116,16 @@ export const CallOverlay = () => {
   const getAvatar = (avatar) => getMediaUrl(avatar);
 
   const togglePip = async () => {
+    // Mobile browsers often crash or fail on native requestPictureInPicture
+    // So we use our stable Draggable Miniature instead as the primary "PIP" experience
+    const isMobile = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      console.log('[PIP] Mobile detected, using stable In-App Miniature');
+      setIsMinimized(true);
+      return;
+    }
+
     try {
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
@@ -123,7 +133,8 @@ export const CallOverlay = () => {
         await userVideo.current.requestPictureInPicture();
       }
     } catch (err) {
-      console.error('[PiP] Error:', err);
+      console.warn('[PiP] Native API failed, falling back to Miniature:', err);
+      setIsMinimized(true);
     }
   };
 

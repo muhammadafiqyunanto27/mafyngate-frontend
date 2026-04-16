@@ -41,6 +41,8 @@ export const SocketProvider = ({ children }) => {
   const callRef = React.useRef(call);
   const targetUserRef = React.useRef(targetUser);
   const socketRef = React.useRef(null);
+  const ringtoneRef = React.useRef(null);
+  const outgoingRef = React.useRef(null);
 
   // Keep refs in sync with state for use in long-lived socket listeners
   useEffect(() => { streamRef.current = stream; }, [stream]);
@@ -141,10 +143,35 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('incoming_call', ({ from, name, avatar, signal, type }) => {
         console.log('[Socket] Incoming call from:', name);
         setCall({ isReceivingCall: true, from, name, avatar, signal, type });
+
+        // Start Ringtone & Vibration
+        try {
+          if (ringtoneRef.current) {
+            ringtoneRef.current.pause();
+            ringtoneRef.current.currentTime = 0;
+          }
+          const ring = new Audio('/ringtone.mp3'); // User should add this file
+          ring.loop = true;
+          ring.play().catch(() => {
+             // Fallback if file not found or blocked
+             const fallback = new Audio('/notification.wav');
+             fallback.loop = true;
+             fallback.play().catch(() => {});
+             ringtoneRef.current = fallback;
+          });
+          ringtoneRef.current = ring;
+
+          if ('vibrate' in navigator) {
+            navigator.vibrate([500, 200, 500, 200, 500, 200, 500]);
+          }
+        } catch (e) {}
       });
 
       newSocket.on('call_accepted', (signal) => {
         setCallAccepted(true);
+        if (ringtoneRef.current) ringtoneRef.current.pause();
+        if (outgoingRef.current) outgoingRef.current.pause();
+        if ('vibrate' in navigator) navigator.vibrate(0);
         if (connectionRef.current) {
           connectionRef.current.signal(signal);
         }
@@ -232,7 +259,18 @@ export const SocketProvider = ({ children }) => {
     } catch (err) {}
   };
 
-  // --- Call Methods ---
+  // Handle auto-answer from deep-links (Push Notifications)
+  useEffect(() => {
+    if (call.isReceivingCall && !callAccepted && !stream) {
+      if (typeof window !== 'undefined' && window.location.search.includes('answerCall=true')) {
+        console.log('[Socket] Deep-link answer detected. Answering call...');
+        answerCall();
+        // Clear param to avoid re-triggering
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, [call.isReceivingCall, callAccepted, stream]);
+
   const stopStream = () => {
     if (stream) {
       stream.getTracks().forEach(track => {
@@ -255,6 +293,11 @@ export const SocketProvider = ({ children }) => {
     
     // Check if there was actually an active call or calling process
     const wasActive = isCalling || callAccepted || callRef.current.isReceivingCall;
+
+    // 0. Stop all sounds
+    if (ringtoneRef.current) ringtoneRef.current.pause();
+    if (outgoingRef.current) outgoingRef.current.pause();
+    if ('vibrate' in navigator) navigator.vibrate(0);
 
     // 1. Reset states IMMEDIATELY to stop UI loops
     setIsCalling(false);
@@ -431,6 +474,15 @@ export const SocketProvider = ({ children }) => {
       });
 
       connectionRef.current = peer;
+
+      // Start Outgoing sound
+      try {
+        const out = new Audio('/outgoing.mp3'); // User should add this file
+        out.loop = true;
+        out.play().catch(() => {});
+        outgoingRef.current = out;
+      } catch (e) {}
+
     } catch (err) {
       console.error('[Media] Fatal error getting media:', err);
       setIsCalling(false);

@@ -36,19 +36,26 @@ self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
   const urlToOpen = event.notification.data.url;
+  const action = event.action;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      // Logic for Answer action
+      let targetUrl = urlToOpen;
+      if (action === 'answer') {
+        targetUrl = '/messages?answerCall=true';
+      }
+
       // If a window is already open with the URL, focus it
       for (let i = 0; i < clientList.length; i++) {
         let client = clientList[i];
-        if (client.url.includes(urlToOpen) && 'focus' in client) {
+        if (client.url.includes(targetUrl) && 'focus' in client) {
           return client.focus();
         }
       }
       // Otherwise, open a new window
       if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
+        return clients.openWindow(targetUrl);
       }
     })
   );

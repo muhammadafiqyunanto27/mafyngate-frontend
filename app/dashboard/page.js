@@ -72,6 +72,14 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       fetchStats();
+      // Prompt for notifications on mobile/desktop to ensure background calls work
+      if (typeof window !== 'undefined' && window.requestMafynGateNotification) {
+        if (Notification.permission === 'default') {
+          setTimeout(() => {
+            window.requestMafynGateNotification();
+          }, 3000); // 3-second delay to not overwhelm the user immediately
+        }
+      }
     }
   }, [user, fetchStats]);
 

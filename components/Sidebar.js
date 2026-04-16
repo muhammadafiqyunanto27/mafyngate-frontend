@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getMediaUrl } from '../lib/url';
 import { useAuth } from '../context/AuthContext';
 import {
   ShieldCheck,
@@ -10,6 +11,7 @@ import {
   Calculator,
   LogOut,
   ChevronRight,
+  ChevronLeft,
   Settings,
   Bell
 } from 'lucide-react';
@@ -197,7 +199,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
             <div className={`${isMobile ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-sm flex-shrink-0 overflow-hidden group-hover/user:scale-105 transition-transform`}>
               {user.avatar ? (
                 <img 
-                  src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} 
+                  src={getMediaUrl(user.avatar)} 
                   className="w-full h-full object-cover"
                   alt={user.name || 'User'}
                   onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}

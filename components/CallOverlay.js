@@ -13,9 +13,11 @@ import {
   Minimize2, 
   RefreshCw, 
   FlipHorizontal,
-  ChevronDown
+  ChevronDown,
+  GripHorizontal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getMediaUrl } from '../lib/url';
 
 export const CallOverlay = () => {
   const { 
@@ -111,10 +113,7 @@ export const CallOverlay = () => {
   };
 
   if (!isCalling && !call.isReceivingCall && !callAccepted && !callEnded) return null;
-  const getAvatar = (avatar) => {
-    if (!avatar) return null;
-    return avatar.startsWith('http') ? avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${avatar}`;
-  };
+  const getAvatar = (avatar) => getMediaUrl(avatar);
 
   const togglePip = async () => {
     try {
@@ -147,7 +146,9 @@ export const CallOverlay = () => {
           borderRadius: isMinimized ? '24px' : '0px',
         }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className={`fixed z-[9999] flex flex-col bg-zinc-950 shadow-2xl border-primary/20 overflow-hidden ${isMinimized ? 'border-2' : ''}`}
+        className={`fixed z-[9999] flex flex-col bg-zinc-950/90 backdrop-blur-3xl shadow-2xl border-primary/20 overflow-hidden ${isMinimized ? 'border-2 cursor-move ring-1 ring-white/10' : ''}`}
+        drag={isMinimized}
+        dragMomentum={false}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
       >
         {/* Main Interface Container */}
@@ -160,13 +161,21 @@ export const CallOverlay = () => {
                 onClick={() => setIsMinimized(true)}
                 className="p-2.5 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-2xl text-white transition-all"
               >
-                <ChevronDown size={20} />
+                <div className="flex flex-col items-center gap-1">
+                  <ChevronDown size={20} />
+                  <span className="text-[8px] font-bold opacity-50">MIN</span>
+                </div>
               </button>
-              <div className="flex items-center gap-2 bg-black/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/5">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-white/80 text-[10px] md:text-xs font-bold uppercase tracking-widest">
-                  {callAccepted ? 'Secure Connection' : 'Initial Link...'}
-                </span>
+              <div className="flex flex-col items-center">
+                <div className="flex items-center gap-2 bg-black/40 backdrop-blur-xl px-5 py-2.5 rounded-full border border-white/10 shadow-lg">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-white text-[10px] md:text-xs font-black uppercase tracking-[0.2em] drop-shadow-sm">
+                    {callAccepted ? 'Encrypted Stream' : 'Secure Handshake'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 mt-2">
+                   <GripHorizontal size={14} className="text-white/20 animate-pulse" />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <button 

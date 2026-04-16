@@ -674,7 +674,10 @@ function MessagesContent() {
     }
     
     setNewMessage('');
-    if (textareaRef.current) textareaRef.current.style.height = '56px';
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.focus();
+    }
     setIsSending(false);
   };
 

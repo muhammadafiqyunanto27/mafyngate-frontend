@@ -915,78 +915,6 @@ function MessagesContent() {
 
               {/* Input Area */}
               <div className="p-3 md:p-6 bg-background/50 backdrop-blur-3xl z-40 relative">
-                {/* WhatsApp Style Full-screen Media Preview */}
-                <AnimatePresence>
-                  {pendingMedia && (
-                    <motion.div 
-                      initial={{ opacity: 0 }} 
-                      animate={{ opacity: 1 }} 
-                      exit={{ opacity: 0 }} 
-                      className="fixed inset-0 z-[500] bg-slate-950 flex flex-col"
-                    >
-                      {/* Close Header */}
-                      <div className="p-4 flex items-center justify-between z-10">
-                        <button 
-                          onClick={() => { setPendingMedia(null); setPendingPreviewUrl(null); }}
-                          className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all"
-                        >
-                          <ArrowLeft size={24} />
-                        </button>
-                        <div className="flex flex-col items-end">
-                          <p className="text-white font-black text-xs uppercase tracking-widest">Preview</p>
-                          <p className="text-white/40 text-[10px] uppercase font-bold">{(pendingMedia.size / 1024 / 1024).toFixed(2)} MB</p>
-                        </div>
-                      </div>
-
-                      {/* Large Media Preview */}
-                      <div className="flex-1 flex items-center justify-center p-4">
-                        {pendingMedia.type.startsWith('image/') ? (
-                          <motion.img 
-                            layoutId="media-preview"
-                            src={pendingPreviewUrl} 
-                            className="max-w-full max-h-[70vh] object-contain rounded-2xl shadow-2xl" 
-                          />
-                        ) : pendingMedia.type.startsWith('video/') ? (
-                          <video 
-                            src={pendingPreviewUrl} 
-                            controls 
-                            className="max-w-full max-h-[70vh] rounded-2xl shadow-2xl bg-black" 
-                          />
-                        ) : (
-                          <div className="p-12 bg-white/5 rounded-[3rem] border border-white/10 flex flex-col items-center gap-4">
-                            <FileIcon size={60} className="text-primary" />
-                            <p className="text-white font-black text-sm uppercase tracking-widest">{pendingMedia.name}</p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Caption & Send Area (WhatsApp Style) */}
-                      <div className="p-6 bg-gradient-to-t from-black/80 to-transparent">
-                          <div className="max-w-2xl mx-auto flex items-end gap-4">
-                             <div className="flex-1 bg-white/10 backdrop-blur-3xl border border-white/20 rounded-[2rem] p-4 flex items-center gap-4 group focus-within:border-primary/50 transition-all">
-                                <textarea 
-                                  placeholder="Add a caption..." 
-                                  value={newMessage}
-                                  onChange={(e) => {
-                                    setNewMessage(e.target.value);
-                                    e.target.style.height = 'auto';
-                                    e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
-                                  }}
-                                  className="flex-1 bg-transparent border-none outline-none text-white text-sm font-medium resize-none min-h-[24px] max-h-[120px]"
-                                />
-                             </div>
-                             <button 
-                               onClick={handleSendMessage}
-                               disabled={isSending}
-                               className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all shrink-0"
-                             >
-                               {isSending ? <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={24} className="ml-1" />}
-                             </button>
-                          </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
                 <AnimatePresence mode="wait">
                   {replyingTo && (
                     <motion.div 
@@ -1074,6 +1002,84 @@ function MessagesContent() {
                   )}
                 </form>
               </div>
+
+              {/* Localized Chat Media Preview (Roomchat Version) */}
+              <AnimatePresence>
+                {pendingMedia && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.98 }} 
+                    animate={{ opacity: 1, scale: 1 }} 
+                    exit={{ opacity: 0, scale: 0.98 }} 
+                    className="absolute inset-0 z-[100] bg-slate-950/90 backdrop-blur-2xl flex flex-col"
+                  >
+                    {/* Header */}
+                    <div className="p-4 flex items-center justify-between z-10">
+                      <button 
+                        onClick={() => { setPendingMedia(null); setPendingPreviewUrl(null); }}
+                        className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all shadow-xl"
+                      >
+                        <ArrowLeft size={24} />
+                      </button>
+                      <div className="flex flex-col items-end">
+                        <p className="text-white font-black text-xs uppercase tracking-tight">Media Preview</p>
+                        <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest">{(pendingMedia.size / 1024 / 1024).toFixed(2)} MB</p>
+                      </div>
+                    </div>
+
+                    {/* Media Display */}
+                    <div className="flex-1 flex items-center justify-center p-6 min-h-0">
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        {pendingMedia.type.startsWith('image/') ? (
+                          <motion.img 
+                            layoutId="roomchat-preview"
+                            src={pendingPreviewUrl} 
+                            className="max-w-full max-h-full object-contain rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)]" 
+                          />
+                        ) : pendingMedia.type.startsWith('video/') ? (
+                          <video 
+                            src={pendingPreviewUrl} 
+                            controls 
+                            className="max-w-full max-h-full rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-black" 
+                          />
+                        ) : (
+                          <div className="p-16 bg-white/5 rounded-[3rem] border border-white/10 flex flex-col items-center gap-6 shadow-2xl">
+                            <div className="w-24 h-24 rounded-3xl bg-primary/20 flex items-center justify-center">
+                              <FileIcon size={48} className="text-primary" />
+                            </div>
+                            <p className="text-white font-black text-sm uppercase tracking-widest text-center px-4 line-clamp-2">{pendingMedia.name}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* WhatsApp Style Footer Pill */}
+                    <div className="p-6 md:p-10 bg-gradient-to-t from-black/60 to-transparent">
+                        <div className="max-w-3xl mx-auto flex items-center gap-4">
+                           <div className="flex-1 bg-white/5 backdrop-blur-3xl border border-white/20 rounded-[2.5rem] p-4 flex items-center gap-4 group focus-within:border-primary/50 transition-all shadow-xl">
+                              <textarea 
+                                autoFocus
+                                placeholder="Write a message..." 
+                                value={newMessage}
+                                onChange={(e) => {
+                                  setNewMessage(e.target.value);
+                                  e.target.style.height = 'auto';
+                                  e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                                }}
+                                className="flex-1 bg-transparent border-none outline-none text-white text-sm font-medium resize-none min-h-[28px] max-h-[120px] custom-scrollbar"
+                              />
+                           </div>
+                           <button 
+                             onClick={handleSendMessage}
+                             disabled={isSending}
+                             className="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(var(--primary-rgb),0.4)] hover:scale-105 active:scale-95 transition-all shrink-0"
+                           >
+                             {isSending ? <div className="w-7 h-7 border-3 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={28} className="ml-1" />}
+                           </button>
+                        </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </>
           ) : (
              <div className="flex-1 flex flex-col items-center justify-center p-8 opacity-20"><MessageSquare className="w-16 h-16 mb-6" /><p className="text-xs font-black uppercase tracking-widest italic">Chat Standby</p></div>

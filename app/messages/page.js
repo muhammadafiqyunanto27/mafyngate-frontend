@@ -1104,7 +1104,7 @@ function MessagesContent() {
       <AnimatePresence>
         {/* Profile Modal */}
         {viewingProfile && (
-           <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+           <div key="profile-modal" className="fixed inset-0 z-[300] flex items-center justify-center p-4">
              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setViewingProfile(null)} className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" />
              <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative bg-card border border-border w-full max-w-[280px] overflow-hidden rounded-[2.5rem] shadow-2xl">
                <div className="h-20 bg-gradient-to-r from-primary to-indigo-600 relative"><button onClick={() => setViewingProfile(null)} className="absolute top-4 right-4 p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-all"><X className="w-4 h-4" /></button></div>
@@ -1160,7 +1160,7 @@ function MessagesContent() {
         )}
 
         {lockModal.open && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div key="lock-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setLockModal({ ...lockModal, open: false })} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl">
               <div className="w-16 h-16 rounded-3xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6"><Lock className="w-8 h-8" /></div>
@@ -1174,7 +1174,7 @@ function MessagesContent() {
           </div>
         )}
         {isDeletingConvo && (
-           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+           <div key="delete-convo-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4">
              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDeletingConvo(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl">
                <div className="w-16 h-16 rounded-3xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto mb-6"><AlertCircle className="w-8 h-8" /></div>
@@ -1185,7 +1185,7 @@ function MessagesContent() {
         )}
         {/* Mobile Action Menu (Long Press) */}
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
+          <div key="mobile-action-menu" className="fixed inset-0 z-[500] flex items-center justify-center p-4">
              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileMenuOpen(null)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-[280px] overflow-hidden rounded-[2.5rem] shadow-2xl p-4">
                 <div className="mb-4 text-center">
@@ -1215,62 +1215,60 @@ function MessagesContent() {
           </div>
         )}
         {/* Lightbox / Zoomed Media */}
-        <AnimatePresence>
-          {lightboxMedia && (
-            <div className="fixed inset-0 z-[600] flex items-center justify-center p-4">
-              <motion.div 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
-                exit={{ opacity: 0 }} 
-                onClick={() => setLightboxMedia(null)} 
-                className="absolute inset-0 bg-slate-950/98 backdrop-blur-xl"
-              />
-              <motion.div 
-                initial={{ scale: 0.95, opacity: 0, y: 20 }} 
-                animate={{ scale: 1, opacity: 1, y: 0 }} 
-                exit={{ scale: 0.95, opacity: 0, y: 20 }} 
-                className="relative max-w-5xl max-h-[85vh] w-full flex flex-col items-center justify-center pointer-events-none"
-              >
-                <div className="absolute top-0 right-0 p-4 pointer-events-auto">
-                   <button 
-                    onClick={() => setLightboxMedia(null)} 
-                    className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all"
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
-                
-                <div className="w-full h-full flex items-center justify-center pointer-events-auto">
-                  {lightboxMedia.type === 'IMAGE' ? (
-                    <img 
-                      src={getMediaUrl(lightboxMedia.fileUrl)} 
-                      className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl" 
-                    />
-                  ) : lightboxMedia.type === 'VIDEO' ? (
-                    <video 
-                      controls 
-                      autoPlay 
-                      className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl bg-black"
-                    >
-                      <source src={getMediaUrl(lightboxMedia.fileUrl)} />
-                    </video>
-                  ) : null}
-                </div>
-                
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-6 p-4 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 text-center max-w-sm pointer-events-auto"
+        {lightboxMedia && (
+          <div key="lightbox-modal" className="fixed inset-0 z-[600] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setLightboxMedia(null)} 
+              className="absolute inset-0 bg-slate-950/98 backdrop-blur-xl"
+            />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }} 
+              animate={{ scale: 1, opacity: 1, y: 0 }} 
+              exit={{ scale: 0.95, opacity: 0, y: 20 }} 
+              className="relative max-w-5xl max-h-[85vh] w-full flex flex-col items-center justify-center pointer-events-none"
+            >
+              <div className="absolute top-0 right-0 p-4 pointer-events-auto">
+                 <button 
+                  onClick={() => setLightboxMedia(null)} 
+                  className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all"
                 >
-                   <p className="text-white text-[10px] font-black uppercase tracking-[0.2em] mb-1">Sent by {lightboxMedia.senderId === user?.id ? 'You' : 'Friend'}</p>
-                   <p className="text-white/40 text-[9px] font-bold uppercase tracking-widest">
-                     {new Date(lightboxMedia.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
-                   </p>
-                </motion.div>
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <div className="w-full h-full flex items-center justify-center pointer-events-auto">
+                {lightboxMedia.type === 'IMAGE' ? (
+                  <img 
+                    src={getMediaUrl(lightboxMedia.fileUrl)} 
+                    className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl" 
+                  />
+                ) : lightboxMedia.type === 'VIDEO' ? (
+                  <video 
+                    controls 
+                    autoPlay 
+                    className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl bg-black"
+                  >
+                    <source src={getMediaUrl(lightboxMedia.fileUrl)} />
+                  </video>
+                ) : null}
+              </div>
+              
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 p-4 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 text-center max-w-sm pointer-events-auto"
+              >
+                 <p className="text-white text-[10px] font-black uppercase tracking-[0.2em] mb-1">Sent by {lightboxMedia.senderId === user?.id ? 'You' : 'Friend'}</p>
+                 <p className="text-white/40 text-[9px] font-bold uppercase tracking-widest">
+                   {new Date(lightboxMedia.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                 </p>
               </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
     </DashboardLayout>
   );

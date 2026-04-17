@@ -35,6 +35,7 @@ export const SocketProvider = ({ children }) => {
    const [remoteAudioEnabled, setRemoteAudioEnabled] = useState(true);
    const [localVideoEnabled, setLocalVideoEnabled] = useState(true);
    const [localAudioEnabled, setLocalAudioEnabled] = useState(true);
+   const [answerCallParam, setAnswerCallParam] = useState(false);
 
   const connectionRef = React.useRef();
   const streamRef = React.useRef(null);
@@ -261,15 +262,27 @@ export const SocketProvider = ({ children }) => {
 
   // Handle auto-answer from deep-links (Push Notifications)
   useEffect(() => {
-    if (call.isReceivingCall && !callAccepted && !stream) {
-      if (typeof window !== 'undefined' && window.location.search.includes('answerCall=true')) {
-        console.log('[Socket] Deep-link answer detected. Answering call...');
-        answerCall();
-        // Clear param to avoid re-triggering
-        window.history.replaceState({}, '', window.location.pathname);
-      }
+    if (typeof window === 'undefined') return;
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('answerCall') === 'true') {
+      console.log('[Socket] Detected answerCall from notification deep-link');
+      // Use a brief delay to ensure the rest of the app/context is ready
+      const timer = setTimeout(() => {
+        setAnswerCallParam(true);
+      }, 1500);
+      return () => clearTimeout(timer);
     }
-  }, [call.isReceivingCall, callAccepted, stream]);
+  }, []);
+
+  useEffect(() => {
+    if (call.isReceivingCall && !callAccepted && !stream && answerCallParam) {
+      console.log('[Socket] Deep-link answer detected. Answering call...');
+      answerCall();
+      setAnswerCallParam(false);
+      // Clear param to avoid re-triggering
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [call.isReceivingCall, callAccepted, stream, answerCallParam]);
 
   const stopStream = () => {
     if (stream) {
@@ -452,7 +465,18 @@ export const SocketProvider = ({ children }) => {
       setStream(currentStream);
 
       const Peer = (await import('simple-peer')).default;
-      const peer = new Peer({ initiator: true, trickle: false, stream: currentStream });
+      const peer = new Peer({ 
+        initiator: true, 
+        trickle: false, 
+        stream: currentStream,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+          ]
+        }
+      });
 
       peer.on('signal', (data) => {
         console.log('[Signal] Sending offer signal to:', userIdToCall);
@@ -496,6 +520,14 @@ export const SocketProvider = ({ children }) => {
     }
     setCallEnded(false); // Reset call ended status
     setCallAccepted(true);
+    
+    // IMMEDIATELY stop ringtone on answer
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+    }
+    if ('vibrate' in navigator) navigator.vibrate(0);
+
     try {
       console.log('[Media] Answering call, requesting media...');
       // ALWAYS request video:true to ensure connection consistency
@@ -516,7 +548,18 @@ export const SocketProvider = ({ children }) => {
       setStream(currentStream);
 
       const Peer = (await import('simple-peer')).default;
-      const peer = new Peer({ initiator: false, trickle: false, stream: currentStream });
+      const peer = new Peer({ 
+        initiator: false, 
+        trickle: false, 
+        stream: currentStream,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+          ]
+        }
+      });
 
       peer.on('signal', (data) => {
         socket.emit('answer_call', { signal: data, to: call.from });

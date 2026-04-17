@@ -1,4 +1,11 @@
 // MafynGate Service Worker for Web Push Notifications
+self.addEventListener('install', (event) => {
+  self.skipWaiting(); // Force update immediately
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim()); // Take control immediately
+});
 
 self.addEventListener('push', function(event) {
   if (!event.data) return;
@@ -9,11 +16,13 @@ self.addEventListener('push', function(event) {
 
     const options = {
       body: body || 'You have a new notification',
-      icon: icon || '/logo.png', // Fallback to a default icon
+      icon: icon || '/logo.png',
       badge: '/badge.png',
-      vibrate: type === 'CALL' ? [500, 200, 500, 200, 500, 200, 500] : [100, 50, 100],
+      // Repetitive vibration: [ON, OFF, ON, OFF...]
+      vibrate: type === 'CALL' ? [1000, 500, 1000, 500, 1000, 500, 1000] : [100, 50, 100],
       priority: 'high',
       importance: 'high',
+      requireInteraction: type === 'CALL', // Call notification stays until acted upon
       data: {
         url: url || '/messages',
         type: type || 'CHAT'

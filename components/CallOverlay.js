@@ -57,23 +57,48 @@ export const CallOverlay = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Automatic PiP on Visibility Change
+  // MediaSession API & Automatic PiP on Visibility Change
   useEffect(() => {
+    if (!callAccepted || callEnded) return;
+
+    // 1. Setup MediaSession to "prime" the browser for background media
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: `Call with ${call.name || 'Anonymous'}`,
+        artist: 'MafynGate Secure Call',
+        artwork: [
+          { src: getMediaUrl(call.avatar) || '/logo.png', sizes: '512x512', type: 'image/png' }
+        ]
+      });
+
+      navigator.mediaSession.setActionHandler('hangup', () => handleEndCall(true));
+      navigator.mediaSession.setActionHandler('stop', () => handleEndCall(true));
+    }
+
+    // 2. Handle Auto-PiP on Visibility Change
     const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'hidden' && callAccepted && !callEnded && userVideo.current) {
+      if (document.visibilityState === 'hidden' && callAccepted && userVideo.current) {
         try {
+          // If on mobile, falling back to our Draggable Miniature is safer, 
+          // but we try the native API first for the "Auto-Switch" effect.
           if (!document.pictureInPictureElement && document.pictureInPictureEnabled) {
             await userVideo.current.requestPictureInPicture();
           }
         } catch (err) {
-          console.warn('[PiP] Auto-PiP failed:', err);
+          console.warn('[PiP] Auto-PiP failed, using stable Miniature fallback:', err);
+          setIsMinimized(true);
         }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [callAccepted, callEnded]);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = null;
+      }
+    };
+  }, [callAccepted, callEnded, call.name, call.avatar]);
 
   const handleMetadataLoaded = (e) => {
     const video = e.target;

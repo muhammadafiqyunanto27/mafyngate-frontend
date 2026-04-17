@@ -11,16 +11,18 @@ self.addEventListener('push', function(event) {
       body: body || 'You have a new notification',
       icon: icon || '/logo.png', // Fallback to a default icon
       badge: '/badge.png',
-      vibrate: type === 'CALL' ? [200, 100, 200, 100, 200, 100, 200] : [100, 50, 100],
+      vibrate: type === 'CALL' ? [500, 200, 500, 200, 500, 200, 500] : [100, 50, 100],
+      priority: 'high',
+      importance: 'high',
       data: {
         url: url || '/messages',
         type: type || 'CHAT'
       },
-      tag: type === 'CALL' ? 'incoming-call' : 'new-chat',
+      tag: type === 'CALL' ? 'incoming-call' : (url || 'new-chat'),
       renotify: true,
       actions: type === 'CALL' ? [
-        { action: 'answer', title: 'Answer' },
-        { action: 'reject', title: 'Reject' }
+        { action: 'answer', title: 'Answer Now' },
+        { action: 'reject', title: 'Dismiss' }
       ] : []
     };
 

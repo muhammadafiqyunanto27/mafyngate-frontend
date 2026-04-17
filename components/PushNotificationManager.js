@@ -83,11 +83,20 @@ export default function PushNotificationManager() {
     }
   };
 
-  // Expose to window for global access (e.g., from Sidebar)
+  // Expose to window for global access (e.g., from Sidebar/Profile)
   useEffect(() => {
     window.requestMafynGateNotification = requestPermission;
-    return () => { delete window.requestMafynGateNotification; };
-  }, [registration]);
+    window.getMafynGatePushStatus = () => {
+        if (!('Notification' in window)) return 'unsupported';
+        if (Notification.permission === 'denied') return 'denied';
+        if (isSubscribed) return 'active';
+        return 'inactive';
+    };
+    return () => { 
+        delete window.requestMafynGateNotification; 
+        delete window.getMafynGatePushStatus;
+    };
+  }, [registration, isSubscribed]);
 
   return null;
 }

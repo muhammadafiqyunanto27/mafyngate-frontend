@@ -186,6 +186,39 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
               </Link>
             );
           })}
+
+          {/* Background Health Check */}
+          <div className={`mt-10 px-4 ${isCollapsed && !isMobile ? 'flex flex-col items-center' : ''}`}>
+             {!isCollapsed || isMobile ? (
+                <div className="p-4 rounded-3xl bg-muted/30 border border-border">
+                   <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Background Sync</p>
+                      <div className={`w-2 h-2 rounded-full animate-pulse ${typeof window !== 'undefined' && window.getMafynGatePushStatus && window.getMafynGatePushStatus() === 'active' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]'}`} />
+                   </div>
+                   <p className="text-[11px] font-bold text-foreground mb-3 leading-tight">
+                      {typeof window !== 'undefined' && window.getMafynGatePushStatus && window.getMafynGatePushStatus() === 'active' ? 'Gateway is Linked' : 'Push Disconnected'}
+                   </p>
+                   {typeof window !== 'undefined' && window.getMafynGatePushStatus && window.getMafynGatePushStatus() !== 'active' && (
+                      <button 
+                        onClick={() => window.requestMafynGateNotification && window.requestMafynGateNotification()}
+                        className="w-full py-2 bg-primary text-white text-[10px] font-black rounded-xl hover:scale-105 active:scale-95 transition-all text-center uppercase tracking-widest"
+                      >
+                        Heal Connection
+                      </button>
+                   )}
+                </div>
+             ) : (
+                <button 
+                  onClick={() => window.requestMafynGateNotification && window.requestMafynGateNotification()}
+                  className={`p-2.5 rounded-xl border border-border transition-all group relative ${typeof window !== 'undefined' && window.getMafynGatePushStatus && window.getMafynGatePushStatus() === 'active' ? 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' : 'text-rose-500 bg-rose-500/10 animate-pulse'}`}
+                >
+                   <ShieldCheck className="w-5 h-5" />
+                   <div className="absolute left-full ml-3 invisible group-hover:visible bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-50 shadow-xl pointer-events-none whitespace-nowrap">
+                    Push Sync Status
+                  </div>
+                </button>
+             )}
+          </div>
         </nav>
 
         {/* Footer Section */}

@@ -1,33 +1,39 @@
-// MafynGate Service Worker for Web Push Notifications
+// MafynGate Service Worker (v1.1 - Added robustness and better logging)
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Force update immediately
+  console.log('[SW] Service Worker Installing...');
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim()); // Take control immediately
+  console.log('[SW] Service Worker Activating...');
+  event.waitUntil(clients.claim());
 });
 
 self.addEventListener('push', function(event) {
-  if (!event.data) return;
+  console.log('[SW] Push Event Received.');
+  if (!event.data) {
+    console.warn('[SW] Push event had no data.');
+    return;
+  }
 
   try {
     const data = event.data.json();
+    console.log('[SW] Push Data:', data);
     const { title, body, icon, url, type } = data;
 
     const options = {
       body: body || 'You have a new notification',
-      icon: icon || '/logo.png',
-      badge: '/badge.png',
-      // Repetitive vibration: [ON, OFF, ON, OFF...]
+      icon: icon || '/logo.png', // Ensure this exists in public/
+      badge: '/logo.png', // Fallback to icon for badge
       vibrate: type === 'CALL' ? [1000, 500, 1000, 500, 1000, 500, 1000] : [100, 50, 100],
       priority: 'high',
       importance: 'high',
-      requireInteraction: type === 'CALL', // Call notification stays until acted upon
+      requireInteraction: type === 'CALL' || type === 'ALARM',
       data: {
-        url: url || '/messages',
+        url: url || '/',
         type: type || 'CHAT'
       },
-      tag: type === 'CALL' ? 'incoming-call' : (url || 'new-chat'),
+      tag: type === 'CALL' ? 'incoming-call' : (type === 'ALARM' ? 'todo-alarm' : (url || 'general')),
       renotify: true,
       actions: type === 'CALL' ? [
         { action: 'answer', title: 'Answer Now' },
@@ -39,32 +45,44 @@ self.addEventListener('push', function(event) {
       self.registration.showNotification(title || 'MafynGate', options)
     );
   } catch (err) {
-    console.error('[SW] Push error:', err);
+    console.error('[SW] Push parsing error:', err);
+    event.waitUntil(
+      self.registration.showNotification('MafynGate', {
+        body: event.data.text() || 'New Notification Received',
+        icon: '/logo.png'
+      })
+    );
   }
 });
 
 self.addEventListener('notificationclick', function(event) {
+  console.log('[SW] Notification Clicked. Action:', event.action);
   event.notification.close();
 
-  const urlToOpen = event.notification.data.url;
+  const data = event.notification.data || {};
+  let targetUrl = data.url || '/';
   const action = event.action;
+
+  if (action === 'answer') {
+    targetUrl = '/messages?answerCall=true';
+  }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-      // Logic for Answer action
-      let targetUrl = urlToOpen;
-      if (action === 'answer') {
-        targetUrl = '/messages?answerCall=true';
-      }
-
-      // If a window is already open with the URL, focus it
       for (let i = 0; i < clientList.length; i++) {
         let client = clientList[i];
-        if (client.url.includes(targetUrl) && 'focus' in client) {
+        const clientUrl = new URL(client.url).pathname;
+        const targetPath = new URL(targetUrl, self.location.origin).pathname;
+        
+        if (clientUrl === targetPath && 'focus' in client) {
           return client.focus();
         }
       }
-      // Otherwise, open a new window
+      
+      if (clientList.length > 0) {
+          return clientList[0].focus();
+      }
+
       if (clients.openWindow) {
         return clients.openWindow(targetUrl);
       }

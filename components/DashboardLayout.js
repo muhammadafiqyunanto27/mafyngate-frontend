@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import NotificationPrompt from './NotificationPrompt';
 import { motion } from 'framer-motion';
 
 export default function DashboardLayout({ children, pageTitle = 'Dashboard', fullWidth = false }) {
@@ -74,6 +75,7 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
           </motion.div>
         </main>
       </div>
+      <NotificationPrompt />
     </div>
   );
 }

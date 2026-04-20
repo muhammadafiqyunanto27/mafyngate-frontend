@@ -39,19 +39,20 @@ export default function PushNotificationManager() {
       console.log('[Push] Service Worker registered:', reg);
       setRegistration(reg);
       
+      // Force update check
+      await reg.update();
+
       // Check for existing subscription
       const sub = await reg.pushManager.getSubscription();
       if (sub) {
         setSubscription(sub);
         setIsSubscribed(true);
-        // Sync with backend just in case
+        // Sync with backend every time user logs in to ensure endpoint is fresh
         await api.post('/push/subscribe', { subscription: sub });
-      } else {
-        // Auto-request or show a button? 
-        // For now, let's try to subscribe if permission is already granted
-        if (Notification.permission === 'granted') {
-          subscribeToPush(reg);
-        }
+      } else if (Notification.permission === 'granted') {
+        // Permission is granted but no subscription found - auto-repair
+        console.log('[Push] Permission granted but no sub found. Reviving...');
+        await subscribeToPush(reg);
       }
     } catch (err) {
       console.error('[Push] SW registration failed:', err);
@@ -100,6 +101,7 @@ export default function PushNotificationManager() {
       setIsSubscribed(false);
       setSubscription(null);
       setRegistration(null);
+      localStorage.removeItem('mafyngate_notif_ignored');
       
       // 5. Re-register fresh
       console.log('[Push] Initiating fresh registration...');

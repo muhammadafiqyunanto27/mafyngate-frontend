@@ -25,6 +25,8 @@ import DashboardLayout from '../../components/DashboardLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 import { getMediaUrl } from '../../lib/url';
+import ImageCropper from '../../components/ImageCropper';
+import Lightbox from '../../components/Lightbox';
 
 export default function ProfilePage() {
   const { user, loading, updateUser, updateProfile } = useAuth();
@@ -33,6 +35,9 @@ export default function ProfilePage() {
   const [updateLoading, setUpdateLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [showCropper, setShowCropper] = useState(false);
+  const [cropperImage, setCropperImage] = useState(null);
+  const [lightboxMedia, setLightboxMedia] = useState(null);
   const fileInputRef = useRef(null);
   
   const [formData, setFormData] = useState({
@@ -79,10 +84,24 @@ export default function ProfilePage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('avatar', file);
+    // Show cropper instead of immediate upload
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropperImage(reader.result);
+      setShowCropper(true);
+    };
+    reader.readAsDataURL(file);
+    // Reset file input so same file can be chosen again
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
+  const onCropSave = async (croppedBlob) => {
+    setShowCropper(false);
     setUploadLoading(true);
+    
+    const formData = new FormData();
+    formData.append('avatar', croppedBlob, 'avatar.jpg');
+
     try {
       await api.post('/user/avatar', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -92,7 +111,7 @@ export default function ProfilePage() {
       setTimeout(() => setMessage({ type: '', text: '' }), 1000);
     } catch (err) {
       console.error('Avatar upload failed:', err);
-      const errorMsg = err.response?.data?.message || 'Failed to upload photo. Ensure file is an image and under 2MB.';
+      const errorMsg = err.response?.data?.message || 'Failed to upload photo.';
       setMessage({ type: 'error', text: errorMsg });
       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     } finally {
@@ -128,7 +147,12 @@ export default function ProfilePage() {
             <div className="relative group -mt-12">
               <div className="w-32 h-32 rounded-[2.5rem] bg-card border-[6px] border-background shadow-2xl overflow-hidden ring-1 ring-border/50">
                 {user.avatar ? (
-                  <img src={getMediaUrl(user.avatar)} className="w-full h-full rounded-[2rem] object-cover" alt="Profile" />
+                  <img 
+                    src={getMediaUrl(user.avatar)} 
+                    className="w-full h-full rounded-[2rem] object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                    alt="Profile" 
+                    onClick={() => setLightboxMedia(user.avatar)}
+                  />
                 ) : (
                   <div className="w-full h-full rounded-[2rem] bg-muted flex items-center justify-center text-primary text-4xl font-black uppercase">
                     {(user.name || user.email).charAt(0)}
@@ -151,7 +175,7 @@ export default function ProfilePage() {
             
             <div className="flex-1 flex flex-col pb-2">
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-black text-foreground uppercase tracking-tight truncate">
+                <h1 className="text-3xl font-black text-foreground tracking-tight truncate">
                   {user.name || user.email.split('@')[0]}
                 </h1>
                 {user.isPrivate && <Lock size={18} className="text-amber-500" />}
@@ -263,6 +287,24 @@ export default function ProfilePage() {
                {message.type === 'success' ? <CheckCircle2 size={24} /> : <X size={24} />}
                <p className="text-xs font-black uppercase tracking-[0.2em] italic">{message.text}</p>
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Cropper & Lightbox Integration */}
+        <AnimatePresence>
+          {showCropper && (
+            <ImageCropper 
+              image={cropperImage} 
+              aspect={1}
+              onCropComplete={onCropSave}
+              onCancel={() => setShowCropper(false)}
+            />
+          )}
+          {lightboxMedia && (
+            <Lightbox 
+              media={lightboxMedia}
+              onClose={() => setLightboxMedia(null)}
+            />
           )}
         </AnimatePresence>
 

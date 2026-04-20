@@ -39,11 +39,13 @@ import {
   Square,
   Check,
   FileText,
-  Play
+  Play,
+  ZoomIn
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 import { getMediaUrl } from '../../lib/url';
+import Lightbox from '../../components/Lightbox';
 
 const MessageBubble = memo(({ 
   msg, 
@@ -254,6 +256,10 @@ function MessagesContent() {
   const [isSending, setIsSending] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [newNickname, setNewNickname] = useState('');
+  const [aliasLoading, setAliasLoading] = useState(false);
 
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -787,7 +793,7 @@ function MessagesContent() {
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex justify-between items-center mb-0.5">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <p className={`font-bold truncate ${isMobileView ? 'text-xs' : 'text-sm'}`}>{u.name}</p>
+                        <p className={`font-bold truncate ${isMobileView ? 'text-xs' : 'text-sm'}`}>{u.contactAlias || u.name}</p>
                         {u.isPinned && <Pin size={10} className="text-amber-500 fill-amber-500/20" />}
                       </div>
                       {u.lastMessage && <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{new Date(u.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
@@ -827,8 +833,8 @@ function MessagesContent() {
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className={`font-black text-foreground uppercase tracking-tight ${isMobileView ? 'text-xs' : 'text-base'} truncate cursor-pointer flex items-center gap-2`} onClick={() => setViewingProfile(selectedUser)}>
-                      {selectedUser.name}
+                    <h3 className={`font-black text-foreground tracking-tight ${isMobileView ? 'text-xs' : 'text-base'} truncate cursor-pointer flex items-center gap-2`} onClick={() => setViewingProfile(selectedUser)}>
+                      {selectedUser.contactAlias || selectedUser.name}
                       {selectedUser.isPinned && <Pin size={12} className="text-amber-500 shrink-0" />}
                     </h3>
                     <p className={`${isMobileView ? 'text-[9px]' : 'text-[10px]'} font-bold uppercase tracking-widest flex items-center gap-1 truncate ${recipientStatus === 'typing' ? 'text-primary' : recipientStatus === 'online' ? 'text-emerald-500' : 'text-muted-foreground'}`}>
@@ -940,7 +946,7 @@ function MessagesContent() {
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-1 h-8 rounded-full bg-primary" />
                         <div className="min-w-0">
-                          <p className="text-[9px] font-black text-primary uppercase tracking-widest leading-none mb-1">Replying to {replyingTo.sender?.name || 'User'}</p>
+                          <p className="text-[9px] font-black text-primary tracking-widest leading-none mb-1">Replying to {replyingTo.sender?.nickname || replyingTo.sender?.name || 'User'}</p>
                           <p className="text-xs text-muted-foreground font-medium truncate italic">{replyingTo.type === 'IMAGE' ? '[Image]' : replyingTo.type === 'VIDEO' ? '[Video]' : replyingTo.type === 'VOICE' ? '[Voice Note]' : replyingTo.type === 'FILE' ? '[Document]' : replyingTo.content}</p>
                         </div>
                       </div>
@@ -1110,24 +1116,85 @@ function MessagesContent() {
                <div className="h-20 bg-gradient-to-r from-primary to-indigo-600 relative"><button onClick={() => setViewingProfile(null)} className="absolute top-4 right-4 p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-all"><X className="w-4 h-4" /></button></div>
                <div className="px-5 pb-6 text-center -mt-10">
                  <div className="relative inline-block">
-                    <div className="w-20 h-20 rounded-[1.5rem] border-4 border-background overflow-hidden bg-muted shadow-lg">
+                    <div 
+                      className="w-20 h-20 rounded-[1.5rem] border-4 border-background overflow-hidden bg-muted shadow-lg cursor-pointer group/avatar relative"
+                      onClick={() => setLightboxMedia({ fileUrl: viewingProfile.avatar, type: 'IMAGE' })}
+                    >
                       {viewingProfile.avatar ? (
                         <img 
                           src={getMediaUrl(viewingProfile.avatar)} 
-                          className="w-full h-full object-cover" 
+                          className="w-full h-full object-cover group-hover/avatar:scale-110 transition-transform duration-500" 
                           onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                         />
                       ) : null}
                       <div className={`w-full h-full items-center justify-center text-2xl font-bold bg-primary text-white ${viewingProfile.avatar ? 'hidden' : 'flex'}`}>
                         {(viewingProfile.name || viewingProfile.email || "?").charAt(0).toUpperCase()}
                       </div>
+                      <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                         <ZoomIn className="text-white w-5 h-5" />
+                      </div>
                     </div>
                     <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-background shadow-sm ${onlineUsers[viewingProfile.id] === 'online' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
                  </div>
-                 <h2 className="text-lg font-black mt-2 uppercase tracking-tight truncate px-2">{viewingProfile.name || 'Anonymous'}</h2>
-                 <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60 mb-6 truncate px-4">Secure Profile</p>
-                 
-                 <div className="grid grid-cols-2 gap-2 mb-6">
+                  <div className="relative mt-2 flex items-center justify-center group px-10">
+                    <h2 className="text-lg font-black tracking-tight truncate">
+                      {viewingProfile.contactAlias || viewingProfile.name || 'Anonymous'}
+                    </h2>
+                    {!isEditingNickname && (
+                      <button 
+                        onClick={() => {
+                          setNewNickname(viewingProfile.contactAlias || '');
+                          setIsEditingNickname(true);
+                        }}
+                        className="absolute right-0 p-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl border border-primary/20 transition-all"
+                        title="Edit Nickname"
+                      >
+                        <Pencil size={12} />
+                      </button>
+                    )}
+                  </div>
+
+                  {isEditingNickname && (
+                    <div className="mt-2 flex items-center gap-2 px-6">
+                      <input 
+                        autoFocus
+                        type="text" 
+                        value={newNickname} 
+                        onChange={(e) => setNewNickname(e.target.value)}
+                        placeholder="Set nickname..."
+                        className="w-full bg-muted border border-primary/20 rounded-xl py-2 px-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+                      <div className="flex gap-1 shrink-0">
+                        <button 
+                          onClick={async () => {
+                            setAliasLoading(true);
+                            try {
+                              await api.patch('/user/contact/alias', { targetId: viewingProfile.id, alias: newNickname });
+                              setViewingProfile(prev => ({ ...prev, contactAlias: newNickname, displayName: newNickname || prev.name }));
+                              setUsers(prev => prev.map(u => u.id === viewingProfile.id ? { ...u, contactAlias: newNickname } : u));
+                              if (selectedUser?.id === viewingProfile.id) {
+                                setSelectedUser(prev => ({ ...prev, contactAlias: newNickname }));
+                              }
+                              setIsEditingNickname(false);
+                            } catch (err) {} finally { setAliasLoading(false); }
+                          }}
+                          disabled={aliasLoading}
+                          className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl border border-emerald-500/20 hover:bg-emerald-500/20"
+                        >
+                          <Check size={16} />
+                        </button>
+                        <button onClick={() => setIsEditingNickname(false)} className="p-2 bg-rose-500/10 text-rose-500 rounded-xl border border-rose-500/20 hover:bg-rose-500/20">
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60 mb-6 truncate px-4">
+                    {viewingProfile.contactAlias ? `Real Name: ${viewingProfile.name}` : 'Secure Profile'}
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-2 mb-6">
                     <div className="p-2 bg-muted/50 rounded-2xl border border-border">
                        <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Status</p>
                        <p className={`text-[9px] font-bold uppercase ${onlineUsers[viewingProfile.id] === 'online' ? 'text-emerald-500' : 'text-slate-400'}`}>
@@ -1153,7 +1220,16 @@ function MessagesContent() {
                        </p>
                     </div>
                  </div>
-                 <button onClick={() => setViewingProfile(null)} className="w-full mt-6 py-3 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Close</button>
+                 
+                 <div className="mt-6 space-y-2">
+                    <button 
+                      onClick={() => router.push(`/profile/${viewingProfile.id}`)}
+                      className="w-full py-3 bg-muted hover:bg-muted/80 text-foreground rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2"
+                    >
+                      <UserCircle size={14} /> View Full Profile
+                    </button>
+                    <button onClick={() => setViewingProfile(null)} className="w-full py-3 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Close</button>
+                 </div>
                </div>
              </motion.div>
            </div>
@@ -1215,60 +1291,14 @@ function MessagesContent() {
           </div>
         )}
         {/* Lightbox / Zoomed Media */}
-        {lightboxMedia && (
-          <div key="lightbox-modal" className="fixed inset-0 z-[600] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              onClick={() => setLightboxMedia(null)} 
-              className="absolute inset-0 bg-slate-950/98 backdrop-blur-xl"
+        <AnimatePresence>
+          {lightboxMedia && (
+            <Lightbox 
+              media={lightboxMedia}
+              onClose={() => setLightboxMedia(null)}
             />
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0, y: 20 }} 
-              animate={{ scale: 1, opacity: 1, y: 0 }} 
-              exit={{ scale: 0.95, opacity: 0, y: 20 }} 
-              className="relative max-w-5xl max-h-[85vh] w-full flex flex-col items-center justify-center pointer-events-none"
-            >
-              <div className="absolute top-0 right-0 p-4 pointer-events-auto">
-                 <button 
-                  onClick={() => setLightboxMedia(null)} 
-                  className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-              
-              <div className="w-full h-full flex items-center justify-center pointer-events-auto">
-                {lightboxMedia.type === 'IMAGE' ? (
-                  <img 
-                    src={getMediaUrl(lightboxMedia.fileUrl)} 
-                    className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl" 
-                  />
-                ) : lightboxMedia.type === 'VIDEO' ? (
-                  <video 
-                    controls 
-                    autoPlay 
-                    className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl bg-black"
-                  >
-                    <source src={getMediaUrl(lightboxMedia.fileUrl)} />
-                  </video>
-                ) : null}
-              </div>
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-6 p-4 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 text-center max-w-sm pointer-events-auto"
-              >
-                 <p className="text-white text-[10px] font-black uppercase tracking-[0.2em] mb-1">Sent by {lightboxMedia.senderId === user?.id ? 'You' : 'Friend'}</p>
-                 <p className="text-white/40 text-[9px] font-bold uppercase tracking-widest">
-                   {new Date(lightboxMedia.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
-                 </p>
-              </motion.div>
-            </motion.div>
-          </div>
-        )}
+          )}
+        </AnimatePresence>
       </AnimatePresence>
     </DashboardLayout>
   );

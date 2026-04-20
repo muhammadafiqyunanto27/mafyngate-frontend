@@ -23,6 +23,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
 import { getMediaUrl } from '../../../lib/url';
+import Lightbox from '../../../components/Lightbox';
 
 export default function PublicProfilePage() {
   const params = useParams();
@@ -34,6 +35,7 @@ export default function PublicProfilePage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [lightboxMedia, setLightboxMedia] = useState(null);
 
   const fetchProfile = async () => {
     try {
@@ -141,8 +143,9 @@ export default function PublicProfilePage() {
                 {profile.avatar ? (
                   <img 
                     src={getMediaUrl(profile.avatar)} 
-                    className="w-full h-full rounded-[2rem] object-cover"
+                    className="w-full h-full rounded-[2rem] object-cover cursor-pointer hover:opacity-90 transition-opacity"
                     alt={profile.name}
+                    onClick={() => setLightboxMedia(profile.avatar)}
                     onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                   />
                 ) : null}
@@ -154,10 +157,9 @@ export default function PublicProfilePage() {
             
             <div className="flex-1 flex flex-col pb-2">
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-black text-foreground uppercase tracking-tight truncate">
-                  {profile.name || profile.email?.split('@')[0]}
-                </h1>
-                {profile.isPrivate && <Lock className="w-4 h-4 text-amber-500" />}
+                <h1 className="text-3xl font-black text-foreground tracking-tight truncate">
+                  {profile.displayName || profile.name}</h1>
+                {profile.isPrivate && <Lock className="w-5 h-5 text-muted-foreground" />}
               </div>
               <p className="text-sm text-muted-foreground font-medium flex items-center gap-2 mt-1">
                 <span className={`w-1.5 h-1.5 rounded-full ${isLocked ? 'bg-muted-foreground/30' : 'bg-emerald-500 animate-pulse'}`}></span>
@@ -241,6 +243,16 @@ export default function PublicProfilePage() {
               {message.type === 'success' ? <CheckCircle2 size={24} /> : <X size={24} />}
               <p className="text-xs font-black uppercase tracking-widest">{message.text}</p>
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Lightbox Integration */}
+        <AnimatePresence>
+          {lightboxMedia && (
+            <Lightbox 
+              media={lightboxMedia}
+              onClose={() => setLightboxMedia(null)}
+            />
           )}
         </AnimatePresence>
       </div>

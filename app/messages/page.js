@@ -260,6 +260,7 @@ function MessagesContent() {
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [newNickname, setNewNickname] = useState('');
   const [aliasLoading, setAliasLoading] = useState(false);
+  const [lightboxActions, setLightboxActions] = useState(true);
 
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -924,7 +925,7 @@ function MessagesContent() {
                       textareaRef={textareaRef}
                       swipeOffset={swipeOffset}
                       setSwipeOffset={setSwipeOffset}
-                      onZoomMedia={setLightboxMedia}
+                      onZoomMedia={(m) => { setLightboxActions(true); setLightboxMedia(m); }}
                     />
                   ))
                 )}
@@ -1118,7 +1119,10 @@ function MessagesContent() {
                  <div className="relative inline-block">
                     <div 
                       className="w-20 h-20 rounded-[1.5rem] border-4 border-background overflow-hidden bg-muted shadow-lg cursor-pointer group/avatar relative"
-                      onClick={() => setLightboxMedia({ fileUrl: viewingProfile.avatar, type: 'IMAGE' })}
+                      onClick={() => {
+                        setLightboxActions(false);
+                        setLightboxMedia({ fileUrl: viewingProfile.avatar, type: 'IMAGE' });
+                      }}
                     >
                       {viewingProfile.avatar ? (
                         <img 
@@ -1296,6 +1300,7 @@ function MessagesContent() {
             <Lightbox 
               media={lightboxMedia}
               onClose={() => setLightboxMedia(null)}
+              allowActions={lightboxActions}
             />
           )}
         </AnimatePresence>

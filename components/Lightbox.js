@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn, Download, Share2, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getMediaUrl } from '../lib/url';
 
-export default function Lightbox({ media, onClose }) {
+export default function Lightbox({ media, onClose, allowActions = true }) {
   // Handle escape key
   useEffect(() => {
     const handleEsc = (e) => {
@@ -59,14 +59,16 @@ export default function Lightbox({ media, onClose }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-            <button onClick={handleDownload} className="p-3 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 rounded-2xl transition-all">
-                <Download size={20} />
-            </button>
-            <button className="p-3 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 rounded-2xl transition-all">
-                <Share2 size={20} />
-            </button>
-        </div>
+        {allowActions && (
+          <div className="flex items-center gap-2">
+              <button onClick={handleDownload} className="p-3 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 rounded-2xl transition-all">
+                  <Download size={20} />
+              </button>
+              <button className="p-3 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 rounded-2xl transition-all">
+                  <Share2 size={20} />
+              </button>
+          </div>
+        )}
       </motion.div>
 
       {/* Media Display */}

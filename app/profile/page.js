@@ -304,6 +304,7 @@ export default function ProfilePage() {
             <Lightbox 
               media={lightboxMedia}
               onClose={() => setLightboxMedia(null)}
+              allowActions={false}
             />
           )}
         </AnimatePresence>

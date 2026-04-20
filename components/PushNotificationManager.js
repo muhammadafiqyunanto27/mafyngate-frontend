@@ -71,6 +71,44 @@ export default function PushNotificationManager() {
       console.log('[Push] Subscribed successfully');
     } catch (err) {
       console.error('[Push] Failed to subscribe:', err);
+      if (err.name === 'NotAllowedError') {
+        alert('Notification permission denied by browser. Please enable it in site settings.');
+      }
+    }
+  };
+
+  const resetBackgroundSync = async () => {
+    try {
+      console.log('[Push] Hard-resetting background sync...');
+      
+      // 1. Get existing registration
+      const reg = await navigator.serviceWorker.getRegistration('/sw.js');
+      if (reg) {
+        // 2. Unsubscribe if exists
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          await sub.unsubscribe();
+          console.log('[Push] Unsubscribed from old endpoint');
+        }
+        
+        // 3. Kill the service worker
+        await reg.unregister();
+        console.log('[Push] Service worker unregistered');
+      }
+
+      // 4. Force state reset
+      setIsSubscribed(false);
+      setSubscription(null);
+      setRegistration(null);
+      
+      // 5. Re-register fresh
+      console.log('[Push] Initiating fresh registration...');
+      await registerServiceWorker();
+      
+      alert('Background Sync has been reset. Your notifications should now be linked 100%!');
+    } catch (err) {
+      console.error('[Push] Hard reset failed:', err);
+      alert('Failed to reset sync. Please refresh the page and try again.');
     }
   };
 
@@ -86,6 +124,7 @@ export default function PushNotificationManager() {
   // Expose to window for global access (e.g., from Sidebar/Profile)
   useEffect(() => {
     window.requestMafynGateNotification = requestPermission;
+    window.resetMafynGatePush = resetBackgroundSync;
     window.getMafynGatePushStatus = () => {
         if (!('Notification' in window)) return 'unsupported';
         if (Notification.permission === 'denied') return 'denied';
@@ -94,6 +133,7 @@ export default function PushNotificationManager() {
     };
     return () => { 
         delete window.requestMafynGateNotification; 
+        delete window.resetMafynGatePush;
         delete window.getMafynGatePushStatus;
     };
   }, [registration, isSubscribed]);

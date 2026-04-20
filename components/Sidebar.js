@@ -200,8 +200,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
                    </p>
                    {typeof window !== 'undefined' && window.getMafynGatePushStatus && window.getMafynGatePushStatus() !== 'active' && (
                       <button 
-                        onClick={() => window.requestMafynGateNotification && window.requestMafynGateNotification()}
+                        onClick={() => window.resetMafynGatePush && window.resetMafynGatePush()}
                         className="w-full py-2 bg-primary text-white text-[10px] font-black rounded-xl hover:scale-105 active:scale-95 transition-all text-center uppercase tracking-widest"
+                        title="Force Reset Background Sync"
                       >
                         Heal Connection
                       </button>

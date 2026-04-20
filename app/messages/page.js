@@ -40,8 +40,13 @@ import {
   Check,
   FileText,
   Play,
-  ZoomIn
+  ZoomIn,
+  ExternalLink,
+  Loader2,
+  ChevronDown,
+  Share2
 } from 'lucide-react';
+import { linkify } from '../../lib/linkify';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 import { getMediaUrl } from '../../lib/url';
@@ -59,7 +64,9 @@ const MessageBubble = memo(({
   textareaRef,
   swipeOffset,
   setSwipeOffset,
-  onZoomMedia
+  onZoomMedia,
+  activeMenuId,
+  setActiveMenuId
 }) => {
   // getMediaUrl replaces the local getAvatar logic
 
@@ -103,16 +110,31 @@ const MessageBubble = memo(({
         onTouchEnd={isMobileView ? cancelPress : undefined}
         onContextMenu={e => { e.preventDefault(); onMobileMenu(msg); }}
       >
-        {!isMobileView && (
-          <div className="opacity-0 group-hover:opacity-100 flex flex-col gap-0.5 transition-opacity self-center shrink-0">
-             <button onClick={() => { onReply(msg); textareaRef.current?.focus(); }} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-all" title="Reply"><Reply size={12} /></button>
-             {isMine && <button onClick={() => { onEdit(msg); textareaRef.current?.focus(); }} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-all" title="Edit"><Pencil size={12} /></button>}
-             <button onClick={() => onCopy(msg.content)} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-all" title="Copy"><Copy size={12} /></button>
-             {isMine && <button onClick={() => onDelete(msg.id)} title="Delete" className="p-1.5 hover:bg-rose-500/10 rounded-lg text-rose-500 transition-all"><Trash2 size={12} /></button>}
-          </div>
-        )}
+        {/* Desktop Menu handled inside bubble dropdown now */}
 
-        <div className={`relative px-3 py-2 rounded-xl shadow-sm text-sm transition-all border w-fit ${isMine ? 'bg-primary/20 backdrop-blur-2xl text-white border-primary/30 rounded-tr-none' : 'bg-muted/80 backdrop-blur-2xl text-foreground border-border/50 rounded-tl-none shadow-md'}`}>
+        <div className={`relative px-3 py-2 rounded-xl shadow-sm text-sm transition-all border w-fit group/bubble ${isMine ? 'bg-primary/20 backdrop-blur-2xl text-white border-primary/30 rounded-tr-none' : 'bg-muted/80 backdrop-blur-2xl text-foreground border-border/50 rounded-tl-none shadow-md'}`}>
+          {!isMobileView && (
+             <div className="absolute top-1 right-1 opacity-0 group-hover/bubble:opacity-100 transition-all z-10">
+               <button 
+                 onClick={(e) => { e.stopPropagation(); setActiveMenuId(activeMenuId === msg.id ? null : msg.id); }}
+                 className="p-1 rounded-lg bg-black/10 hover:bg-black/20 text-white/70 hover:text-white"
+               >
+                 <ChevronDown size={14} />
+               </button>
+               {activeMenuId === msg.id && (
+                 <div className="absolute top-7 right-0 min-w-[120px] bg-card border border-border shadow-2xl rounded-2xl overflow-hidden py-1.5 z-50 animate-in fade-in zoom-in duration-100 origin-top-right">
+                    <button onClick={() => { onReply(msg); setActiveMenuId(null); textareaRef.current?.focus(); }} className="w-full px-4 py-2 text-xs font-black uppercase text-left hover:bg-muted flex items-center gap-3"><Reply size={12} /> Reply</button>
+                    <button onClick={() => { onCopy(msg.content); setActiveMenuId(null); }} className="w-full px-4 py-2 text-xs font-black uppercase text-left hover:bg-muted flex items-center gap-3"><Copy size={12} /> Copy</button>
+                    {isMine && (
+                      <>
+                        <button onClick={() => { onEdit(msg); setActiveMenuId(null); textareaRef.current?.focus(); }} className="w-full px-4 py-2 text-xs font-black uppercase text-left hover:bg-muted flex items-center gap-3"><Pencil size={12} /> Edit</button>
+                        <button onClick={() => { onDelete(msg.id); setActiveMenuId(null); }} className="w-full px-4 py-2 text-xs font-black uppercase text-rose-500 text-left hover:bg-rose-500/10 flex items-center gap-3"><Trash2 size={12} /> Delete</button>
+                      </>
+                    )}
+                 </div>
+               )}
+             </div>
+           )}
           {/* WhatsApp Tail Implementation */}
           {isMine ? (
             <div className="absolute top-[-1px] right-[-8px] w-3 h-3 bg-primary/20 border-t border-r border-primary/30" style={{ clipPath: 'polygon(0 0, 0 100%, 100% 0)' }} />
@@ -171,13 +193,42 @@ const MessageBubble = memo(({
               <Download size={16} className="shrink-0 opacity-70" />
             </a>
           )}
+           {msg.type === 'PROFILE' && (
+             <div className={`p-0 rounded-[2rem] border overflow-hidden mb-2 w-64 text-left shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] ${isMine ? 'bg-[#1e293b] border-white/10' : 'bg-[#0f172a] border-border'}`}>
+                {/* Premium Background / Cover */}
+                <div className="h-16 bg-gradient-to-br from-indigo-500 via-primary to-purple-600 relative opacity-90">
+                   <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
+                </div>
+                
+                {/* Content Area */}
+                <div className="px-5 pb-6 -mt-8 relative text-center">
+                   <div className="w-16 h-16 rounded-[1.2rem] border-4 border-[#1e293b] bg-slate-800 mx-auto overflow-hidden shadow-2xl mb-3">
+                      {JSON.parse(msg.content).avatar ? (
+                        <img src={getMediaUrl(JSON.parse(msg.content).avatar)} className="w-full h-full object-cover" />
+                      ) : <div className="w-full h-full flex items-center justify-center text-xl font-bold bg-primary text-white">{(JSON.parse(msg.content).name || "?").charAt(0).toUpperCase()}</div>}
+                   </div>
+                   
+                   <div className="min-w-0 mb-5">
+                      <p className="font-black text-xs uppercase tracking-widest text-white truncate drop-shadow-sm">{JSON.parse(msg.content).name}</p>
+                      <p className="text-[9px] text-blue-300 font-bold uppercase tracking-tighter opacity-80 mt-0.5">Contact Profile Card</p>
+                   </div>
+                   
+                   <button 
+                     onClick={() => onZoomMedia({ userId: JSON.parse(msg.content).id })} 
+                     className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] transition-all border border-white/20 shadow-lg"
+                   >
+                      View Profile
+                   </button>
+                </div>
+             </div>
+           )}
 
           {/* Content with high-fidelity wrapping */}
-          {msg.content && msg.type !== 'VOICE' && (
+          {msg.content && msg.type !== 'VOICE' && msg.type !== 'PROFILE' && (
              <div className="mb-0.5 leading-normal whitespace-pre-wrap [overflow-wrap:anywhere] [word-break:break-word]">
                 {(msg.type === 'IMAGE' || msg.type === 'VIDEO') 
-                  ? (msg.content !== '[Photo]' && msg.content !== '[Video]' && msg.content !== msg.fileName ? msg.content : null)
-                  : msg.content
+                  ? (msg.content !== '[Photo]' && msg.content !== '[Video]' && msg.content !== msg.fileName ? linkify(msg.content, isMine) : null)
+                  : linkify(msg.content, isMine)
                 }
              </div>
           )}
@@ -246,6 +297,9 @@ function MessagesContent() {
   const [error, setError] = useState('');
   const [isDeletingConvo, setIsDeletingConvo] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const [isSharingContact, setIsSharingContact] = useState(false);
+  const [shareSearchQuery, setShareSearchQuery] = useState('');
   const [recipientStatus, setRecipientStatus] = useState('offline'); // online, offline, typing
   const [message, setMessage] = useState({ type: '', text: '' });
   const [isSearchingInChat, setIsSearchingInChat] = useState(false);
@@ -261,6 +315,28 @@ function MessagesContent() {
   const [newNickname, setNewNickname] = useState('');
   const [aliasLoading, setAliasLoading] = useState(false);
   const [lightboxActions, setLightboxActions] = useState(true);
+
+  const [modalTab, setModalTab] = useState('info'); // 'info' or 'gallery'
+  const [galleryTab, setGalleryTab] = useState('media'); // 'media', 'links', 'docs'
+  const [galleryData, setGalleryData] = useState({ media: [], links: [], docs: [] });
+  const [galleryLoading, setGalleryLoading] = useState(false);
+
+  const fetchGallery = async () => {
+    if (!viewingProfile) return;
+    setGalleryLoading(true);
+    try {
+      const res = await api.get(`/user/chat/gallery/${viewingProfile.id}`);
+      setGalleryData(res.data.data);
+    } catch (err) {
+      console.error('Gallery error:', err);
+    } finally {
+      setGalleryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (modalTab === 'gallery') fetchGallery();
+  }, [modalTab, viewingProfile?.id]);
 
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -589,6 +665,12 @@ function MessagesContent() {
   }, [socket, selectedUser, user?.id]);
 
   useEffect(() => {
+    const handleClickOutside = () => setActiveMenuId(null);
+    if (activeMenuId) window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, [activeMenuId]);
+
+  useEffect(() => {
     const fetchMsgs = async () => {
       if (!selectedUser) return;
       try {
@@ -718,6 +800,17 @@ function MessagesContent() {
     setTimeout(() => setMessage({ type: '', text: '' }), 1000);
   };
 
+  const handleMobileMenu = (msg) => {
+    setActiveMenuId(null);
+    setMobileMenuOpen(msg);
+  };
+
+  const handleEditMessage = (msg) => {
+    setEditingMessage(msg);
+    setNewMessage(msg.content);
+    textareaRef.current?.focus();
+  };
+
   // Use centralized getMediaUrl instead of local getAvatar
 
 
@@ -749,9 +842,18 @@ function MessagesContent() {
                 )}
                 <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">{isHiddenMode ? 'Hidden Chats' : 'Chat Inbox'}</h2>
                 {isHiddenMode && <Lock className="w-4 h-4 text-primary animate-pulse" />}
-              </div>
-              <div className={`p-2.5 rounded-xl ${isHiddenMode ? 'bg-primary text-white shadow-lg' : 'bg-primary/10 text-primary'}`}><MessageSquare className="w-5 h-5" /></div>
-            </div>
+               </div>
+               <div className="flex items-center gap-2">
+                 <button 
+                   onClick={() => { setViewingProfile(user); setIsSharingContact(true); }}
+                   title="Share My Profile"
+                   className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl border border-emerald-500/20 transition-all"
+                 >
+                   <Share2 size={14} />
+                 </button>
+                 <div className={`p-2.5 rounded-xl ${isHiddenMode ? 'bg-primary text-white shadow-lg' : 'bg-primary/10 text-primary'}`}><MessageSquare className="w-5 h-5" /></div>
+               </div>
+             </div>
             
             <div className="relative group">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"><Search className="w-3.5 h-3.5" /></div>
@@ -795,6 +897,7 @@ function MessagesContent() {
                     <div className="flex justify-between items-center mb-0.5">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <p className={`font-bold truncate ${isMobileView ? 'text-xs' : 'text-sm'}`}>{u.contactAlias || u.name}</p>
+                        {u.id === user?.id && <span className="px-1.5 py-0.5 bg-primary/20 text-primary text-[8px] font-black rounded-md uppercase tracking-tighter shrink-0 border border-primary/20">You</span>}
                         {u.isPinned && <Pin size={10} className="text-amber-500 fill-amber-500/20" />}
                       </div>
                       {u.lastMessage && <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{new Date(u.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
@@ -835,7 +938,8 @@ function MessagesContent() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className={`font-black text-foreground tracking-tight ${isMobileView ? 'text-xs' : 'text-base'} truncate cursor-pointer flex items-center gap-2`} onClick={() => setViewingProfile(selectedUser)}>
-                      {selectedUser.contactAlias || selectedUser.name}
+                      {selectedUser.id === user?.id ? 'Message Yourself' : (selectedUser.contactAlias || selectedUser.name)}
+                      {selectedUser.id === user?.id && <span className="px-1.5 py-0.5 bg-primary/20 text-primary text-[8px] font-black rounded-md uppercase tracking-tighter shrink-0 border border-primary/20">You</span>}
                       {selectedUser.isPinned && <Pin size={12} className="text-amber-500 shrink-0" />}
                     </h3>
                     <p className={`${isMobileView ? 'text-[9px]' : 'text-[10px]'} font-bold uppercase tracking-widest flex items-center gap-1 truncate ${recipientStatus === 'typing' ? 'text-primary' : recipientStatus === 'online' ? 'text-emerald-500' : 'text-muted-foreground'}`}>
@@ -917,15 +1021,24 @@ function MessagesContent() {
                       msg={msg} 
                       isMine={msg.senderId === user?.id} 
                       isMobileView={isMobileView}
-                      onMobileMenu={setMobileMenuOpen}
+                      onMobileMenu={handleMobileMenu}
                       onReply={setReplyingTo}
-                      onEdit={(m) => { setEditingMessage(m); setNewMessage(m.content); }}
+                      onEdit={handleEditMessage}
                       onCopy={handleCopyMessage}
                       onDelete={handleDeleteSingleMessage}
                       textareaRef={textareaRef}
                       swipeOffset={swipeOffset}
                       setSwipeOffset={setSwipeOffset}
-                      onZoomMedia={(m) => { setLightboxActions(true); setLightboxMedia(m); }}
+                      onZoomMedia={(m) => {
+                        if (m.userId) { // Profile card click
+                           fetchTargetProfile(m.userId);
+                        } else {
+                           setLightboxMedia(m); 
+                           setLightboxActions(true);
+                        }
+                      }}
+                      activeMenuId={activeMenuId}
+                      setActiveMenuId={setActiveMenuId}
                     />
                   ))
                 )}
@@ -1112,11 +1225,11 @@ function MessagesContent() {
         {/* Profile Modal */}
         {viewingProfile && (
            <div key="profile-modal" className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setViewingProfile(null)} className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" />
-             <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative bg-card border border-border w-full max-w-[280px] overflow-hidden rounded-[2.5rem] shadow-2xl">
-               <div className="h-20 bg-gradient-to-r from-primary to-indigo-600 relative"><button onClick={() => setViewingProfile(null)} className="absolute top-4 right-4 p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-all"><X className="w-4 h-4" /></button></div>
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" />
+             <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className={`relative bg-card border border-border w-full ${modalTab === 'gallery' ? 'max-w-[340px]' : 'max-w-[280px]'} overflow-hidden rounded-[2.5rem] shadow-2xl transition-all duration-300`}>
+               <div className="h-20 bg-gradient-to-r from-primary to-indigo-600 relative"><button onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="absolute top-4 right-4 p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-all"><X className="w-4 h-4" /></button></div>
                <div className="px-5 pb-6 text-center -mt-10">
-                 <div className="relative inline-block">
+                  <div className="relative inline-block mb-3">
                     <div 
                       className="w-20 h-20 rounded-[1.5rem] border-4 border-background overflow-hidden bg-muted shadow-lg cursor-pointer group/avatar relative"
                       onClick={() => {
@@ -1140,100 +1253,227 @@ function MessagesContent() {
                     </div>
                     <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-background shadow-sm ${onlineUsers[viewingProfile.id] === 'online' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
                  </div>
-                  <div className="relative mt-2 flex items-center justify-center group px-10">
-                    <h2 className="text-lg font-black tracking-tight truncate">
-                      {viewingProfile.contactAlias || viewingProfile.name || 'Anonymous'}
-                    </h2>
-                    {!isEditingNickname && (
-                      <button 
-                        onClick={() => {
-                          setNewNickname(viewingProfile.contactAlias || '');
-                          setIsEditingNickname(true);
-                        }}
-                        className="absolute right-0 p-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl border border-primary/20 transition-all"
-                        title="Edit Nickname"
-                      >
-                        <Pencil size={12} />
-                      </button>
-                    )}
-                  </div>
 
-                  {isEditingNickname && (
-                    <div className="mt-2 flex items-center gap-2 px-6">
-                      <input 
-                        autoFocus
-                        type="text" 
-                        value={newNickname} 
-                        onChange={(e) => setNewNickname(e.target.value)}
-                        placeholder="Set nickname..."
-                        className="w-full bg-muted border border-primary/20 rounded-xl py-2 px-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
-                      />
-                      <div className="flex gap-1 shrink-0">
-                        <button 
-                          onClick={async () => {
-                            setAliasLoading(true);
-                            try {
-                              await api.patch('/user/contact/alias', { targetId: viewingProfile.id, alias: newNickname });
-                              setViewingProfile(prev => ({ ...prev, contactAlias: newNickname, displayName: newNickname || prev.name }));
-                              setUsers(prev => prev.map(u => u.id === viewingProfile.id ? { ...u, contactAlias: newNickname } : u));
-                              if (selectedUser?.id === viewingProfile.id) {
-                                setSelectedUser(prev => ({ ...prev, contactAlias: newNickname }));
-                              }
-                              setIsEditingNickname(false);
-                            } catch (err) {} finally { setAliasLoading(false); }
-                          }}
-                          disabled={aliasLoading}
-                          className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl border border-emerald-500/20 hover:bg-emerald-500/20"
-                        >
-                          <Check size={16} />
-                        </button>
-                        <button onClick={() => setIsEditingNickname(false)} className="p-2 bg-rose-500/10 text-rose-500 rounded-xl border border-rose-500/20 hover:bg-rose-500/20">
-                          <X size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60 mb-6 truncate px-4">
-                    {viewingProfile.contactAlias ? `Real Name: ${viewingProfile.name}` : 'Secure Profile'}
-                  </p>
-                  
-                  <div className="grid grid-cols-2 gap-2 mb-6">
-                    <div className="p-2 bg-muted/50 rounded-2xl border border-border">
-                       <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Status</p>
-                       <p className={`text-[9px] font-bold uppercase ${onlineUsers[viewingProfile.id] === 'online' ? 'text-emerald-500' : 'text-slate-400'}`}>
-                          {onlineUsers[viewingProfile.id] === 'online' ? 'Active' : 'Offline'}
-                       </p>
-                    </div>
-                    <div className="p-2 bg-muted/50 rounded-2xl border border-border">
-                       <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Member Since</p>
-                       <p className="text-[9px] font-bold uppercase truncate">
-                          {viewingProfile.createdAt ? new Date(viewingProfile.createdAt).toLocaleDateString([], { month: 'short', year: 'numeric' }) : 'Join Date Hidden'}
-                       </p>
-                    </div>
+                 {/* TAB SWITCHER */}
+                 <div className="flex p-1 bg-muted rounded-xl mb-4 max-w-[180px] mx-auto border border-border/50">
+                   <button 
+                     onClick={() => setModalTab('info')}
+                     className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${modalTab === 'info' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                   >
+                     Member
+                   </button>
+                   <button 
+                     onClick={() => setModalTab('gallery')}
+                     className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${modalTab === 'gallery' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                   >
+                     Gallery
+                   </button>
                  </div>
-                 
-                 <div className="space-y-2 text-left">
-                    <div className="flex flex-col gap-1 p-3 bg-muted/30 rounded-xl border border-border/50">
-                       <div className="flex items-center gap-2 mb-1">
-                          <FileText className="w-3 h-3 text-primary shrink-0" />
-                          <p className="text-[7px] font-black uppercase text-muted-foreground">Biography</p>
+
+                 <AnimatePresence mode="wait">
+                   {modalTab === 'info' ? (
+                     <motion.div 
+                       key="info-content"
+                       initial={{ opacity: 0, x: -10 }}
+                       animate={{ opacity: 1, x: 0 }}
+                       exit={{ opacity: 0, x: -10 }}
+                       transition={{ duration: 0.2 }}
+                     >
+                        <div className="relative flex items-center justify-center group px-10">
+                          <h2 className="text-lg font-black tracking-tight truncate">
+                            {viewingProfile.contactAlias || viewingProfile.name || 'Anonymous'}
+                          </h2>
+                          {!isEditingNickname && (
+                            <button 
+                              onClick={() => {
+                                setNewNickname(viewingProfile.contactAlias || '');
+                                setIsEditingNickname(true);
+                              }}
+                              className="absolute right-0 p-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl border border-primary/20 transition-all"
+                              title="Edit Nickname"
+                            >
+                              <Pencil size={12} />
+                            </button>
+                          )}
+                        </div>
+
+                        {isEditingNickname && (
+                          <div className="mt-2 flex items-center gap-2 px-6">
+                            <input 
+                              autoFocus
+                              type="text" 
+                              value={newNickname} 
+                              onChange={(e) => setNewNickname(e.target.value)}
+                              placeholder="Set nickname..."
+                              className="w-full bg-muted border border-primary/20 rounded-xl py-2 px-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            />
+                            <div className="flex gap-1 shrink-0">
+                              <button 
+                                onClick={async () => {
+                                  setAliasLoading(true);
+                                  try {
+                                    await api.patch('/user/contact/alias', { targetId: viewingProfile.id, alias: newNickname });
+                                    setViewingProfile(prev => ({ ...prev, contactAlias: newNickname, displayName: newNickname || prev.name }));
+                                    setUsers(prev => prev.map(u => u.id === viewingProfile.id ? { ...u, contactAlias: newNickname } : u));
+                                    if (selectedUser?.id === viewingProfile.id) {
+                                      setSelectedUser(prev => ({ ...prev, contactAlias: newNickname }));
+                                    }
+                                    setIsEditingNickname(false);
+                                  } catch (err) {} finally { setAliasLoading(false); }
+                                }}
+                                disabled={aliasLoading}
+                                className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl border border-emerald-500/20 hover:bg-emerald-500/20"
+                              >
+                                <Check size={16} />
+                              </button>
+                              <button onClick={() => setIsEditingNickname(false)} className="p-2 bg-rose-500/10 text-rose-500 rounded-xl border border-rose-500/20 hover:bg-rose-500/20">
+                                <X size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60 mb-6 truncate px-4">
+                          {viewingProfile.contactAlias ? `Real Name: ${viewingProfile.name}` : 'Secure Profile'}
+                        </p>
+                        
+                        <div className="grid grid-cols-2 gap-2 mb-6">
+                          <div className="p-2 bg-muted/50 rounded-2xl border border-border">
+                             <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Status</p>
+                             <p className={`text-[9px] font-bold uppercase ${onlineUsers[viewingProfile.id] === 'online' ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                {onlineUsers[viewingProfile.id] === 'online' ? 'Active' : 'Offline'}
+                             </p>
+                          </div>
+                          <div className="p-2 bg-muted/50 rounded-2xl border border-border">
+                             <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Member Since</p>
+                             <p className="text-[9px] font-bold uppercase truncate">
+                                {viewingProfile.createdAt ? new Date(viewingProfile.createdAt).toLocaleDateString([], { month: 'short', year: 'numeric' }) : 'Join Date Hidden'}
+                             </p>
+                          </div>
                        </div>
-                       <p className="text-[10px] font-bold text-foreground leading-relaxed italic">
-                          {viewingProfile.bio || "No biography provided by user."}
-                       </p>
-                    </div>
-                 </div>
-                 
-                 <div className="mt-6 space-y-2">
-                    <button 
-                      onClick={() => router.push(`/profile/${viewingProfile.id}`)}
-                      className="w-full py-3 bg-muted hover:bg-muted/80 text-foreground rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2"
-                    >
-                      <UserCircle size={14} /> View Full Profile
-                    </button>
-                    <button onClick={() => setViewingProfile(null)} className="w-full py-3 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Close</button>
-                 </div>
+                       
+                       <div className="space-y-2 text-left">
+                          <div className="flex flex-col gap-1 p-3 bg-muted/30 rounded-xl border border-border/50">
+                             <div className="flex items-center gap-2 mb-1">
+                                <FileText className="w-3 h-3 text-primary shrink-0" />
+                                <p className="text-[7px] font-black uppercase text-muted-foreground">Biography</p>
+                             </div>
+                             <p className="text-[10px] font-bold text-foreground leading-relaxed italic">
+                                {viewingProfile.bio || "No biography provided by user."}
+                             </p>
+                          </div>
+                       </div>
+                       
+                       <div className="mt-6 space-y-2">
+                          <button 
+                            onClick={() => setIsSharingContact(true)}
+                            className="w-full py-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 border border-emerald-500/20"
+                          >
+                            <Share2 size={14} /> Share Profile
+                          </button>
+                          <button 
+                            onClick={() => router.push(`/profile/${viewingProfile.id}`)}
+                            className="w-full py-3 bg-muted hover:bg-muted/80 text-foreground rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2"
+                          >
+                            <UserCircle size={14} /> View Full Profile
+                          </button>
+                          <button onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="w-full py-3 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Close</button>
+                       </div>
+                     </motion.div>
+                   ) : (
+                     <motion.div 
+                       key="gallery-content"
+                       initial={{ opacity: 0, x: 10 }}
+                       animate={{ opacity: 1, x: 0 }}
+                       exit={{ opacity: 0, x: 10 }}
+                       transition={{ duration: 0.2 }}
+                       className="min-h-[280px] flex flex-col"
+                     >
+                        <div className="flex justify-center gap-2 mb-4">
+                           {['media', 'links', 'docs'].map(t => (
+                             <button 
+                                key={t}
+                                onClick={() => setGalleryTab(t)}
+                                className={`text-[9px] font-black uppercase tracking-widest py-1.5 px-3 rounded-xl transition-all border ${galleryTab === t ? 'bg-primary/10 border-primary text-primary' : 'bg-muted border-transparent text-muted-foreground hover:text-foreground'}`}
+                             >
+                               {t}
+                             </button>
+                           ))}
+                        </div>
+
+                        <div className="h-[250px] overflow-y-auto px-1 custom-scrollbar">
+                           {galleryLoading ? (
+                             <div className="h-full flex items-center justify-center"><Loader2 className="w-5 h-5 text-primary animate-spin" /></div>
+                           ) : galleryTab === 'media' ? (
+                             galleryData.media.length > 0 ? (
+                               <div className="grid grid-cols-3 gap-1.5">
+                                  {galleryData.media.map(m => (
+                                    <div 
+                                      key={m.id} 
+                                      onClick={() => { setLightboxActions(true); setLightboxMedia(m); }}
+                                      className="aspect-square bg-muted rounded-xl overflow-hidden cursor-pointer hover:opacity-80 transition-all border border-border"
+                                    >
+                                       {m.type === 'IMAGE' ? (
+                                         <img src={getMediaUrl(m.fileUrl)} className="w-full h-full object-cover" />
+                                       ) : (
+                                         <div className="w-full h-full flex items-center justify-center bg-slate-900 text-white relative">
+                                           <Play size={16} />
+                                           <div className="absolute inset-0 bg-black/20" />
+                                         </div>
+                                       )}
+                                    </div>
+                                  ))}
+                               </div>
+                             ) : <div className="h-full flex flex-col items-center justify-center opacity-20 text-[10px] font-black uppercase"><ImageIcon size={24} className="mb-2" />No Media</div>
+                           ) : galleryTab === 'links' ? (
+                             galleryData.links.length > 0 ? (
+                               <div className="space-y-2 text-left pb-4">
+                                  {galleryData.links.map(l => (
+                                    <div key={l.id} className="p-3 bg-muted rounded-2xl border border-border group relative overflow-hidden text-left">
+                                       <div className="absolute top-0 left-0 w-1 h-full bg-primary/30" />
+                                       <p className="text-[10px] font-bold text-foreground break-all line-clamp-2 pr-6 leading-relaxed">{l.content}</p>
+                                       <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/20">
+                                          <span className="text-[8px] text-muted-foreground font-black uppercase tracking-tight">{new Date(l.createdAt).toLocaleDateString()}</span>
+                                          <button 
+                                            onClick={() => window.open(l.content.match(/https?:\/\/[^\s]+/)?.[0], '_blank')}
+                                            className="text-[8px] text-primary font-black uppercase hover:underline flex items-center gap-1"
+                                          >
+                                            Visit <ExternalLink size={8} />
+                                          </button>
+                                       </div>
+                                    </div>
+                                  ))}
+                               </div>
+                             ) : <div className="h-full flex flex-col items-center justify-center opacity-20 text-[10px] font-black uppercase"><Paperclip size={24} className="mb-2" />No Links</div>
+                           ) : (
+                             galleryData.docs.length > 0 ? (
+                               <div className="space-y-2 text-left pb-4">
+                                  {galleryData.docs.map(d => (
+                                    <div key={d.id} className="p-3 bg-muted/60 rounded-2xl border border-border flex items-center gap-3 group hover:bg-muted transition-all">
+                                       <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0"><FileIcon size={14} /></div>
+                                       <div className="min-w-0 flex-1">
+                                          <p className="text-[10px] font-bold text-foreground truncate leading-tight mb-0.5">{d.fileName || d.fileUrl.split('/').pop()}</p>
+                                          <div className="flex items-center gap-2">
+                                             <span className="text-[8px] text-muted-foreground font-black uppercase italic opacity-60">{(d.fileSize / 1024 / 1024).toFixed(2)} MB</span>
+                                             <button 
+                                               onClick={() => window.open(getMediaUrl(d.fileUrl), '_blank')}
+                                               className="text-[8px] text-primary font-black uppercase hover:underline"
+                                             >
+                                                Download
+                                             </button>
+                                          </div>
+                                       </div>
+                                    </div>
+                                  ))}
+                               </div>
+                             ) : <div className="h-full flex flex-col items-center justify-center opacity-20 text-[10px] font-black uppercase"><FileText size={24} className="mb-2" />No Docs</div>
+                           )}
+                        </div>
+                        
+                        <button onClick={() => setModalTab('info')} className="w-full mt-4 py-3 bg-muted text-foreground rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all hover:bg-muted/80 border border-border/50">Back to Profile</button>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
                </div>
              </motion.div>
            </div>
@@ -1294,6 +1534,66 @@ function MessagesContent() {
              </motion.div>
           </div>
         )}
+         {isSharingContact && (
+            <div key="share-contact-modal" className="fixed inset-0 z-[500] flex items-center justify-center p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsSharingContact(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-[320px] overflow-hidden rounded-[2.5rem] shadow-2xl p-6">
+                 <h2 className="text-sm font-black uppercase tracking-widest text-center mb-4">Share to Friend</h2>
+                 
+                 <div className="relative mb-4">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50"><Search size={12} /></div>
+                    <input 
+                      type="text" 
+                      placeholder="Search contacts..." 
+                      value={shareSearchQuery}
+                      onChange={(e) => setShareSearchQuery(e.target.value)}
+                      className="w-full bg-muted border border-border rounded-xl py-2 pl-9 pr-4 text-[10px] font-bold uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                 </div>
+
+                 <div className="max-h-[300px] overflow-y-auto custom-scrollbar space-y-2">
+                    {users
+                      .filter(u => u.id !== viewingProfile.id)
+                      .filter(u => {
+                         const name = (u.contactAlias || u.name || '').toLowerCase();
+                         return name.includes(shareSearchQuery.toLowerCase());
+                      })
+                      .map(u => (
+                      <button 
+                        key={u.id}
+                        onClick={async () => {
+                           const contactData = { id: viewingProfile.id, name: viewingProfile.name, avatar: viewingProfile.avatar };
+                           try {
+                              if (socket) {
+                                socket.emit('send_message', {
+                                   receiverId: u.id,
+                                   content: JSON.stringify(contactData),
+                                   type: 'PROFILE'
+                                });
+                                setIsSharingContact(false);
+                                setViewingProfile(null);
+                                // Select that user after sharing
+                                setSelectedUser(u);
+                                setShowChat(true);
+                              }
+                           } catch (err) {
+                             console.error('Share error:', err);
+                           }
+                        }}
+                        className="w-full p-3 bg-muted rounded-2xl border border-border flex items-center gap-3 hover:bg-primary/10 hover:border-primary/30 transition-all group"
+                      >
+                         <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center overflow-hidden border border-white/10 shrink-0">
+                            {u.avatar ? <img src={getMediaUrl(u.avatar)} className="w-full h-full object-cover" /> : <User size={20} />}
+                         </div>
+                         <p className="font-black text-[10px] uppercase truncate flex-1 text-left">{u.contactAlias || u.name}</p>
+                         <div className="p-1 px-2 bg-primary/20 text-primary rounded-lg text-[8px] font-black opacity-0 group-hover:opacity-100 transition-opacity">SEND</div>
+                      </button>
+                    ))}
+                 </div>
+                 <button onClick={() => setIsSharingContact(false)} className="w-full mt-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 hover:text-muted-foreground transition-all">Cancel</button>
+              </motion.div>
+            </div>
+         )}
         {/* Lightbox / Zoomed Media */}
         <AnimatePresence>
           {lightboxMedia && (

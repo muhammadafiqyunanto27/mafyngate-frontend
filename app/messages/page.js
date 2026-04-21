@@ -113,28 +113,29 @@ const MessageBubble = memo(({
         {/* Desktop Menu handled inside bubble dropdown now */}
 
         <div className={`relative px-3 py-2 rounded-xl shadow-sm text-sm transition-all border w-fit group/bubble ${isMine ? 'bg-primary/20 backdrop-blur-2xl text-white border-primary/30 rounded-tr-none' : 'bg-muted/80 backdrop-blur-2xl text-foreground border-border/50 rounded-tl-none shadow-md'}`}>
-          {!isMobileView && (
-             <div className="absolute top-1 right-1 opacity-0 group-hover/bubble:opacity-100 transition-all z-10">
-               <button 
-                 onClick={(e) => { e.stopPropagation(); setActiveMenuId(activeMenuId === msg.id ? null : msg.id); }}
-                 className="p-1 rounded-lg bg-black/10 hover:bg-black/20 text-white/70 hover:text-white"
-               >
-                 <ChevronDown size={14} />
-               </button>
-               {activeMenuId === msg.id && (
-                 <div className="absolute top-7 right-0 min-w-[120px] bg-card border border-border shadow-2xl rounded-2xl overflow-hidden py-1.5 z-50 animate-in fade-in zoom-in duration-100 origin-top-right">
-                    <button onClick={() => { onReply(msg); setActiveMenuId(null); textareaRef.current?.focus(); }} className="w-full px-4 py-2 text-xs font-black uppercase text-left hover:bg-muted flex items-center gap-3"><Reply size={12} /> Reply</button>
-                    <button onClick={() => { onCopy(msg.content); setActiveMenuId(null); }} className="w-full px-4 py-2 text-xs font-black uppercase text-left hover:bg-muted flex items-center gap-3"><Copy size={12} /> Copy</button>
-                    {isMine && (
-                      <>
-                        <button onClick={() => { onEdit(msg); setActiveMenuId(null); textareaRef.current?.focus(); }} className="w-full px-4 py-2 text-xs font-black uppercase text-left hover:bg-muted flex items-center gap-3"><Pencil size={12} /> Edit</button>
-                        <button onClick={() => { onDelete(msg.id); setActiveMenuId(null); }} className="w-full px-4 py-2 text-xs font-black uppercase text-rose-500 text-left hover:bg-rose-500/10 flex items-center gap-3"><Trash2 size={12} /> Delete</button>
-                      </>
-                    )}
-                 </div>
+               {!isMobileView && (
+                <div className={`absolute top-1 ${isMine ? 'left-1' : 'right-1'} opacity-0 group-hover/bubble:opacity-100 transition-all z-10`}>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setActiveMenuId(activeMenuId === msg.id ? null : msg.id); }}
+                    className="p-1 rounded-lg hover:bg-black/10 text-white/50 hover:text-white transition-colors"
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                  {activeMenuId === msg.id && (
+                    <div className={`absolute top-0 min-w-[140px] bg-card border border-border/50 shadow-2xl rounded-2xl overflow-hidden py-1.5 z-[100] animate-in fade-in zoom-in slide-in-from-top-2 duration-200 ${isMine ? 'right-full mr-4' : 'left-full ml-4'}`}>
+                       <p className="px-4 py-1.5 text-[9px] font-black uppercase tracking-tighter text-muted-foreground/50 border-b border-border/30 mb-1">Actions</p>
+                       <button onClick={() => { onReply(msg); setActiveMenuId(null); textareaRef.current?.focus(); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-left hover:bg-primary/10 hover:text-primary flex items-center gap-3 transition-colors"><Reply size={12} /> Reply</button>
+                       <button onClick={() => { onCopy(msg.content); setActiveMenuId(null); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-left hover:bg-primary/10 hover:text-primary flex items-center gap-3 transition-colors"><Copy size={12} /> Copy</button>
+                       {isMine && (
+                         <>
+                           <button onClick={() => { onEdit(msg); setActiveMenuId(null); textareaRef.current?.focus(); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-left hover:bg-primary/10 hover:text-primary flex items-center gap-3 transition-colors"><Pencil size={12} /> Edit</button>
+                           <button onClick={() => { onDelete(msg.id); setActiveMenuId(null); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-rose-500 text-left hover:bg-rose-500/10 flex items-center gap-3 transition-colors"><Trash2 size={12} /> Delete</button>
+                         </>
+                       )}
+                    </div>
+                  )}
+                </div>
                )}
-             </div>
-           )}
           {/* WhatsApp Tail Implementation */}
           {isMine ? (
             <div className="absolute top-[-1px] right-[-8px] w-3 h-3 bg-primary/20 border-t border-r border-primary/30" style={{ clipPath: 'polygon(0 0, 0 100%, 100% 0)' }} />
@@ -193,11 +194,14 @@ const MessageBubble = memo(({
               <Download size={16} className="shrink-0 opacity-70" />
             </a>
           )}
-           {msg.type === 'PROFILE' && (
-             <div className={`p-0 rounded-[2rem] border overflow-hidden mb-2 w-64 text-left shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] ${isMine ? 'bg-[#1e293b] border-white/10' : 'bg-[#0f172a] border-border'}`}>
+            {msg.type === 'PROFILE' && (
+             <div 
+               onClick={() => onZoomMedia({ userId: JSON.parse(msg.content).id })} 
+               className={`p-0 rounded-[2rem] border overflow-hidden mb-2 w-64 text-left shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer group/card ${isMine ? 'bg-[#1e293b] border-white/10' : 'bg-[#0f172a] border-border'}`}
+             >
                 {/* Premium Background / Cover */}
                 <div className="h-16 bg-gradient-to-br from-indigo-500 via-primary to-purple-600 relative opacity-90">
-                   <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
+                   <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] group-hover/card:backdrop-blur-0 transition-all" />
                 </div>
                 
                 {/* Content Area */}
@@ -213,12 +217,9 @@ const MessageBubble = memo(({
                       <p className="text-[9px] text-blue-300 font-bold uppercase tracking-tighter opacity-80 mt-0.5">Contact Profile Card</p>
                    </div>
                    
-                   <button 
-                     onClick={() => onZoomMedia({ userId: JSON.parse(msg.content).id })} 
-                     className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] transition-all border border-white/20 shadow-lg"
-                   >
-                      View Profile
-                   </button>
+                   <div className="w-full py-2.5 bg-white/5 group-hover/card:bg-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] transition-all border border-white/20 shadow-lg flex items-center justify-center gap-2">
+                      <User size={12} className="text-primary" /> View Profile
+                   </div>
                 </div>
              </div>
            )}
@@ -298,6 +299,30 @@ function MessagesContent() {
   const [isDeletingConvo, setIsDeletingConvo] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
   const [activeMenuId, setActiveMenuId] = useState(null);
+
+  const formatPreview = (msg) => {
+    if (!msg) return 'Start chatting...';
+    if (msg.type === 'PROFILE' || (msg.content && msg.content.startsWith('{'))) {
+      try {
+        const data = JSON.parse(msg.content);
+        if (data.id && data.name) return `Profile: ${data.name}`;
+      } catch (e) {}
+    }
+    if (msg.type === 'IMAGE') return '📷 Photo';
+    if (msg.type === 'VIDEO') return '🎥 Video';
+    if (msg.type === 'VOICE') return '🎤 Voice Note';
+    if (msg.type === 'FILE') return '📄 Document';
+    return msg.content;
+  };
+
+  const fetchTargetProfile = async (targetId) => {
+    try {
+       const res = await api.get(`/user/profile/${targetId}`);
+       setViewingProfile(res.data.data);
+    } catch (err) {
+       console.error('Failed to fetch profile:', err);
+    }
+  };
   const [isSharingContact, setIsSharingContact] = useState(false);
   const [shareSearchQuery, setShareSearchQuery] = useState('');
   const [recipientStatus, setRecipientStatus] = useState('offline'); // online, offline, typing
@@ -629,7 +654,7 @@ function MessagesContent() {
         const updatedUsers = [...prev];
         const targetUser = { ...updatedUsers[userIndex] };
         
-        targetUser.lastMessage = { content: m.content, createdAt: m.createdAt };
+        targetUser.lastMessage = { content: m.content, createdAt: m.createdAt, type: m.type };
         if (isIncoming && (!selectedUser || selectedUser.id !== userId)) {
           targetUser.unreadCount = (targetUser.unreadCount || 0) + 1;
         }
@@ -843,28 +868,18 @@ function MessagesContent() {
                 <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">{isHiddenMode ? 'Hidden Chats' : 'Chat Inbox'}</h2>
                 {isHiddenMode && <Lock className="w-4 h-4 text-primary animate-pulse" />}
                </div>
-               <div className="flex items-center gap-2">
-                 <button 
-                   onClick={() => { setViewingProfile(user); setIsSharingContact(true); }}
-                   title="Share My Profile"
-                   className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl border border-emerald-500/20 transition-all"
-                 >
-                   <Share2 size={14} />
-                 </button>
-                 <div className={`p-2.5 rounded-xl ${isHiddenMode ? 'bg-primary text-white shadow-lg' : 'bg-primary/10 text-primary'}`}><MessageSquare className="w-5 h-5" /></div>
-               </div>
-             </div>
+            </div>
             
-            <div className="relative group">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"><Search className="w-3.5 h-3.5" /></div>
-              <input 
-                type="text" 
-                suppressHydrationWarning
-                placeholder={isHiddenMode ? 'Search hidden...' : 'Search chats...'} 
-                value={searchQuery} 
-                onChange={(e) => setSearchQuery(e.target.value)} 
-                className="w-full pl-11 pr-4 py-2.5 bg-muted border border-border rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold text-xs" 
-              />
+            <div className="relative group w-full overflow-hidden">
+               <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors flex items-center"><Search className="w-3.5 h-3.5" /></div>
+               <input 
+                 type="text" 
+                 suppressHydrationWarning
+                 placeholder={isHiddenMode ? 'Search hidden...' : 'Search chats...'} 
+                 value={searchQuery} 
+                 onChange={(e) => setSearchQuery(e.target.value)} 
+                 className="w-full pl-10 pr-4 py-2 bg-muted/80 border border-border rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold text-[10px] uppercase tracking-tighter" 
+               />
             </div>
           </div>
 
@@ -878,7 +893,12 @@ function MessagesContent() {
               filteredUsers.map((u) => (
                 <button
                   key={u.id}
-                  onClick={() => { if (selectedUser?.id !== u.id) { setMessages([]); setIsInitialLoad(true); } setSelectedUser(u); if (isMobileView) setShowChat(true); }}
+                  onClick={() => { 
+                    if (selectedUser?.id !== u.id) { setMessages([]); setIsInitialLoad(true); } 
+                    setSelectedUser(u); 
+                    if (isMobileView) setShowChat(true);
+                    if (u.id === user?.id) setViewingProfile(u);
+                  }}
                   className={`w-full p-3 rounded-2xl flex items-center gap-3 transition-all group ${selectedUser?.id === u.id ? 'bg-primary/10 text-primary shadow-sm border border-primary/10' : 'hover:bg-muted border border-transparent'}`}
                 >
                   <div className={`${isMobileView ? 'w-9 h-9' : 'w-10 h-10'} rounded-xl overflow-hidden border-2 border-background shadow-sm shrink-0`} onClick={(e) => { e.stopPropagation(); setViewingProfile(u); }}>
@@ -896,14 +916,16 @@ function MessagesContent() {
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex justify-between items-center mb-0.5">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <p className={`font-bold truncate ${isMobileView ? 'text-xs' : 'text-sm'}`}>{u.contactAlias || u.name}</p>
+                        <p className={`font-semibold truncate ${isMobileView ? 'text-xs' : 'text-sm'}`}>{u.contactAlias || u.name}</p>
                         {u.id === user?.id && <span className="px-1.5 py-0.5 bg-primary/20 text-primary text-[8px] font-black rounded-md uppercase tracking-tighter shrink-0 border border-primary/20">You</span>}
                         {u.isPinned && <Pin size={10} className="text-amber-500 fill-amber-500/20" />}
                       </div>
                       {u.lastMessage && <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{new Date(u.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                       <p className={`text-xs truncate font-medium opacity-60 flex-1 ${u.lastMessage ? 'text-foreground/80' : 'italic'}`}>{u.lastMessage ? u.lastMessage.content : 'Start chatting...'}</p>
+                        <p className={`text-[11px] truncate opacity-50 flex-1 leading-relaxed ${u.lastMessage ? 'text-foreground/80 font-medium' : 'italic'}`}>
+                          {formatPreview(u.lastMessage)}
+                        </p>
                        {u.unreadCount > 0 && (
                          <div className="min-w-[18px] h-[18px] bg-emerald-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 shadow-lg shadow-emerald-500/20 animate-in zoom-in duration-300">
                            {u.unreadCount}
@@ -1585,7 +1607,7 @@ function MessagesContent() {
                          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center overflow-hidden border border-white/10 shrink-0">
                             {u.avatar ? <img src={getMediaUrl(u.avatar)} className="w-full h-full object-cover" /> : <User size={20} />}
                          </div>
-                         <p className="font-black text-[10px] uppercase truncate flex-1 text-left">{u.contactAlias || u.name}</p>
+                         <p className="font-semibold text-[11px] truncate flex-1 text-left">{u.contactAlias || u.name}</p>
                          <div className="p-1 px-2 bg-primary/20 text-primary rounded-lg text-[8px] font-black opacity-0 group-hover:opacity-100 transition-opacity">SEND</div>
                       </button>
                     ))}

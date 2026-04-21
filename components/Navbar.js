@@ -315,14 +315,16 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                           </p>
                         </div>
                       </div>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); handleFollowAction(result.id, result.followStatus === 'ACCEPTED' ? 'unfollow' : 'follow'); }} 
-                        className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest flex-shrink-0 ${result.followStatus === 'ACCEPTED' ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20' : result.followStatus === 'PENDING' ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105 active:scale-95'}`}
-                      >
-                        {result.followStatus === 'ACCEPTED' ? 'Unfollow' : 
-                         (result.followStatus === 'PENDING' ? 'Requested' : 
-                          (result.followsMe ? 'Follow Back' : (result.isPrivate ? 'Connect' : 'Follow')))}
-                      </button>
+                      {result.id !== user?.id && (
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleFollowAction(result.id, result.followStatus === 'ACCEPTED' ? 'unfollow' : 'follow'); }} 
+                          className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest flex-shrink-0 ${result.followStatus === 'ACCEPTED' ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20' : result.followStatus === 'PENDING' ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105 active:scale-95'}`}
+                        >
+                          {result.followStatus === 'ACCEPTED' ? 'Unfollow' : 
+                           (result.followStatus === 'PENDING' ? 'Requested' : 
+                            (result.followsMe ? 'Follow Back' : (result.isPrivate ? 'Connect' : 'Follow')))}
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>

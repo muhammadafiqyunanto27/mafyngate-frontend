@@ -24,17 +24,17 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-primary-50: oklch(0.966 0.013 253.99);
-  --color-primary-100: oklch(0.935 0.024 252.27);
-  --color-primary-200: oklch(0.881 0.045 253.1);
-  --color-primary-300: oklch(0.802 0.076 253.5);
-  --color-primary-400: oklch(0.702 0.121 254.13);
-  --color-primary-500: oklch(0.585 0.164 255.44);
-  --color-primary-600: oklch(0.496 0.16 256.45);
-  --color-primary-700: oklch(0.419 0.138 257);
-  --color-primary-800: oklch(0.354 0.117 257.08);
-  --color-primary-900: oklch(0.297 0.091 256.43);
-  --color-primary-950: oklch(0.206 0.054 255.51);
+  --color-primary-50: hsl(254 30% 96%);
+  --color-primary-100: hsl(252 40% 93%);
+  --color-primary-200: hsl(253 45% 88%);
+  --color-primary-300: hsl(253 50% 80%);
+  --color-primary-400: hsl(254 55% 70%);
+  --color-primary-500: hsl(255 60% 58%);
+  --color-primary-600: hsl(256 60% 50%);
+  --color-primary-700: hsl(257 55% 42%);
+  --color-primary-800: hsl(257 50% 35%);
+  --color-primary-900: hsl(256 45% 30%);
+  --color-primary-950: hsl(255 40% 20%);
 
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
@@ -42,47 +42,47 @@
 }
 
 :root {
-  --background: oklch(0.96 0.005 240);
-  --foreground: oklch(0.25 0.04 260);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.25 0.04 260);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.25 0.04 260);
-  --primary: oklch(0.55 0.16 255);
-  --primary-foreground: oklch(0.98 0.01 250);
-  --secondary: oklch(0.94 0.01 250);
-  --secondary-foreground: oklch(0.2 0.04 260);
-  --muted: oklch(0.93 0.01 250);
-  --muted-foreground: oklch(0.4 0.03 260);
-  --accent: oklch(0.94 0.01 250);
-  --accent-foreground: oklch(0.2 0.04 260);
-  --destructive: oklch(0.6 0.25 25);
-  --destructive-foreground: oklch(0.6 0.25 25);
-  --border: oklch(0.88 0.01 250);
-  --input: oklch(0.88 0.01 250);
-  --ring: oklch(0.55 0.16 255);
+  --background: hsl(240 5% 96%);
+  --foreground: hsl(260 20% 25%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(260 20% 25%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(260 20% 25%);
+  --primary: hsl(255 75% 55%);
+  --primary-foreground: hsl(250 10% 98%);
+  --secondary: hsl(250 5% 94%);
+  --secondary-foreground: hsl(260 20% 20%);
+  --muted: hsl(250 5% 93%);
+  --muted-foreground: hsl(260 10% 40%);
+  --accent: hsl(250 5% 94%);
+  --accent-foreground: hsl(260 20% 20%);
+  --destructive: hsl(25 80% 60%);
+  --destructive-foreground: hsl(25 80% 60%);
+  --border: hsl(250 5% 88%);
+  --input: hsl(250 5% 88%);
+  --ring: hsl(255 75% 55%);
 }
 
 .dark {
-  --background: oklch(0.145 0.015 265.75);
-  --foreground: oklch(0.985 0.002 247.86);
-  --card: oklch(0.185 0.015 265.75);
-  --card-foreground: oklch(0.985 0.002 247.86);
-  --popover: oklch(0.145 0.015 265.75);
-  --popover-foreground: oklch(0.985 0.002 247.86);
-  --primary: oklch(0.585 0.164 255.44);
-  --primary-foreground: oklch(0.985 0.002 247.86);
-  --secondary: oklch(0.235 0.015 265.75);
-  --secondary-foreground: oklch(0.985 0.002 247.86);
-  --muted: oklch(0.235 0.015 265.75);
-  --muted-foreground: oklch(0.708 0.012 265.75);
-  --accent: oklch(0.235 0.015 265.75);
-  --accent-foreground: oklch(0.985 0.002 247.86);
-  --destructive: oklch(0.396 0.141 25.72);
-  --destructive-foreground: oklch(0.637 0.237 25.33);
-  --border: oklch(0.235 0.015 265.75);
-  --input: oklch(0.235 0.015 265.75);
-  --ring: oklch(0.585 0.164 255.44);
+  --background: hsl(266 12% 14%);
+  --foreground: hsl(248 5% 98%);
+  --card: hsl(266 12% 18%);
+  --card-foreground: hsl(248 5% 98%);
+  --popover: hsl(266 12% 14%);
+  --popover-foreground: hsl(248 5% 98%);
+  --primary: hsl(255 75% 58%);
+  --primary-foreground: hsl(248 5% 98%);
+  --secondary: hsl(266 12% 23%);
+  --secondary-foreground: hsl(248 5% 98%);
+  --muted: hsl(266 12% 23%);
+  --muted-foreground: hsl(266 10% 70%);
+  --accent: hsl(266 12% 23%);
+  --accent-foreground: hsl(248 5% 98%);
+  --destructive: hsl(25 70% 40%);
+  --destructive-foreground: hsl(25 80% 63%);
+  --border: hsl(266 12% 23%);
+  --input: hsl(266 12% 23%);
+  --ring: hsl(255 75% 58%);
 }
 
 @layer base {

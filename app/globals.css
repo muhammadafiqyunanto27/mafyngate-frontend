@@ -95,7 +95,7 @@
   body {
     @apply text-foreground transition-colors duration-300 antialiased selection:bg-primary/30;
     min-height: 100vh;
-    background: radial-gradient(circle at top left, oklch(0.98 0.01 250), var(--background)) fixed;
+    background: radial-gradient(circle at top left, hsl(250 10% 98%), var(--background)) fixed;
   }
   .dark body {
     background: var(--background);

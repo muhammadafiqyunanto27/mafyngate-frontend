@@ -25,6 +25,15 @@ export const AuthProvider = ({ children }) => {
   const updateUser = fetchUser;
 
   useEffect(() => {
+    // Safety timeout: If auth takes more than 15s (e.g. server/DB down),
+    // we stop showing the loading screen so the user can at least see the landing page/error.
+    const safetyTimer = setTimeout(() => {
+      setLoading(curr => {
+        if (curr) console.warn('[Auth] Safety timeout triggered. Forcing UI load.');
+        return false;
+      });
+    }, 15000);
+
     const initAuth = async () => {
       try {
         await fetchUser();
@@ -38,9 +47,11 @@ export const AuthProvider = ({ children }) => {
         }
       } finally {
         setLoading(false);
+        clearTimeout(safetyTimer);
       }
     };
     initAuth();
+    return () => clearTimeout(safetyTimer);
   }, []);
 
   const login = async (email, password) => {

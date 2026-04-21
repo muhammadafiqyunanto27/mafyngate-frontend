@@ -14,6 +14,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -26,8 +27,11 @@ export default function Home() {
     }
   }, [user, loading, router]);
 
-  // Removed the 'if (loading || user) return null' to ensure 
-  // visitors always see the Landing Page immediately.
+  // 2. Premium Loading State (Unified for everyone)
+  if (loading) return <LoadingScreen />;
+
+  // 3. User present? We are redirecting, return null to avoid flicker of landing page
+  if (user) return null;
   
   // Gmail Compose Function for Landing Page
   const openGmail = () => {

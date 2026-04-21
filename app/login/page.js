@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn, ShieldCheck, ArrowRight } from 'lucide-react';
+import LoadingScreen from '../../components/LoadingScreen';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -20,6 +21,8 @@ export default function LoginPage() {
       router.push('/dashboard');
     }
   }, [user, authLoading, router]);
+
+  if (authLoading) return <LoadingScreen />;
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -104,9 +104,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ duration: 0.2 }}
-                    className="w-10 h-10 rounded-xl overflow-hidden shadow-lg flex-shrink-0"
+                    className="w-10 h-10 overflow-hidden shadow-lg flex-shrink-0"
                   >
-                    <img src="/logo.png?v=6" alt="MafynGate" className="w-full h-full object-cover" />
+                    <img src="/logo.png?v=8" alt="MafynGate" className="w-full h-full object-cover" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -119,8 +119,8 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
             /* EXPANDED STATE: Logo (left), Name, Toggle Button (right) */
             <div className="w-full flex items-center justify-between overflow-hidden">
                <Link href="/dashboard" className="flex items-center gap-3 overflow-hidden min-w-0 max-w-full">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
-                    <img src="/logo.png?v=6" alt="MafynGate" className="w-full h-full object-cover" />
+                  <div className="w-10 h-10 overflow-hidden shadow-lg flex-shrink-0">
+                    <img src="/logo.png?v=8" alt="MafynGate" className="w-full h-full object-cover" />
                   </div>
                   <span className="font-bold text-xl tracking-tight text-foreground truncate select-none">
                     MafynGate

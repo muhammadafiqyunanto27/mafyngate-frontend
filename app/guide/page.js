@@ -79,8 +79,8 @@ export default function GuidePage() {
           </Link>
           
           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 rounded-xl overflow-hidden shadow-lg shadow-primary/20 flex-shrink-0">
-               <img src="/logo.png?v=6" alt="MafynGate" className="w-full h-full object-cover" />
+             <div className="w-8 h-8 overflow-hidden shadow-lg shadow-primary/20 flex-shrink-0">
+               <img src="/logo.png?v=8" alt="MafynGate" className="w-full h-full object-cover" />
              </div>
              <span className="text-xl font-black tracking-tighter text-foreground uppercase">{t.hero}</span>
           </div>
@@ -172,8 +172,8 @@ export default function GuidePage() {
         <div className="max-w-7xl mx-auto px-6 h-full flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Left: Brand */}
           <div className="flex items-center gap-2 group">
-            <div className="w-6 h-6 rounded-lg overflow-hidden flex-shrink-0">
-              <img src="/logo.png?v=5" alt="MafynGate" className="w-full h-full object-cover" />
+            <div className="w-6 h-6 overflow-hidden flex-shrink-0">
+              <img src="/logo.png?v=8" alt="MafynGate" className="w-full h-full object-cover" />
             </div>
             <span className="text-xl font-bold tracking-tight text-foreground select-none">MafynGate</span>
           </div>

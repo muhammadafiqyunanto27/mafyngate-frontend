@@ -55,7 +55,7 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="flex flex-col items-center mb-10 text-center">
             <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl shadow-primary/40 mb-6 group hover:scale-105 transition-transform duration-500">
-               <img src="/logo.png?v=2" alt="MafynGate" className="w-full h-full object-cover" />
+               <img src="/logo.png?v=6" alt="MafynGate" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-2">Welcome Back</h1>
             <p className="text-muted-foreground font-medium">Access your protected portal</p>
@@ -174,7 +174,7 @@ export default function LoginPage() {
                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                className="p-4 rounded-[3rem] glass flex items-center justify-center shadow-indigo-500/20 shadow-2xl overflow-hidden aspect-square"
             >
-               <img src="/logo.png?v=2" alt="MafynGate" className="w-full h-full object-cover rounded-[2.5rem]" />
+               <img src="/logo.png?v=5" alt="MafynGate" className="w-full h-full object-cover rounded-[2.5rem]" />
             </motion.div>
             <h2 className="text-3xl font-bold text-white tracking-tight">The Ultimate Secure Gateway</h2>
             <p className="text-slate-400 leading-relaxed font-medium">MafynGate is a high-performance messaging platform built for privacy. Experience real-time synchronization, end-to-end encryption, and a stateless architecture designed for the future of digital communication.</p>

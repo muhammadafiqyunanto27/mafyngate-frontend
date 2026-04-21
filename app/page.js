@@ -49,7 +49,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 w-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl overflow-hidden shadow-lg shadow-primary/20 flex-shrink-0">
-              <img src="/logo.png" alt="MafynGate" className="w-full h-full object-cover" />
+              <img src="/logo.png?v=6" alt="MafynGate" className="w-full h-full object-cover" />
             </div>
             <span className="text-xl font-bold tracking-tight text-foreground select-none">
               MafynGate
@@ -155,7 +155,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2 group">
             <div className="w-6 h-6 rounded-lg overflow-hidden flex-shrink-0">
-              <img src="/logo.png" alt="MafynGate" className="w-full h-full object-cover" />
+              <img src="/logo.png?v=6" alt="MafynGate" className="w-full h-full object-cover" />
             </div>
             <span className="text-xl font-bold tracking-tight text-foreground">MafynGate</span>
           </div>

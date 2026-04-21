@@ -34,7 +34,7 @@ const LoadingScreen = () => {
                         className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent z-10"
                     />
                     <img 
-                        src="/logo.png" 
+                        src="/logo.png?v=6" 
                         alt="MafynGate" 
                         className="w-full h-full object-cover rounded-[2.2rem]" 
                     />

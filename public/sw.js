@@ -1,4 +1,4 @@
-// MafynGate Service Worker (v1.1 - Added robustness and better logging)
+// MafynGate Service Worker (v1.2 - Updated branding assets)
 self.addEventListener('install', (event) => {
   console.log('[SW] Service Worker Installing...');
   self.skipWaiting();

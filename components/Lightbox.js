@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn, Download, Share2, Info, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getMediaUrl } from '../lib/url';
+import { getMediaUrl, downloadMedia } from '../lib/url';
 
 export default function Lightbox({ media, onClose, allowActions = true }) {
   // Handle escape key
@@ -21,12 +21,8 @@ export default function Lightbox({ media, onClose, allowActions = true }) {
   const type = media.type || (url?.match(/\.(mp4|webm|ogg)$/i) ? 'VIDEO' : 'IMAGE');
 
   const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `mafyngate-${Date.now()}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const fileUrl = media.fileUrl || media.url || media;
+    downloadMedia(fileUrl);
   };
 
   return (

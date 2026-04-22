@@ -211,6 +211,15 @@ export const SocketProvider = ({ children }) => {
     }
   }, [user]);
 
+  // Extra safety: Cleanup hardware on tab close
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      handleEndCall(false);
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   // Secondary backup effect to ensure media stops if user vanishes
   useEffect(() => {
     if (!user) {

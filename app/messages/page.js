@@ -49,7 +49,7 @@ import {
 import { linkify } from '../../lib/linkify';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
-import { getMediaUrl } from '../../lib/url';
+import { getMediaUrl, downloadMedia } from '../../lib/url';
 import Lightbox from '../../components/Lightbox';
 
 const MessageBubble = memo(({ 
@@ -1478,7 +1478,7 @@ function MessagesContent() {
                                           <div className="flex items-center gap-2">
                                              <span className="text-[8px] text-muted-foreground font-black uppercase italic opacity-60">{(d.fileSize / 1024 / 1024).toFixed(2)} MB</span>
                                              <button 
-                                               onClick={() => window.open(getMediaUrl(d.fileUrl), '_blank')}
+                                               onClick={() => downloadMedia(d.fileUrl)}
                                                className="text-[8px] text-primary font-black uppercase hover:underline"
                                              >
                                                 Download

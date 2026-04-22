@@ -257,7 +257,7 @@ export const CallOverlay = () => {
                   className={`relative z-10 w-full h-full transition-all duration-500 
                     ${remoteIsMirrored ? 'scale-x-[-1]' : ''} 
                     ${!remoteVideoEnabled ? 'opacity-0' : 'opacity-100'}
-                    ${isMinimized ? 'object-cover' : (remoteVideoMeta.aspect > 1.2 ? 'object-contain' : 'object-contain md:object-cover')}
+                    ${isMinimized ? 'object-cover' : 'object-contain'}
                   `}
                 />
                 
@@ -318,7 +318,7 @@ export const CallOverlay = () => {
               <motion.div 
                 drag
                 dragConstraints={{ left: -100, right: 100, top: -100, bottom: 100 }}
-                className="absolute bottom-32 right-6 md:bottom-28 md:right-10 w-28 md:w-56 aspect-[3/4] md:aspect-video bg-zinc-800 rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl z-40 cursor-move"
+                className="absolute bottom-32 right-6 md:bottom-28 md:right-10 w-32 md:w-64 aspect-video bg-zinc-800 rounded-[2rem] overflow-hidden border-2 border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-40 cursor-move group"
               >
                 <video
                   playsInline

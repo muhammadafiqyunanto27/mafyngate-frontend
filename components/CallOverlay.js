@@ -2,16 +2,16 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useSocket } from '../context/SocketContext';
-import { 
-  Phone, 
-  PhoneOff, 
-  Video, 
-  VideoOff, 
-  Mic, 
-  MicOff, 
-  Maximize2, 
-  Minimize2, 
-  RefreshCw, 
+import {
+  Phone,
+  PhoneOff,
+  Video,
+  VideoOff,
+  Mic,
+  MicOff,
+  Maximize2,
+  Minimize2,
+  RefreshCw,
   FlipHorizontal,
   ChevronDown,
   GripHorizontal
@@ -20,15 +20,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getMediaUrl } from '../lib/url';
 
 export const CallOverlay = () => {
-  const { 
-    call, 
-    callAccepted, 
-    callEnded, 
-    stream, 
-    remoteStream, 
-    isCalling, 
-    answerCall, 
-    rejectCall, 
+  const {
+    call,
+    callAccepted,
+    callEnded,
+    stream,
+    remoteStream,
+    isCalling,
+    answerCall,
+    rejectCall,
     handleEndCall,
     isMirrored,
     toggleMirror,
@@ -128,7 +128,7 @@ export const CallOverlay = () => {
 
   // Use hardware-level toggles from context
   const handleToggleMic = () => toggleMediaHardware('audio');
-  
+
   const handleToggleVideo = () => {
     if (call.type === 'voice') {
       upgradeToVideo();
@@ -144,7 +144,7 @@ export const CallOverlay = () => {
     // Mobile browsers often crash or fail on native requestPictureInPicture
     // So we use our stable Draggable Miniature instead as the primary "PIP" experience
     const isMobile = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
+
     if (isMobile) {
       console.log('[PIP] Mobile detected, using stable In-App Miniature');
       setIsMinimized(true);
@@ -167,11 +167,11 @@ export const CallOverlay = () => {
 
   return (
     <AnimatePresence>
-      <motion.div 
+      <motion.div
         layoutId="call-container"
         initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ 
-          opacity: 1, 
+        animate={{
+          opacity: 1,
           scale: 1,
           width: isMinimized ? (isMobileView ? '160px' : '220px') : '100%',
           height: isMinimized ? (isMobileView ? '220px' : '300px') : '100%',
@@ -189,11 +189,11 @@ export const CallOverlay = () => {
       >
         {/* Main Interface Container */}
         <div className="relative w-full h-full flex flex-col">
-          
+
           {/* Header Controls (Hidden if minimized) */}
           {!isMinimized && (
             <div className="absolute top-6 left-6 right-6 z-50 flex justify-between items-center">
-              <button 
+              <button
                 onClick={() => setIsMinimized(true)}
                 className="p-2.5 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-2xl text-white transition-all"
               >
@@ -210,18 +210,18 @@ export const CallOverlay = () => {
                   </span>
                 </div>
                 <div className="flex items-center gap-1 mt-2">
-                   <GripHorizontal size={14} className="text-white/20 animate-pulse" />
+                  <GripHorizontal size={14} className="text-white/20 animate-pulse" />
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button 
+                <button
                   onClick={togglePip}
                   className="p-2.5 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-2xl text-white transition-all"
                   title="Picture in Picture"
                 >
                   <Maximize2 size={20} />
                 </button>
-                <button 
+                <button
                   onClick={switchCamera}
                   className="p-2.5 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-2xl text-white transition-all"
                 >
@@ -237,15 +237,15 @@ export const CallOverlay = () => {
             {callAccepted && !callEnded ? (
               <div className="w-full h-full relative z-10 flex items-center justify-center bg-black">
                 {!isMinimized && (
-                   <div className="absolute inset-0 z-0 overflow-hidden opacity-50">
-                      <video
-                        playsInline
-                        muted
-                        ref={backgroundVideo}
-                        autoPlay
-                        className={`w-full h-full object-cover blur-3xl scale-125 ${remoteIsMirrored ? 'scale-x-[-1]' : ''}`}
-                      />
-                   </div>
+                  <div className="absolute inset-0 z-0 overflow-hidden opacity-50">
+                    <video
+                      playsInline
+                      muted
+                      ref={backgroundVideo}
+                      autoPlay
+                      className={`w-full h-full object-cover blur-3xl scale-125 ${remoteIsMirrored ? 'scale-x-[-1]' : ''}`}
+                    />
+                  </div>
                 )}
 
                 <video
@@ -257,10 +257,10 @@ export const CallOverlay = () => {
                   className={`relative z-10 w-full h-full transition-all duration-500 
                     ${remoteIsMirrored ? 'scale-x-[-1]' : ''} 
                     ${!remoteVideoEnabled ? 'opacity-0' : 'opacity-100'}
-                    ${isMinimized ? 'object-cover' : 'object-contain'}
+                    ${isMinimized ? 'object-cover' : (remoteVideoMeta.aspect > 1.2 ? 'object-contain' : 'object-contain md:object-cover')}
                   `}
                 />
-                
+
                 {!remoteVideoEnabled && (
                   <div className="absolute inset-0 bg-zinc-950 z-20 flex flex-col items-center justify-center space-y-6">
                     <div className={`${isMinimized ? 'w-16 h-16 rounded-2xl' : 'w-32 h-32 md:w-48 md:h-48 rounded-[3rem]'} bg-white/5 flex items-center justify-center border border-white/10`}>
@@ -298,7 +298,7 @@ export const CallOverlay = () => {
                     <div className="absolute -inset-4 border-4 border-primary/30 rounded-[4rem] animate-ping" />
                   )}
                 </div>
-                
+
                 {!isMinimized && (
                   <div className="text-center space-y-2 px-6">
                     <h2 className="text-2xl md:text-5xl font-black text-white uppercase tracking-tighter truncate max-w-full">
@@ -315,10 +315,10 @@ export const CallOverlay = () => {
 
             {/* Local Video - PIP Inline (Hidden if minimized) */}
             {stream && !callEnded && !isMinimized && (
-              <motion.div 
+              <motion.div
                 drag
                 dragConstraints={{ left: -100, right: 100, top: -100, bottom: 100 }}
-                className="absolute bottom-32 right-6 md:bottom-28 md:right-10 w-32 md:w-64 aspect-video bg-zinc-800 rounded-[2rem] overflow-hidden border-2 border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-40 cursor-move group"
+                className="absolute bottom-32 right-6 md:bottom-28 md:right-10 w-28 md:w-56 aspect-[3/4] md:aspect-video bg-zinc-800 rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl z-40 cursor-move"
               >
                 <video
                   playsInline
@@ -328,9 +328,9 @@ export const CallOverlay = () => {
                   className={`w-full h-full object-cover ${isMirrored ? 'scale-x-[-1]' : ''} ${!localVideoEnabled ? 'opacity-0' : 'opacity-100'}`}
                 />
                 {!localVideoEnabled && (
-                   <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center">
-                     <VideoOff size={24} className="text-white/40" />
-                   </div>
+                  <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center">
+                    <VideoOff size={24} className="text-white/40" />
+                  </div>
                 )}
               </motion.div>
             )}
@@ -339,7 +339,7 @@ export const CallOverlay = () => {
           {/* BOTTOM CONTROLS (Hidden if minimized) */}
           {!callEnded && !isMinimized && (
             <div className="absolute bottom-6 left-0 right-0 z-50 flex justify-center px-6">
-              <motion.div 
+              <motion.div
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 className="bg-zinc-900/60 backdrop-blur-2xl border border-white/10 px-4 md:px-5 py-2.5 rounded-[3rem] shadow-2xl flex items-center gap-2 md:gap-5"
@@ -351,23 +351,23 @@ export const CallOverlay = () => {
                   </>
                 ) : (
                   <>
-                    <button 
-                        onClick={handleToggleMic}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${!localAudioEnabled ? 'bg-rose-500 text-white' : 'bg-white/10 text-white'}`}
+                    <button
+                      onClick={handleToggleMic}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${!localAudioEnabled ? 'bg-rose-500 text-white' : 'bg-white/10 text-white'}`}
                     >
                       {!localAudioEnabled ? <MicOff size={18} /> : <Mic size={18} />}
                     </button>
-                    
-                    <button 
-                        onClick={handleToggleVideo}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${(!localVideoEnabled || call.type === 'voice') ? 'bg-rose-500 text-white' : 'bg-white/10 text-white'}`}
+
+                    <button
+                      onClick={handleToggleVideo}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${(!localVideoEnabled || call.type === 'voice') ? 'bg-rose-500 text-white' : 'bg-white/10 text-white'}`}
                     >
                       {(!localVideoEnabled || call.type === 'voice') ? <VideoOff size={18} /> : <Video size={18} />}
                     </button>
 
-                    <button 
-                        onClick={toggleMirror}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isMirrored ? 'bg-primary text-white' : 'bg-white/10 text-white'}`}
+                    <button
+                      onClick={toggleMirror}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isMirrored ? 'bg-primary text-white' : 'bg-white/10 text-white'}`}
                     >
                       <FlipHorizontal size={18} />
                     </button>
@@ -386,7 +386,7 @@ export const CallOverlay = () => {
               </motion.div>
             </div>
           )}
-          
+
           {/* Minimized Footer Label */}
           {isMinimized && (
             <div className="p-2 bg-zinc-900 border-t border-white/5 text-[10px] text-center font-bold text-white truncate px-3">

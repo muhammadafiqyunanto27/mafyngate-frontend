@@ -5,13 +5,13 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import DashboardLayout from '../../components/DashboardLayout';
-import { 
-  Send, 
-  Search, 
-  MoreVertical, 
-  Phone, 
-  Video, 
-  User, 
+import {
+  Send,
+  Search,
+  MoreVertical,
+  Phone,
+  Video,
+  User,
   MessageSquare,
   Paperclip,
   Image as ImageIcon,
@@ -49,18 +49,18 @@ import {
 import { linkify } from '../../lib/linkify';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
-import { getMediaUrl, downloadMedia } from '../../lib/url';
+import { getMediaUrl } from '../../lib/url';
 import Lightbox from '../../components/Lightbox';
 
-const MessageBubble = memo(({ 
-  msg, 
-  isMine, 
-  isMobileView, 
-  onMobileMenu, 
-  onReply, 
-  onEdit, 
-  onCopy, 
-  onDelete, 
+const MessageBubble = memo(({
+  msg,
+  isMine,
+  isMobileView,
+  onMobileMenu,
+  onReply,
+  onEdit,
+  onCopy,
+  onDelete,
   textareaRef,
   swipeOffset,
   setSwipeOffset,
@@ -81,12 +81,12 @@ const MessageBubble = memo(({
   const cancelPress = () => clearTimeout(pressTimer);
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       className={`flex group relative px-4 md:px-0 ${isMine ? 'justify-end' : 'justify-start'}`}
     >
-      <motion.div 
+      <motion.div
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.7}
@@ -113,29 +113,29 @@ const MessageBubble = memo(({
         {/* Desktop Menu handled inside bubble dropdown now */}
 
         <div className={`relative px-3 py-2 rounded-xl shadow-sm text-sm transition-all border w-fit group/bubble ${isMine ? 'bg-primary/20 backdrop-blur-2xl text-white border-primary/30 rounded-tr-none' : 'bg-muted/80 backdrop-blur-2xl text-foreground border-border/50 rounded-tl-none shadow-md'}`}>
-               {!isMobileView && (
-                <div className={`absolute top-1 ${isMine ? 'left-1' : 'right-1'} opacity-0 group-hover/bubble:opacity-100 transition-all z-10`}>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); setActiveMenuId(activeMenuId === msg.id ? null : msg.id); }}
-                    className="p-1 rounded-lg hover:bg-black/10 text-white/50 hover:text-white transition-colors"
-                  >
-                    <ChevronDown size={14} />
-                  </button>
-                  {activeMenuId === msg.id && (
-                    <div className={`absolute top-0 min-w-[140px] bg-card border border-border/50 shadow-2xl rounded-2xl overflow-hidden py-1.5 z-[100] animate-in fade-in zoom-in slide-in-from-top-2 duration-200 ${isMine ? 'right-full mr-4' : 'left-full ml-4'}`}>
-                       <p className="px-4 py-1.5 text-[9px] font-black uppercase tracking-tighter text-muted-foreground/50 border-b border-border/30 mb-1">Actions</p>
-                       <button onClick={() => { onReply(msg); setActiveMenuId(null); textareaRef.current?.focus(); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-left hover:bg-primary/10 hover:text-primary flex items-center gap-3 transition-colors"><Reply size={12} /> Reply</button>
-                       <button onClick={() => { onCopy(msg.content); setActiveMenuId(null); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-left hover:bg-primary/10 hover:text-primary flex items-center gap-3 transition-colors"><Copy size={12} /> Copy</button>
-                       {isMine && (
-                         <>
-                           <button onClick={() => { onEdit(msg); setActiveMenuId(null); textareaRef.current?.focus(); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-left hover:bg-primary/10 hover:text-primary flex items-center gap-3 transition-colors"><Pencil size={12} /> Edit</button>
-                           <button onClick={() => { onDelete(msg.id); setActiveMenuId(null); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-rose-500 text-left hover:bg-rose-500/10 flex items-center gap-3 transition-colors"><Trash2 size={12} /> Delete</button>
-                         </>
-                       )}
-                    </div>
+          {!isMobileView && (
+            <div className={`absolute top-1 ${isMine ? 'left-1' : 'right-1'} opacity-0 group-hover/bubble:opacity-100 transition-all z-10`}>
+              <button
+                onClick={(e) => { e.stopPropagation(); setActiveMenuId(activeMenuId === msg.id ? null : msg.id); }}
+                className="p-1 rounded-lg hover:bg-black/10 text-white/50 hover:text-white transition-colors"
+              >
+                <ChevronDown size={14} />
+              </button>
+              {activeMenuId === msg.id && (
+                <div className={`absolute top-0 min-w-[140px] bg-card border border-border/50 shadow-2xl rounded-2xl overflow-hidden py-1.5 z-[100] animate-in fade-in zoom-in slide-in-from-top-2 duration-200 ${isMine ? 'right-full mr-4' : 'left-full ml-4'}`}>
+                  <p className="px-4 py-1.5 text-[9px] font-black uppercase tracking-tighter text-muted-foreground/50 border-b border-border/30 mb-1">Actions</p>
+                  <button onClick={() => { onReply(msg); setActiveMenuId(null); textareaRef.current?.focus(); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-left hover:bg-primary/10 hover:text-primary flex items-center gap-3 transition-colors"><Reply size={12} /> Reply</button>
+                  <button onClick={() => { onCopy(msg.content); setActiveMenuId(null); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-left hover:bg-primary/10 hover:text-primary flex items-center gap-3 transition-colors"><Copy size={12} /> Copy</button>
+                  {isMine && (
+                    <>
+                      <button onClick={() => { onEdit(msg); setActiveMenuId(null); textareaRef.current?.focus(); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-left hover:bg-primary/10 hover:text-primary flex items-center gap-3 transition-colors"><Pencil size={12} /> Edit</button>
+                      <button onClick={() => { onDelete(msg.id); setActiveMenuId(null); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-rose-500 text-left hover:bg-rose-500/10 flex items-center gap-3 transition-colors"><Trash2 size={12} /> Delete</button>
+                    </>
                   )}
                 </div>
-               )}
+              )}
+            </div>
+          )}
           {/* WhatsApp Tail Implementation */}
           {isMine ? (
             <div className="absolute top-[-1px] right-[-8px] w-3 h-3 bg-primary/20 border-t border-r border-primary/30" style={{ clipPath: 'polygon(0 0, 0 100%, 100% 0)' }} />
@@ -143,10 +143,10 @@ const MessageBubble = memo(({
             <div className="absolute top-[-1px] left-[-8px] w-3 h-3 bg-muted/80 border-t border-l border-border/50" style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 0)' }} />
           )}
           {msg.parent && (
-            <div 
+            <div
               onClick={() => {
-                 const parentMsg = document.getElementById(`msg-${msg.parent.id}`);
-                 if (parentMsg) parentMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const parentMsg = document.getElementById(`msg-${msg.parent.id}`);
+                if (parentMsg) parentMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
               }}
               className={`mb-2 p-2.5 rounded-xl border-l-[3px] text-[11px] cursor-pointer transition-colors max-w-full overflow-hidden bg-white/5 border-white/20 text-white/80`}
             >
@@ -156,10 +156,10 @@ const MessageBubble = memo(({
           )}
 
           {msg.type === 'IMAGE' && (
-            <img 
-              src={getMediaUrl(msg.fileUrl)} 
-              onClick={() => onZoomMedia(msg)} 
-              className="max-w-full max-h-[320px] rounded-2xl mb-1 cursor-pointer hover:opacity-90 transition-all object-cover" 
+            <img
+              src={getMediaUrl(msg.fileUrl)}
+              onClick={() => onZoomMedia(msg)}
+              className="max-w-full max-h-[320px] rounded-2xl mb-1 cursor-pointer hover:opacity-90 transition-all object-cover"
             />
           )}
           {msg.type === 'VIDEO' && (
@@ -185,53 +185,53 @@ const MessageBubble = memo(({
             <a href={getMediaUrl(msg.fileUrl)} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 bg-background/50 rounded-xl hover:bg-background/80 transition-colors mb-1.5 border border-current/10">
 
               <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-current/20 bg-current/5">
-                 <FileIcon size={20} className="text-current" />
+                <FileIcon size={20} className="text-current" />
               </div>
               <div className="min-w-0 flex-1">
-                 <p className="font-bold text-sm truncate">{msg.fileName || 'Attachment'}</p>
-                 <p className="text-[10px] opacity-70 mt-0.5">{msg.fileSize ? (msg.fileSize / 1024 / 1024).toFixed(2) + ' MB' : 'Document'}</p>
+                <p className="font-bold text-sm truncate">{msg.fileName || 'Attachment'}</p>
+                <p className="text-[10px] opacity-70 mt-0.5">{msg.fileSize ? (msg.fileSize / 1024 / 1024).toFixed(2) + ' MB' : 'Document'}</p>
               </div>
               <Download size={16} className="shrink-0 opacity-70" />
             </a>
           )}
-            {msg.type === 'PROFILE' && (
-             <div 
-               onClick={() => onZoomMedia({ userId: JSON.parse(msg.content).id })} 
-               className={`p-0 rounded-[2rem] border overflow-hidden mb-2 w-64 text-left shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer group/card ${isMine ? 'bg-[#1e293b] border-white/10' : 'bg-[#0f172a] border-border'}`}
-             >
-                {/* Premium Background / Cover */}
-                <div className="h-16 bg-gradient-to-br from-indigo-500 via-primary to-purple-600 relative opacity-90">
-                   <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] group-hover/card:backdrop-blur-0 transition-all" />
+          {msg.type === 'PROFILE' && (
+            <div
+              onClick={() => onZoomMedia({ userId: JSON.parse(msg.content).id })}
+              className={`p-0 rounded-[2rem] border overflow-hidden mb-2 w-64 text-left shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer group/card ${isMine ? 'bg-[#1e293b] border-white/10' : 'bg-[#0f172a] border-border'}`}
+            >
+              {/* Premium Background / Cover */}
+              <div className="h-16 bg-gradient-to-br from-indigo-500 via-primary to-purple-600 relative opacity-90">
+                <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] group-hover/card:backdrop-blur-0 transition-all" />
+              </div>
+
+              {/* Content Area */}
+              <div className="px-5 pb-6 -mt-8 relative text-center">
+                <div className="w-16 h-16 rounded-[1.2rem] border-4 border-[#1e293b] bg-slate-800 mx-auto overflow-hidden shadow-2xl mb-3">
+                  {JSON.parse(msg.content).avatar ? (
+                    <img src={getMediaUrl(JSON.parse(msg.content).avatar)} className="w-full h-full object-cover" />
+                  ) : <div className="w-full h-full flex items-center justify-center text-xl font-bold bg-primary text-white">{(JSON.parse(msg.content).name || "?").charAt(0).toUpperCase()}</div>}
                 </div>
-                
-                {/* Content Area */}
-                <div className="px-5 pb-6 -mt-8 relative text-center">
-                   <div className="w-16 h-16 rounded-[1.2rem] border-4 border-[#1e293b] bg-slate-800 mx-auto overflow-hidden shadow-2xl mb-3">
-                      {JSON.parse(msg.content).avatar ? (
-                        <img src={getMediaUrl(JSON.parse(msg.content).avatar)} className="w-full h-full object-cover" />
-                      ) : <div className="w-full h-full flex items-center justify-center text-xl font-bold bg-primary text-white">{(JSON.parse(msg.content).name || "?").charAt(0).toUpperCase()}</div>}
-                   </div>
-                   
-                   <div className="min-w-0 mb-5">
-                      <p className="font-black text-xs uppercase tracking-widest text-white truncate drop-shadow-sm">{JSON.parse(msg.content).name}</p>
-                      <p className="text-[9px] text-blue-300 font-bold uppercase tracking-tighter opacity-80 mt-0.5">Contact Profile Card</p>
-                   </div>
-                   
-                   <div className="w-full py-2.5 bg-white/5 group-hover/card:bg-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] transition-all border border-white/20 shadow-lg flex items-center justify-center gap-2">
-                      <User size={12} className="text-primary" /> View Profile
-                   </div>
+
+                <div className="min-w-0 mb-5">
+                  <p className="font-black text-xs uppercase tracking-widest text-white truncate drop-shadow-sm">{JSON.parse(msg.content).name}</p>
+                  <p className="text-[9px] text-blue-300 font-bold uppercase tracking-tighter opacity-80 mt-0.5">Contact Profile Card</p>
                 </div>
-             </div>
-           )}
+
+                <div className="w-full py-2.5 bg-white/5 group-hover/card:bg-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] transition-all border border-white/20 shadow-lg flex items-center justify-center gap-2">
+                  <User size={12} className="text-primary" /> View Profile
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Content with high-fidelity wrapping */}
           {msg.content && msg.type !== 'VOICE' && msg.type !== 'PROFILE' && (
-             <div className="mb-0.5 leading-normal whitespace-pre-wrap [overflow-wrap:anywhere] [word-break:break-word]">
-                {(msg.type === 'IMAGE' || msg.type === 'VIDEO') 
-                  ? (msg.content !== '[Photo]' && msg.content !== '[Video]' && msg.content !== msg.fileName ? linkify(msg.content, isMine) : null)
-                  : linkify(msg.content, isMine)
-                }
-             </div>
+            <div className="mb-0.5 leading-normal whitespace-pre-wrap [overflow-wrap:anywhere] [word-break:break-word]">
+              {(msg.type === 'IMAGE' || msg.type === 'VIDEO')
+                ? (msg.content !== '[Photo]' && msg.content !== '[Video]' && msg.content !== msg.fileName ? linkify(msg.content, isMine) : null)
+                : linkify(msg.content, isMine)
+              }
+            </div>
           )}
 
           {/* Integrated Metadata Flow */}
@@ -247,19 +247,19 @@ const MessageBubble = memo(({
           </div>
           <div className="clear-both" />
         </div>
-        
+
         {/* Swipe Handle Indicator */}
         <AnimatePresence>
           {swipeOffset[msg.id] && (
-            <motion.div 
+            <motion.div
               initial={{ scale: 0, opacity: 0 }}
-              animate={{ 
+              animate={{
                 scale: Math.min(Math.abs(swipeOffset[msg.id]) / 40, 1.2),
                 opacity: Math.min(Math.abs(swipeOffset[msg.id]) / 30, 1),
                 x: isMine ? (swipeOffset[msg.id] < 0 ? swipeOffset[msg.id] : 0) : (swipeOffset[msg.id] > 0 ? swipeOffset[msg.id] : 0)
               }}
               exit={{ scale: 0, opacity: 0 }}
-              style={{ 
+              style={{
                 right: isMine ? 'auto' : -40,
                 left: isMine ? -40 : 'auto',
               }}
@@ -290,7 +290,7 @@ function MessagesContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileView, setIsMobileView] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  
+
   const [showMenu, setShowMenu] = useState(false);
   const [isHiddenMode, setIsHiddenMode] = useState(false);
   const [lockModal, setLockModal] = useState({ open: false, type: 'check', title: '', target: null });
@@ -306,7 +306,7 @@ function MessagesContent() {
       try {
         const data = JSON.parse(msg.content);
         if (data.id && data.name) return `Profile: ${data.name}`;
-      } catch (e) {}
+      } catch (e) { }
     }
     if (msg.type === 'IMAGE') return '📷 Photo';
     if (msg.type === 'VIDEO') return '🎥 Video';
@@ -317,10 +317,10 @@ function MessagesContent() {
 
   const fetchTargetProfile = async (targetId) => {
     try {
-       const res = await api.get(`/user/profile/${targetId}`);
-       setViewingProfile(res.data.data);
+      const res = await api.get(`/user/profile/${targetId}`);
+      setViewingProfile(res.data.data);
     } catch (err) {
-       console.error('Failed to fetch profile:', err);
+      console.error('Failed to fetch profile:', err);
     }
   };
   const [isSharingContact, setIsSharingContact] = useState(false);
@@ -374,7 +374,7 @@ function MessagesContent() {
   const menuRef = useRef(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(null); // stores message for whom menu is open
   const [swipeOffset, setSwipeOffset] = useState({}); // {msgId: xValue}
-  
+
   const [lightboxMedia, setLightboxMedia] = useState(null);
   const [pendingMedia, setPendingMedia] = useState(null);
   const [pendingPreviewUrl, setPendingPreviewUrl] = useState(null);
@@ -427,12 +427,12 @@ function MessagesContent() {
   };
 
   const cancelRecording = () => {
-     if (mediaRecorderRef.current && isRecording) {
-        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-        setIsRecording(false);
-        clearInterval(recordingTimerRef.current);
-        audioChunksRef.current = [];
-     }
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      setIsRecording(false);
+      clearInterval(recordingTimerRef.current);
+      audioChunksRef.current = [];
+    }
   };
 
   const fetchConnections = async () => {
@@ -440,7 +440,7 @@ function MessagesContent() {
       const res = await api.get('/user/connections');
       const connectionData = res.data.data;
       setUsers(connectionData);
-      
+
       // Request initial statuses for all these users
       if (socket) {
         connectionData.forEach(u => {
@@ -475,7 +475,7 @@ function MessagesContent() {
         if (userToSelect) {
           setSelectedUser(userToSelect);
           if (window.innerWidth < 768) setShowChat(true);
-          
+
           // CRITICAL FIX: Clear the URL parameter after processing it
           // This prevents being "stuck" on this user when switching chats
           const newUrl = window.location.pathname;
@@ -488,10 +488,10 @@ function MessagesContent() {
   // NEW SEARCH LOGIC: Handles 3 cases
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return users;
-    
+
     // If we are currently in hidden mode, filter the hidden list
     // Otherwise, filter the normal list (checking for password match happens in another effect)
-    return users.filter(u => 
+    return users.filter(u =>
       (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -523,28 +523,28 @@ function MessagesContent() {
       await api.patch(`/user/chat/pin/${selectedUser.id}`);
       fetchConnections();
       setShowMenu(false);
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const handleDeleteConversation = async () => {
     if (!selectedUser) return;
     try {
       await api.delete(`/user/chat/conversation/${selectedUser.id}`);
-      
+
       // Notify other side via socket
       if (socket) {
-        socket.emit('messages_deleted', { 
-          targetId: selectedUser.id, 
+        socket.emit('messages_deleted', {
+          targetId: selectedUser.id,
           messageIds: messages.map(m => m.id),
-          everyone: true 
+          everyone: true
         });
       }
 
-      setMessages([]); 
-      setSelectedUser(null); 
+      setMessages([]);
+      setSelectedUser(null);
       setIsDeletingConvo(false);
       fetchConnections(); // Refresh list immediately
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const handleToggleHide = async () => {
@@ -565,7 +565,7 @@ function MessagesContent() {
         await api.post('/user/chat/hide', { targetId: selectedUser.id, hide: true });
         setSelectedUser(null); setShowMenu(false); fetchConnections();
       }
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const handleSetPassword = async () => {
@@ -586,12 +586,12 @@ function MessagesContent() {
       setIsHiddenMode(false);
       setLockModal({ open: false, type: 'check', title: '', target: null });
       fetchConnections();
-    } catch (err) {}
+    } catch (err) { }
   };
 
   useEffect(() => {
     if (!socket) return;
-    
+
     const handleStatusUpdate = (data) => {
       if (selectedUser && data.userId === selectedUser.id) {
         setRecipientStatus(data.status);
@@ -627,38 +627,38 @@ function MessagesContent() {
       }
     });
 
-    return () => { 
+    return () => {
       socket.off('user_status', handleStatusUpdate);
       socket.off('user_typing', handleTyping);
       socket.off('user_stop_typing', handleStopTyping);
-      socket.off('messages_deleted'); 
-      socket.off('message_updated'); 
+      socket.off('messages_deleted');
+      socket.off('message_updated');
       socket.off('messages_read');
     };
   }, [socket, selectedUser]);
 
   useEffect(() => {
     if (!socket || !user) return;
-    
+
     const updateListWithNewMessage = (m, isIncoming) => {
       setUsers(prev => {
         const userId = isIncoming ? m.senderId : m.receiverId;
         const userIndex = prev.findIndex(u => u.id === userId);
-        
+
         if (userIndex === -1) {
           // New contact not in current list? Trigger full fetch to be safe
           fetchConnections();
           return prev;
         }
-        
+
         const updatedUsers = [...prev];
         const targetUser = { ...updatedUsers[userIndex] };
-        
+
         targetUser.lastMessage = { content: m.content, createdAt: m.createdAt, type: m.type };
         if (isIncoming && (!selectedUser || selectedUser.id !== userId)) {
           targetUser.unreadCount = (targetUser.unreadCount || 0) + 1;
         }
-        
+
         updatedUsers[userIndex] = targetUser;
 
         // Sort: Pinned first, then by last message time
@@ -673,12 +673,12 @@ function MessagesContent() {
     };
 
     const handleReceive = (m) => {
-        if (selectedUser && (m.senderId === selectedUser.id || m.senderId === user.id)) {
-          setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
-        }
-        updateListWithNewMessage(m, true);
+      if (selectedUser && (m.senderId === selectedUser.id || m.senderId === user.id)) {
+        setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
+      }
+      updateListWithNewMessage(m, true);
     };
-    
+
     const handleSent = (m) => {
       setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
       updateListWithNewMessage(m, false);
@@ -703,7 +703,7 @@ function MessagesContent() {
         setMessages(res.data.data);
         await api.patch(`/user/chat/read/${selectedUser.id}`);
         if (socket) socket.emit('mark_read', { senderId: selectedUser.id });
-        
+
         // Clear unread count locally
         let newUnreadChatCount = 0;
         setUsers(prev => {
@@ -711,7 +711,7 @@ function MessagesContent() {
           newUnreadChatCount = updated.filter(u => (u.unreadCount || 0) > 0).length;
           return updated;
         });
-        
+
         // Update global sidebar badge count
         setUnreadChatsCount(newUnreadChatCount);
 
@@ -722,7 +722,7 @@ function MessagesContent() {
           socket.emit('join_chat', { targetId: selectedUser.id });
           socket.emit('get_user_status', { targetId: selectedUser.id });
         }
-      } catch (err) {}
+      } catch (err) { }
     };
     fetchMsgs();
     return () => {
@@ -734,8 +734,8 @@ function MessagesContent() {
 
   useEffect(() => {
     if (messages.length > 0 && messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: isInitialLoad ? 'auto' : 'smooth' });
-        if (isInitialLoad) setIsInitialLoad(false);
+      messagesEndRef.current.scrollIntoView({ behavior: isInitialLoad ? 'auto' : 'smooth' });
+      if (isInitialLoad) setIsInitialLoad(false);
     }
   }, [messages, isInitialLoad]);
 
@@ -743,7 +743,7 @@ function MessagesContent() {
     e?.preventDefault();
     if (isSending || (!newMessage.trim() && !selectedFile && !pendingMedia) || !selectedUser || !socket) return;
     setIsSending(true);
-    
+
     let fileData = null;
     let fileToUpload = pendingMedia || selectedFile;
     if (fileToUpload) {
@@ -767,16 +767,16 @@ function MessagesContent() {
 
     if (editingMessage) {
       try {
-        await api.patch('/user/chat/message', { 
-          messageId: editingMessage.id, 
-          content: newMessage 
+        await api.patch('/user/chat/message', {
+          messageId: editingMessage.id,
+          content: newMessage
         });
         setEditingMessage(null);
-      } catch (err) {}
+      } catch (err) { }
     } else {
       const type = fileData ? (fileData.type.startsWith('image/') ? 'IMAGE' : fileData.type.startsWith('video/') ? 'VIDEO' : fileData.type.startsWith('audio/') ? 'VOICE' : 'FILE') : 'TEXT';
-      socket.emit('send_message', { 
-        content: newMessage, 
+      socket.emit('send_message', {
+        content: newMessage,
         receiverId: selectedUser.id,
         type,
         fileUrl: fileData?.path || fileData?.url,
@@ -786,7 +786,7 @@ function MessagesContent() {
       });
       setReplyingTo(null);
     }
-    
+
     setNewMessage('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -816,7 +816,7 @@ function MessagesContent() {
       setMessages(prev => prev.filter(m => m.id !== msgId));
       if (socket) socket.emit('messages_deleted', { targetId: selectedUser.id, messageIds: [msgId] });
       fetchConnections();
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const handleCopyMessage = (content) => {
@@ -851,14 +851,14 @@ function MessagesContent() {
       </AnimatePresence>
 
       <div className="h-[calc(100vh-4rem)] bg-card flex overflow-hidden selection:bg-primary/30">
-        
+
         {/* Sidebar */}
         <div className={`${isMobileView && showChat ? 'hidden' : 'flex'} w-full md:w-80 lg:w-96 border-r border-border flex-col bg-muted/5`}>
           <div className="p-4 px-5 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {isHiddenMode && (
-                  <button 
+                  <button
                     onClick={() => { setIsHiddenMode(false); fetchConnections(); }}
                     className="p-1.5 hover:bg-muted rounded-lg transition-all text-muted-foreground mr-1"
                   >
@@ -867,19 +867,19 @@ function MessagesContent() {
                 )}
                 <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">{isHiddenMode ? 'Hidden Chats' : 'Chat Inbox'}</h2>
                 {isHiddenMode && <Lock className="w-4 h-4 text-primary animate-pulse" />}
-               </div>
+              </div>
             </div>
-            
+
             <div className="relative group w-full overflow-hidden">
-               <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors flex items-center"><Search className="w-3.5 h-3.5" /></div>
-               <input 
-                 type="text" 
-                 suppressHydrationWarning
-                 placeholder={isHiddenMode ? 'Search hidden...' : 'Search chats...'} 
-                 value={searchQuery} 
-                 onChange={(e) => setSearchQuery(e.target.value)} 
-                 className="w-full pl-10 pr-4 py-2 bg-muted/80 border border-border rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold text-[10px] uppercase tracking-tighter" 
-               />
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors flex items-center"><Search className="w-3.5 h-3.5" /></div>
+              <input
+                type="text"
+                suppressHydrationWarning
+                placeholder={isHiddenMode ? 'Search hidden...' : 'Search chats...'}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-muted/80 border border-border rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold text-[10px] uppercase tracking-tighter"
+              />
             </div>
           </div>
 
@@ -893,9 +893,9 @@ function MessagesContent() {
               filteredUsers.map((u) => (
                 <button
                   key={u.id}
-                  onClick={() => { 
-                    if (selectedUser?.id !== u.id) { setMessages([]); setIsInitialLoad(true); } 
-                    setSelectedUser(u); 
+                  onClick={() => {
+                    if (selectedUser?.id !== u.id) { setMessages([]); setIsInitialLoad(true); }
+                    setSelectedUser(u);
                     if (isMobileView) setShowChat(true);
                     if (u.id === user?.id) setViewingProfile(u);
                   }}
@@ -903,9 +903,9 @@ function MessagesContent() {
                 >
                   <div className={`${isMobileView ? 'w-9 h-9' : 'w-10 h-10'} rounded-xl overflow-hidden border-2 border-background shadow-sm shrink-0`} onClick={(e) => { e.stopPropagation(); setViewingProfile(u); }}>
                     {u.avatar ? (
-                      <img 
-                        src={getMediaUrl(u.avatar)} 
-                        className="w-full h-full object-cover" 
+                      <img
+                        src={getMediaUrl(u.avatar)}
+                        className="w-full h-full object-cover"
                         onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                       />
                     ) : null}
@@ -923,14 +923,14 @@ function MessagesContent() {
                       {u.lastMessage && <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{new Date(u.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                        <p className={`text-[11px] truncate opacity-50 flex-1 leading-relaxed ${u.lastMessage ? 'text-foreground/80 font-medium' : 'italic'}`}>
-                          {formatPreview(u.lastMessage)}
-                        </p>
-                       {u.unreadCount > 0 && (
-                         <div className="min-w-[18px] h-[18px] bg-emerald-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 shadow-lg shadow-emerald-500/20 animate-in zoom-in duration-300">
-                           {u.unreadCount}
-                         </div>
-                       )}
+                      <p className={`text-[11px] truncate opacity-50 flex-1 leading-relaxed ${u.lastMessage ? 'text-foreground/80 font-medium' : 'italic'}`}>
+                        {formatPreview(u.lastMessage)}
+                      </p>
+                      {u.unreadCount > 0 && (
+                        <div className="min-w-[18px] h-[18px] bg-emerald-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 shadow-lg shadow-emerald-500/20 animate-in zoom-in duration-300">
+                          {u.unreadCount}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -948,9 +948,9 @@ function MessagesContent() {
                   {isMobileView && <button onClick={() => setShowChat(false)} className="p-2 -ml-2 text-muted-foreground"><ArrowLeft className="w-5 h-5" /></button>}
                   <div className={`${isMobileView ? 'w-8 h-8' : 'w-10 h-10'} rounded-xl overflow-hidden border-2 border-background shadow-sm cursor-pointer shrink-0`} onClick={() => setViewingProfile(selectedUser)}>
                     {selectedUser.avatar ? (
-                      <img 
-                        src={getMediaUrl(selectedUser.avatar)} 
-                        className="w-full h-full object-cover" 
+                      <img
+                        src={getMediaUrl(selectedUser.avatar)}
+                        className="w-full h-full object-cover"
                         onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                       />
                     ) : null}
@@ -965,28 +965,28 @@ function MessagesContent() {
                       {selectedUser.isPinned && <Pin size={12} className="text-amber-500 shrink-0" />}
                     </h3>
                     <p className={`${isMobileView ? 'text-[9px]' : 'text-[10px]'} font-bold uppercase tracking-widest flex items-center gap-1 truncate ${recipientStatus === 'typing' ? 'text-primary' : recipientStatus === 'online' ? 'text-emerald-500' : 'text-muted-foreground'}`}>
-                      <span className={`w-1 h-1 rounded-full animate-pulse shrink-0 ${recipientStatus === 'offline' ? 'bg-muted-foreground' : 'bg-current'}`} /> 
+                      <span className={`w-1 h-1 rounded-full animate-pulse shrink-0 ${recipientStatus === 'offline' ? 'bg-muted-foreground' : 'bg-current'}`} />
                       {recipientStatus === 'typing' ? 'Typing...' : recipientStatus === 'online' ? 'Online' : 'Offline'}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 relative" ref={menuRef}>
-                  <button 
+                  <button
                     disabled={isInitiatingCall}
-                    onClick={() => startCall(selectedUser.id, 'voice', selectedUser)} 
+                    onClick={() => startCall(selectedUser.id, 'voice', selectedUser)}
                     className={`p-2 rounded-lg transition-all ${isInitiatingCall ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted text-muted-foreground'}`}
                   >
                     <Phone className="w-3.5 h-3.5" />
                   </button>
-                  <button 
+                  <button
                     disabled={isInitiatingCall}
-                    onClick={() => startCall(selectedUser.id, 'video', selectedUser)} 
+                    onClick={() => startCall(selectedUser.id, 'video', selectedUser)}
                     className={`p-2 rounded-lg transition-all ${isInitiatingCall ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted text-muted-foreground'}`}
                   >
                     <Video className="w-3.5 h-3.5" />
                   </button>
-                  <button 
-                    onClick={() => { setIsSearchingInChat(!isSearchingInChat); setInnerSearchQuery(''); }} 
+                  <button
+                    onClick={() => { setIsSearchingInChat(!isSearchingInChat); setInnerSearchQuery(''); }}
                     className={`p-2 rounded-lg transition-all ${isSearchingInChat ? 'bg-primary text-white shadow-lg' : 'hover:bg-muted text-muted-foreground'}`}
                   >
                     <Search className="w-3.5 h-3.5" />
@@ -1012,10 +1012,10 @@ function MessagesContent() {
                 {isSearchingInChat && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-6 py-3 bg-muted/30 border-b border-border flex items-center gap-3 overflow-hidden">
                     <Search className="w-3.5 h-3.5 text-primary" />
-                    <input 
+                    <input
                       autoFocus
-                      type="text" 
-                      placeholder="Search messages..." 
+                      type="text"
+                      placeholder="Search messages..."
                       value={innerSearchQuery}
                       onChange={(e) => setInnerSearchQuery(e.target.value)}
                       className="flex-1 bg-transparent border-none outline-none text-[11px] font-bold uppercase tracking-widest text-foreground placeholder:text-muted-foreground/50"
@@ -1038,10 +1038,10 @@ function MessagesContent() {
                   </div>
                 ) : (
                   messages.map((msg) => (
-                    <MessageBubble 
-                      key={msg.id} 
-                      msg={msg} 
-                      isMine={msg.senderId === user?.id} 
+                    <MessageBubble
+                      key={msg.id}
+                      msg={msg}
+                      isMine={msg.senderId === user?.id}
                       isMobileView={isMobileView}
                       onMobileMenu={handleMobileMenu}
                       onReply={setReplyingTo}
@@ -1053,10 +1053,10 @@ function MessagesContent() {
                       setSwipeOffset={setSwipeOffset}
                       onZoomMedia={(m) => {
                         if (m.userId) { // Profile card click
-                           fetchTargetProfile(m.userId);
+                          fetchTargetProfile(m.userId);
                         } else {
-                           setLightboxMedia(m); 
-                           setLightboxActions(true);
+                          setLightboxMedia(m);
+                          setLightboxActions(true);
                         }
                       }}
                       activeMenuId={activeMenuId}
@@ -1071,7 +1071,7 @@ function MessagesContent() {
               <div className="px-3 py-1.5 md:px-6 md:py-2 bg-background/50 backdrop-blur-3xl z-40 relative">
                 <AnimatePresence mode="wait">
                   {replyingTo && (
-                    <motion.div 
+                    <motion.div
                       key="reply-bar"
                       initial={{ height: 0, opacity: 0, y: 10 }}
                       animate={{ height: 'auto', opacity: 1, y: 0 }}
@@ -1090,7 +1090,7 @@ function MessagesContent() {
                     </motion.div>
                   )}
                   {editingMessage && (
-                    <motion.div 
+                    <motion.div
                       key="edit-bar"
                       initial={{ height: 0, opacity: 0, y: 10 }}
                       animate={{ height: 'auto', opacity: 1, y: 0 }}
@@ -1110,7 +1110,7 @@ function MessagesContent() {
                   <div className="flex items-center gap-0.5 ml-1">
                     <input type="file" disabled={isSending} ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
                     <button type="button" disabled={isSending} onClick={() => fileInputRef.current?.click()} className={`p-2 rounded-full transition-all text-primary/70 hover:text-primary ${isSending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5'}`}><Paperclip size={20} /></button>
-                    <button type="button" disabled={isSending} onClick={() => { if(fileInputRef.current) { fileInputRef.current.accept = "image/*,video/*"; fileInputRef.current.click(); setTimeout(() => {if(fileInputRef.current) fileInputRef.current.accept = ""}, 1000)} }} className={`p-2 rounded-full transition-all text-primary/70 hover:text-primary hidden md:block ${isSending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5'}`}><ImageIcon size={20} /></button>
+                    <button type="button" disabled={isSending} onClick={() => { if (fileInputRef.current) { fileInputRef.current.accept = "image/*,video/*"; fileInputRef.current.click(); setTimeout(() => { if (fileInputRef.current) fileInputRef.current.accept = "" }, 1000) } }} className={`p-2 rounded-full transition-all text-primary/70 hover:text-primary hidden md:block ${isSending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5'}`}><ImageIcon size={20} /></button>
                   </div>
                   <div className="flex-1 relative flex items-center min-h-[40px]">
                     {isRecording ? (
@@ -1122,18 +1122,18 @@ function MessagesContent() {
                         <button type="button" onClick={cancelRecording} className="text-rose-500/60 hover:text-rose-500 transition-all font-black text-[9px] uppercase tracking-widest flex items-center gap-1.5"><Trash2 className="w-3.5 h-3.5" />Cancel</button>
                       </div>
                     ) : (
-                      <textarea 
-                        ref={textareaRef} 
+                      <textarea
+                        ref={textareaRef}
                         disabled={isSending}
                         rows={1}
-                        placeholder="Say something..." 
+                        placeholder="Say something..."
                         style={{ height: '22px' }}
-                        value={newMessage} 
-                        onChange={(e) => { 
-                          setNewMessage(e.target.value); 
-                          e.target.style.height = 'auto'; 
+                        value={newMessage}
+                        onChange={(e) => {
+                          setNewMessage(e.target.value);
+                          e.target.style.height = 'auto';
                           e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
-                          
+
                           if (socket && selectedUser) {
                             socket.emit('typing', { to: selectedUser.id });
                             if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -1141,20 +1141,20 @@ function MessagesContent() {
                               socket.emit('stop_typing', { to: selectedUser.id });
                             }, 2000);
                           }
-                        }} 
-                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }} 
-                        className={`w-full px-2 py-0 bg-transparent border-none focus:outline-none transition-all font-medium text-sm max-h-[120px] resize-none overflow-y-auto custom-scrollbar leading-[22px] ${isSending ? 'opacity-50' : ''}`} 
+                        }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }}
+                        className={`w-full px-2 py-0 bg-transparent border-none focus:outline-none transition-all font-medium text-sm max-h-[120px] resize-none overflow-y-auto custom-scrollbar leading-[22px] ${isSending ? 'opacity-50' : ''}`}
                       />
                     )}
                   </div>
                   {isRecording ? (
-                     <button type="button" onClick={stopRecording} className="w-9 h-9 bg-rose-500 text-white rounded-full shadow-lg hover:rotate-90 transition-all flex items-center justify-center shrink-0"><Square size={14} /></button>
+                    <button type="button" onClick={stopRecording} className="w-9 h-9 bg-rose-500 text-white rounded-full shadow-lg hover:rotate-90 transition-all flex items-center justify-center shrink-0"><Square size={14} /></button>
                   ) : newMessage.trim() || selectedFile ? (
-                     <button type="submit" disabled={isSending} className={`w-9 h-9 rounded-full shadow-xl transition-all flex items-center justify-center shrink-0 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-105 active:scale-95'}`}>
-                       {isSending ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={16} className="ml-0.5" />}
-                     </button>
+                    <button type="submit" disabled={isSending} className={`w-9 h-9 rounded-full shadow-xl transition-all flex items-center justify-center shrink-0 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-105 active:scale-95'}`}>
+                      {isSending ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={16} className="ml-0.5" />}
+                    </button>
                   ) : (
-                     <button type="button" disabled={isSending} onMouseDown={startRecording} className={`w-9 h-9 rounded-full shadow-lg transition-all flex items-center justify-center shrink-0 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-110 active:scale-90'}`}><Mic size={18} /></button>
+                    <button type="button" disabled={isSending} onMouseDown={startRecording} className={`w-9 h-9 rounded-full shadow-lg transition-all flex items-center justify-center shrink-0 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-110 active:scale-90'}`}><Mic size={18} /></button>
                   )}
                 </form>
               </div>
@@ -1162,15 +1162,15 @@ function MessagesContent() {
               {/* Localized Chat Media Preview (Roomchat Version) */}
               <AnimatePresence>
                 {pendingMedia && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.98 }} 
-                    animate={{ opacity: 1, scale: 1 }} 
-                    exit={{ opacity: 0, scale: 0.98 }} 
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
                     className="absolute inset-0 z-[100] bg-slate-950/90 backdrop-blur-2xl flex flex-col"
                   >
                     {/* Header */}
                     <div className="p-4 flex items-center justify-between z-10">
-                      <button 
+                      <button
                         onClick={() => { setPendingMedia(null); setPendingPreviewUrl(null); }}
                         className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all shadow-xl"
                       >
@@ -1186,16 +1186,16 @@ function MessagesContent() {
                     <div className="flex-1 flex items-center justify-center p-6 min-h-0">
                       <div className="relative w-full h-full flex items-center justify-center">
                         {pendingMedia.type.startsWith('image/') ? (
-                          <motion.img 
+                          <motion.img
                             layoutId="roomchat-preview"
-                            src={pendingPreviewUrl} 
-                            className="max-w-full max-h-full object-contain rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)]" 
+                            src={pendingPreviewUrl}
+                            className="max-w-full max-h-full object-contain rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)]"
                           />
                         ) : pendingMedia.type.startsWith('video/') ? (
-                          <video 
-                            src={pendingPreviewUrl} 
-                            controls 
-                            className="max-w-full max-h-full rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-black" 
+                          <video
+                            src={pendingPreviewUrl}
+                            controls
+                            className="max-w-full max-h-full rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-black"
                           />
                         ) : (
                           <div className="p-16 bg-white/5 rounded-[3rem] border border-white/10 flex flex-col items-center gap-6 shadow-2xl">
@@ -1210,35 +1210,35 @@ function MessagesContent() {
 
                     {/* WhatsApp Style Footer Pill */}
                     <div className="p-6 md:p-10 bg-gradient-to-t from-black/60 to-transparent">
-                        <div className="max-w-3xl mx-auto flex items-center gap-4">
-                           <div className="flex-1 bg-white/5 backdrop-blur-3xl border border-white/20 rounded-[2.5rem] p-4 flex items-center gap-4 group focus-within:border-primary/50 transition-all shadow-xl">
-                              <textarea 
-                                autoFocus
-                                placeholder="Write a message..." 
-                                value={newMessage}
-                                onChange={(e) => {
-                                  setNewMessage(e.target.value);
-                                  e.target.style.height = 'auto';
-                                  e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
-                                }}
-                                className="flex-1 bg-transparent border-none outline-none text-white text-sm font-medium resize-none min-h-[24px] py-1 max-h-[120px] custom-scrollbar leading-relaxed"
-                              />
-                           </div>
-                           <button 
-                             onClick={handleSendMessage}
-                             disabled={isSending}
-                             className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(var(--primary-rgb),0.4)] hover:scale-105 active:scale-95 transition-all shrink-0"
-                           >
-                             {isSending ? <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={24} className="ml-0.5" />}
-                           </button>
+                      <div className="max-w-3xl mx-auto flex items-center gap-4">
+                        <div className="flex-1 bg-white/5 backdrop-blur-3xl border border-white/20 rounded-[2.5rem] p-4 flex items-center gap-4 group focus-within:border-primary/50 transition-all shadow-xl">
+                          <textarea
+                            autoFocus
+                            placeholder="Write a message..."
+                            value={newMessage}
+                            onChange={(e) => {
+                              setNewMessage(e.target.value);
+                              e.target.style.height = 'auto';
+                              e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                            }}
+                            className="flex-1 bg-transparent border-none outline-none text-white text-sm font-medium resize-none min-h-[24px] py-1 max-h-[120px] custom-scrollbar leading-relaxed"
+                          />
                         </div>
+                        <button
+                          onClick={handleSendMessage}
+                          disabled={isSending}
+                          className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(var(--primary-rgb),0.4)] hover:scale-105 active:scale-95 transition-all shrink-0"
+                        >
+                          {isSending ? <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={24} className="ml-0.5" />}
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </>
           ) : (
-             <div className="flex-1 flex flex-col items-center justify-center p-8 opacity-20"><MessageSquare className="w-16 h-16 mb-6" /><p className="text-xs font-black uppercase tracking-widest italic">Chat Standby</p></div>
+            <div className="flex-1 flex flex-col items-center justify-center p-8 opacity-20"><MessageSquare className="w-16 h-16 mb-6" /><p className="text-xs font-black uppercase tracking-widest italic">Chat Standby</p></div>
           )}
         </div>
       </div>
@@ -1246,259 +1246,259 @@ function MessagesContent() {
       <AnimatePresence>
         {/* Profile Modal */}
         {viewingProfile && (
-           <div key="profile-modal" className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" />
-             <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className={`relative bg-card border border-border w-full ${modalTab === 'gallery' ? 'max-w-[340px]' : 'max-w-[280px]'} overflow-hidden rounded-[2.5rem] shadow-2xl transition-all duration-300`}>
-               <div className="h-20 bg-gradient-to-r from-primary to-indigo-600 relative"><button onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="absolute top-4 right-4 p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-all"><X className="w-4 h-4" /></button></div>
-               <div className="px-5 pb-6 text-center -mt-10">
-                  <div className="relative inline-block mb-3">
-                    <div 
-                      className="w-20 h-20 rounded-[1.5rem] border-4 border-background overflow-hidden bg-muted shadow-lg cursor-pointer group/avatar relative"
-                      onClick={() => {
-                        setLightboxActions(false);
-                        setLightboxMedia({ fileUrl: viewingProfile.avatar, type: 'IMAGE' });
-                      }}
-                    >
-                      {viewingProfile.avatar ? (
-                        <img 
-                          src={getMediaUrl(viewingProfile.avatar)} 
-                          className="w-full h-full object-cover group-hover/avatar:scale-110 transition-transform duration-500" 
-                          onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                        />
-                      ) : null}
-                      <div className={`w-full h-full items-center justify-center text-2xl font-bold bg-primary text-white ${viewingProfile.avatar ? 'hidden' : 'flex'}`}>
-                        {(viewingProfile.name || viewingProfile.email || "?").charAt(0).toUpperCase()}
-                      </div>
-                      <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
-                         <ZoomIn className="text-white w-5 h-5" />
-                      </div>
+          <div key="profile-modal" className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" />
+            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className={`relative bg-card border border-border w-full ${modalTab === 'gallery' ? 'max-w-[340px]' : 'max-w-[280px]'} overflow-hidden rounded-[2.5rem] shadow-2xl transition-all duration-300`}>
+              <div className="h-20 bg-gradient-to-r from-primary to-indigo-600 relative"><button onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="absolute top-4 right-4 p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-all"><X className="w-4 h-4" /></button></div>
+              <div className="px-5 pb-6 text-center -mt-10">
+                <div className="relative inline-block mb-3">
+                  <div
+                    className="w-20 h-20 rounded-[1.5rem] border-4 border-background overflow-hidden bg-muted shadow-lg cursor-pointer group/avatar relative"
+                    onClick={() => {
+                      setLightboxActions(false);
+                      setLightboxMedia({ fileUrl: viewingProfile.avatar, type: 'IMAGE' });
+                    }}
+                  >
+                    {viewingProfile.avatar ? (
+                      <img
+                        src={getMediaUrl(viewingProfile.avatar)}
+                        className="w-full h-full object-cover group-hover/avatar:scale-110 transition-transform duration-500"
+                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                      />
+                    ) : null}
+                    <div className={`w-full h-full items-center justify-center text-2xl font-bold bg-primary text-white ${viewingProfile.avatar ? 'hidden' : 'flex'}`}>
+                      {(viewingProfile.name || viewingProfile.email || "?").charAt(0).toUpperCase()}
                     </div>
-                    <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-background shadow-sm ${onlineUsers[viewingProfile.id] === 'online' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
-                 </div>
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                      <ZoomIn className="text-white w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-background shadow-sm ${onlineUsers[viewingProfile.id] === 'online' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
+                </div>
 
-                 {/* TAB SWITCHER */}
-                 <div className="flex p-1 bg-muted rounded-xl mb-4 max-w-[180px] mx-auto border border-border/50">
-                   <button 
-                     onClick={() => setModalTab('info')}
-                     className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${modalTab === 'info' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                   >
-                     Member
-                   </button>
-                   <button 
-                     onClick={() => setModalTab('gallery')}
-                     className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${modalTab === 'gallery' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                   >
-                     Gallery
-                   </button>
-                 </div>
+                {/* TAB SWITCHER */}
+                <div className="flex p-1 bg-muted rounded-xl mb-4 max-w-[180px] mx-auto border border-border/50">
+                  <button
+                    onClick={() => setModalTab('info')}
+                    className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${modalTab === 'info' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Member
+                  </button>
+                  <button
+                    onClick={() => setModalTab('gallery')}
+                    className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${modalTab === 'gallery' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Gallery
+                  </button>
+                </div>
 
-                 <AnimatePresence mode="wait">
-                   {modalTab === 'info' ? (
-                     <motion.div 
-                       key="info-content"
-                       initial={{ opacity: 0, x: -10 }}
-                       animate={{ opacity: 1, x: 0 }}
-                       exit={{ opacity: 0, x: -10 }}
-                       transition={{ duration: 0.2 }}
-                     >
-                        <div className="relative flex items-center justify-center group px-10">
-                          <h2 className="text-lg font-black tracking-tight truncate">
-                            {viewingProfile.contactAlias || viewingProfile.name || 'Anonymous'}
-                          </h2>
-                          {!isEditingNickname && (
-                            <button 
-                              onClick={() => {
-                                setNewNickname(viewingProfile.contactAlias || '');
-                                setIsEditingNickname(true);
-                              }}
-                              className="absolute right-0 p-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl border border-primary/20 transition-all"
-                              title="Edit Nickname"
-                            >
-                              <Pencil size={12} />
-                            </button>
-                          )}
-                        </div>
-
-                        {isEditingNickname && (
-                          <div className="mt-2 flex items-center gap-2 px-6">
-                            <input 
-                              autoFocus
-                              type="text" 
-                              value={newNickname} 
-                              onChange={(e) => setNewNickname(e.target.value)}
-                              placeholder="Set nickname..."
-                              className="w-full bg-muted border border-primary/20 rounded-xl py-2 px-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
-                            />
-                            <div className="flex gap-1 shrink-0">
-                              <button 
-                                onClick={async () => {
-                                  setAliasLoading(true);
-                                  try {
-                                    await api.patch('/user/contact/alias', { targetId: viewingProfile.id, alias: newNickname });
-                                    setViewingProfile(prev => ({ ...prev, contactAlias: newNickname, displayName: newNickname || prev.name }));
-                                    setUsers(prev => prev.map(u => u.id === viewingProfile.id ? { ...u, contactAlias: newNickname } : u));
-                                    if (selectedUser?.id === viewingProfile.id) {
-                                      setSelectedUser(prev => ({ ...prev, contactAlias: newNickname }));
-                                    }
-                                    setIsEditingNickname(false);
-                                  } catch (err) {} finally { setAliasLoading(false); }
-                                }}
-                                disabled={aliasLoading}
-                                className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl border border-emerald-500/20 hover:bg-emerald-500/20"
-                              >
-                                <Check size={16} />
-                              </button>
-                              <button onClick={() => setIsEditingNickname(false)} className="p-2 bg-rose-500/10 text-rose-500 rounded-xl border border-rose-500/20 hover:bg-rose-500/20">
-                                <X size={16} />
-                              </button>
-                            </div>
-                          </div>
+                <AnimatePresence mode="wait">
+                  {modalTab === 'info' ? (
+                    <motion.div
+                      key="info-content"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="relative flex items-center justify-center group px-10">
+                        <h2 className="text-lg font-black tracking-tight truncate">
+                          {viewingProfile.contactAlias || viewingProfile.name || 'Anonymous'}
+                        </h2>
+                        {!isEditingNickname && (
+                          <button
+                            onClick={() => {
+                              setNewNickname(viewingProfile.contactAlias || '');
+                              setIsEditingNickname(true);
+                            }}
+                            className="absolute right-0 p-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl border border-primary/20 transition-all"
+                            title="Edit Nickname"
+                          >
+                            <Pencil size={12} />
+                          </button>
                         )}
+                      </div>
 
-                        <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60 mb-6 truncate px-4">
-                          {viewingProfile.contactAlias ? `Real Name: ${viewingProfile.name}` : 'Secure Profile'}
-                        </p>
-                        
-                        <div className="grid grid-cols-2 gap-2 mb-6">
-                          <div className="p-2 bg-muted/50 rounded-2xl border border-border">
-                             <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Status</p>
-                             <p className={`text-[9px] font-bold uppercase ${onlineUsers[viewingProfile.id] === 'online' ? 'text-emerald-500' : 'text-slate-400'}`}>
-                                {onlineUsers[viewingProfile.id] === 'online' ? 'Active' : 'Offline'}
-                             </p>
+                      {isEditingNickname && (
+                        <div className="mt-2 flex items-center gap-2 px-6">
+                          <input
+                            autoFocus
+                            type="text"
+                            value={newNickname}
+                            onChange={(e) => setNewNickname(e.target.value)}
+                            placeholder="Set nickname..."
+                            className="w-full bg-muted border border-primary/20 rounded-xl py-2 px-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          />
+                          <div className="flex gap-1 shrink-0">
+                            <button
+                              onClick={async () => {
+                                setAliasLoading(true);
+                                try {
+                                  await api.patch('/user/contact/alias', { targetId: viewingProfile.id, alias: newNickname });
+                                  setViewingProfile(prev => ({ ...prev, contactAlias: newNickname, displayName: newNickname || prev.name }));
+                                  setUsers(prev => prev.map(u => u.id === viewingProfile.id ? { ...u, contactAlias: newNickname } : u));
+                                  if (selectedUser?.id === viewingProfile.id) {
+                                    setSelectedUser(prev => ({ ...prev, contactAlias: newNickname }));
+                                  }
+                                  setIsEditingNickname(false);
+                                } catch (err) { } finally { setAliasLoading(false); }
+                              }}
+                              disabled={aliasLoading}
+                              className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl border border-emerald-500/20 hover:bg-emerald-500/20"
+                            >
+                              <Check size={16} />
+                            </button>
+                            <button onClick={() => setIsEditingNickname(false)} className="p-2 bg-rose-500/10 text-rose-500 rounded-xl border border-rose-500/20 hover:bg-rose-500/20">
+                              <X size={16} />
+                            </button>
                           </div>
-                          <div className="p-2 bg-muted/50 rounded-2xl border border-border">
-                             <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Member Since</p>
-                             <p className="text-[9px] font-bold uppercase truncate">
-                                {viewingProfile.createdAt ? new Date(viewingProfile.createdAt).toLocaleDateString([], { month: 'short', year: 'numeric' }) : 'Join Date Hidden'}
-                             </p>
-                          </div>
-                       </div>
-                       
-                       <div className="space-y-2 text-left">
-                          <div className="flex flex-col gap-1 p-3 bg-muted/30 rounded-xl border border-border/50">
-                             <div className="flex items-center gap-2 mb-1">
-                                <FileText className="w-3 h-3 text-primary shrink-0" />
-                                <p className="text-[7px] font-black uppercase text-muted-foreground">Biography</p>
-                             </div>
-                             <p className="text-[10px] font-bold text-foreground leading-relaxed italic">
-                                {viewingProfile.bio || "No biography provided by user."}
-                             </p>
-                          </div>
-                       </div>
-                       
-                       <div className="mt-6 space-y-2">
-                          <button 
-                            onClick={() => setIsSharingContact(true)}
-                            className="w-full py-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 border border-emerald-500/20"
-                          >
-                            <Share2 size={14} /> Share Profile
-                          </button>
-                          <button 
-                            onClick={() => router.push(`/profile/${viewingProfile.id}`)}
-                            className="w-full py-3 bg-muted hover:bg-muted/80 text-foreground rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2"
-                          >
-                            <UserCircle size={14} /> View Full Profile
-                          </button>
-                          <button onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="w-full py-3 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Close</button>
-                       </div>
-                     </motion.div>
-                   ) : (
-                     <motion.div 
-                       key="gallery-content"
-                       initial={{ opacity: 0, x: 10 }}
-                       animate={{ opacity: 1, x: 0 }}
-                       exit={{ opacity: 0, x: 10 }}
-                       transition={{ duration: 0.2 }}
-                       className="min-h-[280px] flex flex-col"
-                     >
-                        <div className="flex justify-center gap-2 mb-4">
-                           {['media', 'links', 'docs'].map(t => (
-                             <button 
-                                key={t}
-                                onClick={() => setGalleryTab(t)}
-                                className={`text-[9px] font-black uppercase tracking-widest py-1.5 px-3 rounded-xl transition-all border ${galleryTab === t ? 'bg-primary/10 border-primary text-primary' : 'bg-muted border-transparent text-muted-foreground hover:text-foreground'}`}
-                             >
-                               {t}
-                             </button>
-                           ))}
                         </div>
+                      )}
 
-                        <div className="h-[250px] overflow-y-auto px-1 custom-scrollbar">
-                           {galleryLoading ? (
-                             <div className="h-full flex items-center justify-center"><Loader2 className="w-5 h-5 text-primary animate-spin" /></div>
-                           ) : galleryTab === 'media' ? (
-                             galleryData.media.length > 0 ? (
-                               <div className="grid grid-cols-3 gap-1.5">
-                                  {galleryData.media.map(m => (
-                                    <div 
-                                      key={m.id} 
-                                      onClick={() => { setLightboxActions(true); setLightboxMedia(m); }}
-                                      className="aspect-square bg-muted rounded-xl overflow-hidden cursor-pointer hover:opacity-80 transition-all border border-border"
+                      <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60 mb-6 truncate px-4">
+                        {viewingProfile.contactAlias ? `Real Name: ${viewingProfile.name}` : 'Secure Profile'}
+                      </p>
+
+                      <div className="grid grid-cols-2 gap-2 mb-6">
+                        <div className="p-2 bg-muted/50 rounded-2xl border border-border">
+                          <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Status</p>
+                          <p className={`text-[9px] font-bold uppercase ${onlineUsers[viewingProfile.id] === 'online' ? 'text-emerald-500' : 'text-slate-400'}`}>
+                            {onlineUsers[viewingProfile.id] === 'online' ? 'Active' : 'Offline'}
+                          </p>
+                        </div>
+                        <div className="p-2 bg-muted/50 rounded-2xl border border-border">
+                          <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Member Since</p>
+                          <p className="text-[9px] font-bold uppercase truncate">
+                            {viewingProfile.createdAt ? new Date(viewingProfile.createdAt).toLocaleDateString([], { month: 'short', year: 'numeric' }) : 'Join Date Hidden'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-left">
+                        <div className="flex flex-col gap-1 p-3 bg-muted/30 rounded-xl border border-border/50">
+                          <div className="flex items-center gap-2 mb-1">
+                            <FileText className="w-3 h-3 text-primary shrink-0" />
+                            <p className="text-[7px] font-black uppercase text-muted-foreground">Biography</p>
+                          </div>
+                          <p className="text-[10px] font-bold text-foreground leading-relaxed italic">
+                            {viewingProfile.bio || "No biography provided by user."}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 space-y-2">
+                        <button
+                          onClick={() => setIsSharingContact(true)}
+                          className="w-full py-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 border border-emerald-500/20"
+                        >
+                          <Share2 size={14} /> Share Profile
+                        </button>
+                        <button
+                          onClick={() => router.push(`/profile/${viewingProfile.id}`)}
+                          className="w-full py-3 bg-muted hover:bg-muted/80 text-foreground rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2"
+                        >
+                          <UserCircle size={14} /> View Full Profile
+                        </button>
+                        <button onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="w-full py-3 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Close</button>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="gallery-content"
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      transition={{ duration: 0.2 }}
+                      className="min-h-[280px] flex flex-col"
+                    >
+                      <div className="flex justify-center gap-2 mb-4">
+                        {['media', 'links', 'docs'].map(t => (
+                          <button
+                            key={t}
+                            onClick={() => setGalleryTab(t)}
+                            className={`text-[9px] font-black uppercase tracking-widest py-1.5 px-3 rounded-xl transition-all border ${galleryTab === t ? 'bg-primary/10 border-primary text-primary' : 'bg-muted border-transparent text-muted-foreground hover:text-foreground'}`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="h-[250px] overflow-y-auto px-1 custom-scrollbar">
+                        {galleryLoading ? (
+                          <div className="h-full flex items-center justify-center"><Loader2 className="w-5 h-5 text-primary animate-spin" /></div>
+                        ) : galleryTab === 'media' ? (
+                          galleryData.media.length > 0 ? (
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {galleryData.media.map(m => (
+                                <div
+                                  key={m.id}
+                                  onClick={() => { setLightboxActions(true); setLightboxMedia(m); }}
+                                  className="aspect-square bg-muted rounded-xl overflow-hidden cursor-pointer hover:opacity-80 transition-all border border-border"
+                                >
+                                  {m.type === 'IMAGE' ? (
+                                    <img src={getMediaUrl(m.fileUrl)} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-slate-900 text-white relative">
+                                      <Play size={16} />
+                                      <div className="absolute inset-0 bg-black/20" />
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : <div className="h-full flex flex-col items-center justify-center opacity-20 text-[10px] font-black uppercase"><ImageIcon size={24} className="mb-2" />No Media</div>
+                        ) : galleryTab === 'links' ? (
+                          galleryData.links.length > 0 ? (
+                            <div className="space-y-2 text-left pb-4">
+                              {galleryData.links.map(l => (
+                                <div key={l.id} className="p-3 bg-muted rounded-2xl border border-border group relative overflow-hidden text-left">
+                                  <div className="absolute top-0 left-0 w-1 h-full bg-primary/30" />
+                                  <p className="text-[10px] font-bold text-foreground break-all line-clamp-2 pr-6 leading-relaxed">{l.content}</p>
+                                  <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/20">
+                                    <span className="text-[8px] text-muted-foreground font-black uppercase tracking-tight">{new Date(l.createdAt).toLocaleDateString()}</span>
+                                    <button
+                                      onClick={() => window.open(l.content.match(/https?:\/\/[^\s]+/)?.[0], '_blank')}
+                                      className="text-[8px] text-primary font-black uppercase hover:underline flex items-center gap-1"
                                     >
-                                       {m.type === 'IMAGE' ? (
-                                         <img src={getMediaUrl(m.fileUrl)} className="w-full h-full object-cover" />
-                                       ) : (
-                                         <div className="w-full h-full flex items-center justify-center bg-slate-900 text-white relative">
-                                           <Play size={16} />
-                                           <div className="absolute inset-0 bg-black/20" />
-                                         </div>
-                                       )}
+                                      Visit <ExternalLink size={8} />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : <div className="h-full flex flex-col items-center justify-center opacity-20 text-[10px] font-black uppercase"><Paperclip size={24} className="mb-2" />No Links</div>
+                        ) : (
+                          galleryData.docs.length > 0 ? (
+                            <div className="space-y-2 text-left pb-4">
+                              {galleryData.docs.map(d => (
+                                <div key={d.id} className="p-3 bg-muted/60 rounded-2xl border border-border flex items-center gap-3 group hover:bg-muted transition-all">
+                                  <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0"><FileIcon size={14} /></div>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-[10px] font-bold text-foreground truncate leading-tight mb-0.5">{d.fileName || d.fileUrl.split('/').pop()}</p>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[8px] text-muted-foreground font-black uppercase italic opacity-60">{(d.fileSize / 1024 / 1024).toFixed(2)} MB</span>
+                                      <button
+                                        onClick={() => window.open(getMediaUrl(d.fileUrl), '_blank')}
+                                        className="text-[8px] text-primary font-black uppercase hover:underline"
+                                      >
+                                        Download
+                                      </button>
                                     </div>
-                                  ))}
-                               </div>
-                             ) : <div className="h-full flex flex-col items-center justify-center opacity-20 text-[10px] font-black uppercase"><ImageIcon size={24} className="mb-2" />No Media</div>
-                           ) : galleryTab === 'links' ? (
-                             galleryData.links.length > 0 ? (
-                               <div className="space-y-2 text-left pb-4">
-                                  {galleryData.links.map(l => (
-                                    <div key={l.id} className="p-3 bg-muted rounded-2xl border border-border group relative overflow-hidden text-left">
-                                       <div className="absolute top-0 left-0 w-1 h-full bg-primary/30" />
-                                       <p className="text-[10px] font-bold text-foreground break-all line-clamp-2 pr-6 leading-relaxed">{l.content}</p>
-                                       <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/20">
-                                          <span className="text-[8px] text-muted-foreground font-black uppercase tracking-tight">{new Date(l.createdAt).toLocaleDateString()}</span>
-                                          <button 
-                                            onClick={() => window.open(l.content.match(/https?:\/\/[^\s]+/)?.[0], '_blank')}
-                                            className="text-[8px] text-primary font-black uppercase hover:underline flex items-center gap-1"
-                                          >
-                                            Visit <ExternalLink size={8} />
-                                          </button>
-                                       </div>
-                                    </div>
-                                  ))}
-                               </div>
-                             ) : <div className="h-full flex flex-col items-center justify-center opacity-20 text-[10px] font-black uppercase"><Paperclip size={24} className="mb-2" />No Links</div>
-                           ) : (
-                             galleryData.docs.length > 0 ? (
-                               <div className="space-y-2 text-left pb-4">
-                                  {galleryData.docs.map(d => (
-                                    <div key={d.id} className="p-3 bg-muted/60 rounded-2xl border border-border flex items-center gap-3 group hover:bg-muted transition-all">
-                                       <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0"><FileIcon size={14} /></div>
-                                       <div className="min-w-0 flex-1">
-                                          <p className="text-[10px] font-bold text-foreground truncate leading-tight mb-0.5">{d.fileName || d.fileUrl.split('/').pop()}</p>
-                                          <div className="flex items-center gap-2">
-                                             <span className="text-[8px] text-muted-foreground font-black uppercase italic opacity-60">{(d.fileSize / 1024 / 1024).toFixed(2)} MB</span>
-                                             <button 
-                                               onClick={() => downloadMedia(d.fileUrl)}
-                                               className="text-[8px] text-primary font-black uppercase hover:underline"
-                                             >
-                                                Download
-                                             </button>
-                                          </div>
-                                       </div>
-                                    </div>
-                                  ))}
-                               </div>
-                             ) : <div className="h-full flex flex-col items-center justify-center opacity-20 text-[10px] font-black uppercase"><FileText size={24} className="mb-2" />No Docs</div>
-                           )}
-                        </div>
-                        
-                        <button onClick={() => setModalTab('info')} className="w-full mt-4 py-3 bg-muted text-foreground rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all hover:bg-muted/80 border border-border/50">Back to Profile</button>
-                     </motion.div>
-                   )}
-                 </AnimatePresence>
-               </div>
-             </motion.div>
-           </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : <div className="h-full flex flex-col items-center justify-center opacity-20 text-[10px] font-black uppercase"><FileText size={24} className="mb-2" />No Docs</div>
+                        )}
+                      </div>
+
+                      <button onClick={() => setModalTab('info')} className="w-full mt-4 py-3 bg-muted text-foreground rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all hover:bg-muted/80 border border-border/50">Back to Profile</button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </div>
         )}
 
         {lockModal.open && (
@@ -1516,110 +1516,110 @@ function MessagesContent() {
           </div>
         )}
         {isDeletingConvo && (
-           <div key="delete-convo-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDeletingConvo(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl">
-               <div className="w-16 h-16 rounded-3xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto mb-6"><AlertCircle className="w-8 h-8" /></div>
-               <h2 className="text-xl font-black text-center uppercase tracking-tight mb-2">Delete Chat?</h2>
-               <div className="space-y-3"><button onClick={handleDeleteConversation} className="w-full bg-rose-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl">Wipe History</button><button onClick={() => setIsDeletingConvo(false)} className="w-full text-foreground/50 text-[10px] font-black uppercase tracking-widest mt-2 hover:text-foreground text-center">Cancel</button></div>
-             </motion.div>
-           </div>
+          <div key="delete-convo-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDeletingConvo(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl">
+              <div className="w-16 h-16 rounded-3xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto mb-6"><AlertCircle className="w-8 h-8" /></div>
+              <h2 className="text-xl font-black text-center uppercase tracking-tight mb-2">Delete Chat?</h2>
+              <div className="space-y-3"><button onClick={handleDeleteConversation} className="w-full bg-rose-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl">Wipe History</button><button onClick={() => setIsDeletingConvo(false)} className="w-full text-foreground/50 text-[10px] font-black uppercase tracking-widest mt-2 hover:text-foreground text-center">Cancel</button></div>
+            </motion.div>
+          </div>
         )}
         {/* Mobile Action Menu (Long Press) */}
         {mobileMenuOpen && (
           <div key="mobile-action-menu" className="fixed inset-0 z-[500] flex items-center justify-center p-4">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileMenuOpen(null)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
-             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-[280px] overflow-hidden rounded-[2.5rem] shadow-2xl p-4">
-                <div className="mb-4 text-center">
-                   <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">Message Action</p>
-                   <p className="text-xs truncate font-bold px-4">{mobileMenuOpen.content || '[Media]'}</p>
-                </div>
-                <div className="space-y-2">
-                   <button onClick={() => { setReplyingTo(mobileMenuOpen); setMobileMenuOpen(null); textareaRef.current?.focus(); }} className="w-full flex items-center gap-4 px-6 py-4 rounded-3xl bg-primary/10 text-primary hover:bg-primary/20 transition-all">
-                      <Reply size={18} /><span className="text-xs font-black uppercase tracking-widest">Reply</span>
-                   </button>
-                   <button onClick={() => { handleCopyMessage(mobileMenuOpen.content); setMobileMenuOpen(null); }} className="w-full flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-muted transition-all text-muted-foreground">
-                      <Copy size={18} /><span className="text-xs font-black uppercase tracking-widest">Copy</span>
-                   </button>
-                   {mobileMenuOpen.senderId === user?.id && (
-                     <>
-                        <button onClick={() => { setEditingMessage(mobileMenuOpen); setNewMessage(mobileMenuOpen.content); setMobileMenuOpen(null); textareaRef.current?.focus(); }} className="w-full flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-muted transition-all text-muted-foreground">
-                           <Pencil size={18} /><span className="text-xs font-black uppercase tracking-widest">Edit</span>
-                        </button>
-                        <button onClick={() => { handleDeleteSingleMessage(mobileMenuOpen.id); setMobileMenuOpen(null); }} className="w-full flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-rose-500/10 text-rose-500 transition-all font-black">
-                           <Trash2 size={18} /><span className="text-xs uppercase tracking-widest">Delete</span>
-                        </button>
-                     </>
-                   )}
-                </div>
-                <button onClick={() => setMobileMenuOpen(null)} className="w-full mt-4 text-xs font-black uppercase tracking-widest text-muted-foreground/50 hover:text-muted-foreground transition-all py-2">Cancel</button>
-             </motion.div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileMenuOpen(null)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-[280px] overflow-hidden rounded-[2.5rem] shadow-2xl p-4">
+              <div className="mb-4 text-center">
+                <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">Message Action</p>
+                <p className="text-xs truncate font-bold px-4">{mobileMenuOpen.content || '[Media]'}</p>
+              </div>
+              <div className="space-y-2">
+                <button onClick={() => { setReplyingTo(mobileMenuOpen); setMobileMenuOpen(null); textareaRef.current?.focus(); }} className="w-full flex items-center gap-4 px-6 py-4 rounded-3xl bg-primary/10 text-primary hover:bg-primary/20 transition-all">
+                  <Reply size={18} /><span className="text-xs font-black uppercase tracking-widest">Reply</span>
+                </button>
+                <button onClick={() => { handleCopyMessage(mobileMenuOpen.content); setMobileMenuOpen(null); }} className="w-full flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-muted transition-all text-muted-foreground">
+                  <Copy size={18} /><span className="text-xs font-black uppercase tracking-widest">Copy</span>
+                </button>
+                {mobileMenuOpen.senderId === user?.id && (
+                  <>
+                    <button onClick={() => { setEditingMessage(mobileMenuOpen); setNewMessage(mobileMenuOpen.content); setMobileMenuOpen(null); textareaRef.current?.focus(); }} className="w-full flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-muted transition-all text-muted-foreground">
+                      <Pencil size={18} /><span className="text-xs font-black uppercase tracking-widest">Edit</span>
+                    </button>
+                    <button onClick={() => { handleDeleteSingleMessage(mobileMenuOpen.id); setMobileMenuOpen(null); }} className="w-full flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-rose-500/10 text-rose-500 transition-all font-black">
+                      <Trash2 size={18} /><span className="text-xs uppercase tracking-widest">Delete</span>
+                    </button>
+                  </>
+                )}
+              </div>
+              <button onClick={() => setMobileMenuOpen(null)} className="w-full mt-4 text-xs font-black uppercase tracking-widest text-muted-foreground/50 hover:text-muted-foreground transition-all py-2">Cancel</button>
+            </motion.div>
           </div>
         )}
-         {isSharingContact && (
-            <div key="share-contact-modal" className="fixed inset-0 z-[500] flex items-center justify-center p-4">
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsSharingContact(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-[320px] overflow-hidden rounded-[2.5rem] shadow-2xl p-6">
-                 <h2 className="text-sm font-black uppercase tracking-widest text-center mb-4">Share to Friend</h2>
-                 
-                 <div className="relative mb-4">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50"><Search size={12} /></div>
-                    <input 
-                      type="text" 
-                      placeholder="Search contacts..." 
-                      value={shareSearchQuery}
-                      onChange={(e) => setShareSearchQuery(e.target.value)}
-                      className="w-full bg-muted border border-border rounded-xl py-2 pl-9 pr-4 text-[10px] font-bold uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                 </div>
+        {isSharingContact && (
+          <div key="share-contact-modal" className="fixed inset-0 z-[500] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsSharingContact(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-[320px] overflow-hidden rounded-[2.5rem] shadow-2xl p-6">
+              <h2 className="text-sm font-black uppercase tracking-widest text-center mb-4">Share to Friend</h2>
 
-                 <div className="max-h-[300px] overflow-y-auto custom-scrollbar space-y-2">
-                    {users
-                      .filter(u => u.id !== viewingProfile.id)
-                      .filter(u => {
-                         const name = (u.contactAlias || u.name || '').toLowerCase();
-                         return name.includes(shareSearchQuery.toLowerCase());
-                      })
-                      .map(u => (
-                      <button 
-                        key={u.id}
-                        onClick={async () => {
-                           const contactData = { id: viewingProfile.id, name: viewingProfile.name, avatar: viewingProfile.avatar };
-                           try {
-                              if (socket) {
-                                socket.emit('send_message', {
-                                   receiverId: u.id,
-                                   content: JSON.stringify(contactData),
-                                   type: 'PROFILE'
-                                });
-                                setIsSharingContact(false);
-                                setViewingProfile(null);
-                                // Select that user after sharing
-                                setSelectedUser(u);
-                                setShowChat(true);
-                              }
-                           } catch (err) {
-                             console.error('Share error:', err);
-                           }
-                        }}
-                        className="w-full p-3 bg-muted rounded-2xl border border-border flex items-center gap-3 hover:bg-primary/10 hover:border-primary/30 transition-all group"
-                      >
-                         <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center overflow-hidden border border-white/10 shrink-0">
-                            {u.avatar ? <img src={getMediaUrl(u.avatar)} className="w-full h-full object-cover" /> : <User size={20} />}
-                         </div>
-                         <p className="font-semibold text-[11px] truncate flex-1 text-left">{u.contactAlias || u.name}</p>
-                         <div className="p-1 px-2 bg-primary/20 text-primary rounded-lg text-[8px] font-black opacity-0 group-hover:opacity-100 transition-opacity">SEND</div>
-                      </button>
-                    ))}
-                 </div>
-                 <button onClick={() => setIsSharingContact(false)} className="w-full mt-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 hover:text-muted-foreground transition-all">Cancel</button>
-              </motion.div>
-            </div>
-         )}
+              <div className="relative mb-4">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50"><Search size={12} /></div>
+                <input
+                  type="text"
+                  placeholder="Search contacts..."
+                  value={shareSearchQuery}
+                  onChange={(e) => setShareSearchQuery(e.target.value)}
+                  className="w-full bg-muted border border-border rounded-xl py-2 pl-9 pr-4 text-[10px] font-bold uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              <div className="max-h-[300px] overflow-y-auto custom-scrollbar space-y-2">
+                {users
+                  .filter(u => u.id !== viewingProfile.id)
+                  .filter(u => {
+                    const name = (u.contactAlias || u.name || '').toLowerCase();
+                    return name.includes(shareSearchQuery.toLowerCase());
+                  })
+                  .map(u => (
+                    <button
+                      key={u.id}
+                      onClick={async () => {
+                        const contactData = { id: viewingProfile.id, name: viewingProfile.name, avatar: viewingProfile.avatar };
+                        try {
+                          if (socket) {
+                            socket.emit('send_message', {
+                              receiverId: u.id,
+                              content: JSON.stringify(contactData),
+                              type: 'PROFILE'
+                            });
+                            setIsSharingContact(false);
+                            setViewingProfile(null);
+                            // Select that user after sharing
+                            setSelectedUser(u);
+                            setShowChat(true);
+                          }
+                        } catch (err) {
+                          console.error('Share error:', err);
+                        }
+                      }}
+                      className="w-full p-3 bg-muted rounded-2xl border border-border flex items-center gap-3 hover:bg-primary/10 hover:border-primary/30 transition-all group"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center overflow-hidden border border-white/10 shrink-0">
+                        {u.avatar ? <img src={getMediaUrl(u.avatar)} className="w-full h-full object-cover" /> : <User size={20} />}
+                      </div>
+                      <p className="font-semibold text-[11px] truncate flex-1 text-left">{u.contactAlias || u.name}</p>
+                      <div className="p-1 px-2 bg-primary/20 text-primary rounded-lg text-[8px] font-black opacity-0 group-hover:opacity-100 transition-opacity">SEND</div>
+                    </button>
+                  ))}
+              </div>
+              <button onClick={() => setIsSharingContact(false)} className="w-full mt-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 hover:text-muted-foreground transition-all">Cancel</button>
+            </motion.div>
+          </div>
+        )}
         {/* Lightbox / Zoomed Media */}
         <AnimatePresence>
           {lightboxMedia && (
-            <Lightbox 
+            <Lightbox
               media={lightboxMedia}
               onClose={() => setLightboxMedia(null)}
               allowActions={lightboxActions}

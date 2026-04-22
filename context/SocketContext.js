@@ -25,17 +25,17 @@ export const SocketProvider = ({ children }) => {
   const [callEnded, setCallEnded] = useState(false);
   const [stream, setStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
-   const [isCalling, setIsCalling] = useState(false);
-   const [targetUser, setTargetUser] = useState(null);
-   const [isMirrored, setIsMirrored] = useState(true);
-   const [remoteIsMirrored, setRemoteIsMirrored] = useState(false);
-   const [isMinimized, setIsMinimized] = useState(false);
-   const [facingMode, setFacingMode] = useState('user'); // 'user' or 'environment'
-   const [remoteVideoEnabled, setRemoteVideoEnabled] = useState(true);
-   const [remoteAudioEnabled, setRemoteAudioEnabled] = useState(true);
-   const [localVideoEnabled, setLocalVideoEnabled] = useState(true);
-   const [localAudioEnabled, setLocalAudioEnabled] = useState(true);
-   const [answerCallParam, setAnswerCallParam] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
+  const [targetUser, setTargetUser] = useState(null);
+  const [isMirrored, setIsMirrored] = useState(true);
+  const [remoteIsMirrored, setRemoteIsMirrored] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [facingMode, setFacingMode] = useState('user'); // 'user' or 'environment'
+  const [remoteVideoEnabled, setRemoteVideoEnabled] = useState(true);
+  const [remoteAudioEnabled, setRemoteAudioEnabled] = useState(true);
+  const [localVideoEnabled, setLocalVideoEnabled] = useState(true);
+  const [localAudioEnabled, setLocalAudioEnabled] = useState(true);
+  const [answerCallParam, setAnswerCallParam] = useState(false);
 
   const connectionRef = React.useRef();
   const streamRef = React.useRef(null);
@@ -58,7 +58,7 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (user) {
       const accessToken = localStorage.getItem('accessToken');
-      
+
       const newSocket = io(API_URL, {
         auth: { token: accessToken },
         transports: ['websocket', 'polling'], // Prioritize websocket for stability on Railway/Vercel
@@ -83,7 +83,7 @@ export const SocketProvider = ({ children }) => {
             api.get('/user/notifications'),
             api.get('/user/chat/unread-conversations')
           ]);
-          
+
           setNotifications(notifRes.data.data);
           setUnreadCount(notifRes.data.data.filter(n => !n.isRead).length);
           setUnreadChatsCount(unreadChatRes.data.data.length);
@@ -100,7 +100,7 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('unread_count', (data) => {
         setUnreadCount(data.count);
       });
-      
+
       newSocket.on('user_status', (data) => {
         setOnlineUsers(prev => ({ ...prev, [data.userId]: data.status }));
       });
@@ -110,14 +110,14 @@ export const SocketProvider = ({ children }) => {
           try {
             const res = await api.get('/user/chat/unread-conversations');
             setUnreadChatsCount(res.data.data.length);
-          } catch (err) {}
+          } catch (err) { }
         };
         fetchUnread();
       });
 
       newSocket.on('new_notification', (data) => {
         console.log('[Socket] New notification received:', data);
-        
+
         // Suppress COMPLETELY if user is already chatting with this person in active window
         if (data.type === 'CHAT' && activeChatIdRef.current === data.senderId) {
           return;
@@ -130,12 +130,12 @@ export const SocketProvider = ({ children }) => {
           return [data, ...prev];
         });
         setToast(data);
-        
+
         // Play notification sound
         try {
           const audio = new Audio('/notification.wav');
-          audio.play().catch(() => {}); // Browsers might block auto-play
-        } catch (e) {}
+          audio.play().catch(() => { }); // Browsers might block auto-play
+        } catch (e) { }
 
         setTimeout(() => setToast(null), 1000);
       });
@@ -154,18 +154,18 @@ export const SocketProvider = ({ children }) => {
           const ring = new Audio('/ringtone.mp3'); // User should add this file
           ring.loop = true;
           ring.play().catch(() => {
-             // Fallback if file not found or blocked
-             const fallback = new Audio('/notification.wav');
-             fallback.loop = true;
-             fallback.play().catch(() => {});
-             ringtoneRef.current = fallback;
+            // Fallback if file not found or blocked
+            const fallback = new Audio('/notification.wav');
+            fallback.loop = true;
+            fallback.play().catch(() => { });
+            ringtoneRef.current = fallback;
           });
           ringtoneRef.current = ring;
 
           if ('vibrate' in navigator) {
             navigator.vibrate([500, 200, 500, 200, 500, 200, 500]);
           }
-        } catch (e) {}
+        } catch (e) { }
       });
 
       newSocket.on('call_accepted', (signal) => {
@@ -183,7 +183,7 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on('call_ended', () => {
-        handleEndCall(false); 
+        handleEndCall(false);
       });
 
       newSocket.on('remote_mirror_toggled', ({ isMirrored }) => {
@@ -211,15 +211,6 @@ export const SocketProvider = ({ children }) => {
     }
   }, [user]);
 
-  // Extra safety: Cleanup hardware on tab close
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      handleEndCall(false);
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
-
   // Secondary backup effect to ensure media stops if user vanishes
   useEffect(() => {
     if (!user) {
@@ -238,7 +229,7 @@ export const SocketProvider = ({ children }) => {
       await api.delete(`/user/notifications/${id}`);
       setNotifications(prev => prev.filter(n => n.id !== id));
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const readAllNotifications = async () => {
@@ -246,7 +237,7 @@ export const SocketProvider = ({ children }) => {
       await api.patch('/user/notifications/read');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const clearNotifications = async () => {
@@ -254,7 +245,7 @@ export const SocketProvider = ({ children }) => {
       await api.delete('/user/notifications');
       setNotifications([]);
       setUnreadCount(0);
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const clearNotificationsFromSender = async (senderId) => {
@@ -266,7 +257,7 @@ export const SocketProvider = ({ children }) => {
         const remainingUnread = notifications.filter(n => (n.senderId !== senderId || n.type !== 'CHAT') && !n.isRead).length;
         return remainingUnread;
       });
-    } catch (err) {}
+    } catch (err) { }
   };
 
   // Handle auto-answer from deep-links (Push Notifications)
@@ -306,13 +297,13 @@ export const SocketProvider = ({ children }) => {
 
   const handleEndCall = (shouldEmit = true) => {
     console.log('[Call] Ending call and cleaning up...');
-    
+
     // Use the latest values from refs to avoid stale closures in socket listeners
     const currentStream = streamRef.current;
     const currentPeer = connectionRef.current;
     const currentTarget = targetUserRef.current || callRef.current.from;
     const currentSocket = socketRef.current;
-    
+
     // Check if there was actually an active call or calling process
     const wasActive = isCalling || callAccepted || callRef.current.isReceivingCall;
 
@@ -324,7 +315,7 @@ export const SocketProvider = ({ children }) => {
     // 1. Reset states IMMEDIATELY to stop UI loops
     setIsCalling(false);
     setCallAccepted(false);
-    
+
     // Only show "Call Ended" message if there was an actual call happening
     if (wasActive) {
       setCallEnded(true);
@@ -365,11 +356,11 @@ export const SocketProvider = ({ children }) => {
     // Only clear binary streams and peer connection immediately
     setStream(null);
     setRemoteStream(null);
-    
+
     // We keep the 'name' and 'avatar' in the call state for 2 seconds 
     // so the 'Call Ended' screen shows who we were talking to
     setCall(prev => ({ ...prev, isReceivingCall: false, from: '', signal: null }));
-    
+
     // Auto-hide the "Call Ended" message after 2 seconds and clear the identity then
     setTimeout(() => {
       setCallEnded(false);
@@ -395,21 +386,21 @@ export const SocketProvider = ({ children }) => {
         // TURN ON / UPGRADE: Start a fresh track
         try {
           console.log('[Media] Powering on camera hardware...');
-          const newStream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: facingMode }, 
-            audio: false 
+          const newStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: facingMode },
+            audio: false
           });
           const newVideoTrack = newStream.getVideoTracks()[0];
-          
+
           if (connectionRef.current && videoTrack) {
             console.log('[Media] Swapping tracks in peer connection');
             connectionRef.current.replaceTrack(videoTrack, newVideoTrack, stream);
           }
-          
+
           // Update the stream tracks
           if (videoTrack) stream.removeTrack(videoTrack);
           stream.addTrack(newVideoTrack);
-          
+
           setLocalVideoEnabled(true);
           // If it was a voice call, treat this as an upgrade
           if (call.type === 'voice') {
@@ -424,7 +415,7 @@ export const SocketProvider = ({ children }) => {
         }
       }
     }
- else if (type === 'audio') {
+    else if (type === 'audio') {
       const audioTrack = stream.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
@@ -459,9 +450,9 @@ export const SocketProvider = ({ children }) => {
         video: true,
         audio: true
       });
-      
+
       console.log('[Media] Stream acquired successfully:', currentStream.id);
-      
+
       // If voice call, immediately stop the video track to turn off the light
       if (type === 'voice') {
         const videoTrack = currentStream.getVideoTracks()[0];
@@ -474,9 +465,9 @@ export const SocketProvider = ({ children }) => {
       setStream(currentStream);
 
       const Peer = (await import('simple-peer')).default;
-      const peer = new Peer({ 
-        initiator: true, 
-        trickle: false, 
+      const peer = new Peer({
+        initiator: true,
+        trickle: false,
         stream: currentStream,
         config: {
           iceServers: [
@@ -512,9 +503,9 @@ export const SocketProvider = ({ children }) => {
       try {
         const out = new Audio('/outgoing.mp3'); // User should add this file
         out.loop = true;
-        out.play().catch(() => {});
+        out.play().catch(() => { });
         outgoingRef.current = out;
-      } catch (e) {}
+      } catch (e) { }
 
     } catch (err) {
       console.error('[Media] Fatal error getting media:', err);
@@ -529,7 +520,7 @@ export const SocketProvider = ({ children }) => {
     }
     setCallEnded(false); // Reset call ended status
     setCallAccepted(true);
-    
+
     // IMMEDIATELY stop ringtone on answer
     if (ringtoneRef.current) {
       ringtoneRef.current.pause();
@@ -557,9 +548,9 @@ export const SocketProvider = ({ children }) => {
       setStream(currentStream);
 
       const Peer = (await import('simple-peer')).default;
-      const peer = new Peer({ 
-        initiator: false, 
-        trickle: false, 
+      const peer = new Peer({
+        initiator: false,
+        trickle: false,
         stream: currentStream,
         config: {
           iceServers: [
@@ -633,7 +624,7 @@ export const SocketProvider = ({ children }) => {
   };
 
   return (
-    <SocketContext.Provider value={{ 
+    <SocketContext.Provider value={{
       socket, unreadCount, unreadChatsCount, notifications, toast, activeChatId, onlineUsers,
       setNotifications, setUnreadCount, setUnreadChatsCount, setActiveChatId, setOnlineUsers,
       requestNotificationPermission, removeNotification, readAllNotifications, clearNotifications, clearNotificationsFromSender,

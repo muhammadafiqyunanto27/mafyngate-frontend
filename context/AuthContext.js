@@ -8,12 +8,14 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [serverError, setServerError] = useState(null); // 503/500 server-level errors
   const router = useRouter();
 
   const fetchUser = async () => {
     try {
       const res = await api.get('/user/me');
       setUser(res.data.data);
+      setServerError(null);
       return res.data.data;
     } catch (err) {
       setUser(null);
@@ -38,11 +40,27 @@ export const AuthProvider = ({ children }) => {
       try {
         await fetchUser();
       } catch (err) {
+        // If it's a 503/500 server error, surface it — don't silently fail
+        const status = err.response?.status;
+        if (status === 503 || status === 500) {
+          const msg = err.response?.data?.message || 'Server sedang bermasalah. Coba lagi nanti.';
+          setServerError(msg);
+          setUser(null);
+          setLoading(false);
+          clearTimeout(safetyTimer);
+          return;
+        }
+
         try {
           const res = await api.post('/auth/refresh');
           setAccessToken(res.data.data.accessToken);
           await fetchUser();
         } catch (refreshErr) {
+          const refreshStatus = refreshErr.response?.status;
+          if (refreshStatus === 503 || refreshStatus === 500) {
+            const msg = refreshErr.response?.data?.message || 'Server sedang bermasalah. Coba lagi nanti.';
+            setServerError(msg);
+          }
           setUser(null);
         }
       } finally {
@@ -56,6 +74,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     setLoading(true);
+    setServerError(null);
     try {
       const res = await api.post('/auth/login', { email, password });
       setAccessToken(res.data.data.accessToken);
@@ -65,15 +84,13 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
       throw err;
     } finally {
-      // We don't set loading false here because router.push will 
-      // lead to a new mount or a re-init if needed, 
-      // but if the redirect fails, we should be able to recovery.
-      // However, fetchUser in initAuth will naturally handle the rest.
-      setTimeout(() => setLoading(false), 1000); 
+      // Ensure loading is always cleared even if router.push is slow
+      setTimeout(() => setLoading(false), 1500);
     }
   };
 
   const register = async (email, password) => {
+    // Register first, then login — propagate real server errors
     await api.post('/auth/register', { email, password });
     await login(email, password);
   };
@@ -84,6 +101,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setAccessToken(null);
       setUser(null);
+      setServerError(null);
       router.push('/');
     }
   };
@@ -104,7 +122,8 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{ 
       user, 
-      loading, 
+      loading,
+      serverError,
       login, 
       register, 
       logout, 
@@ -119,3 +138,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+

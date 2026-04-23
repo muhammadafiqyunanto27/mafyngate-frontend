@@ -17,7 +17,7 @@ import { useEffect } from 'react';
 import LoadingScreen from '../components/LoadingScreen';
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user, loading, serverError } = useAuth();
   const router = useRouter();
 
   // 1. Redirect to dashboard if already logged in (silent background check)
@@ -32,6 +32,7 @@ export default function Home() {
 
   // 3. User present? We are redirecting, return null to avoid flicker of landing page
   if (user) return null;
+
   
   // Gmail Compose Function for Landing Page
   const openGmail = () => {
@@ -44,7 +45,22 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20">
       
+      {/* Server Error Banner — visible when backend is down/misconfigured */}
+      {serverError && (
+        <div className="fixed top-0 left-0 right-0 z-[9999] bg-rose-600 text-white px-4 py-3 flex items-center justify-center gap-3 text-sm font-bold shadow-lg">
+          <span className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
+          <span>⚠️ Server Bermasalah: {serverError}</span>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="ml-4 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-black uppercase tracking-widest transition-all"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      )}
+
       {/* 1. Navbar */}
+
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border h-16 flex items-center">
         <div className="max-w-7xl mx-auto px-6 w-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">

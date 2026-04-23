@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, user, loading: authLoading } = useAuth();
+  const { login, user, loading: authLoading, serverError } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -31,7 +31,15 @@ export default function LoginPage() {
     try {
       await login(email, password);
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+      const status = err.response?.status;
+      const msg = err.response?.data?.message;
+      if (status === 503) {
+        setError(msg || 'Server / database sedang mati. Coba lagi dalam beberapa menit.');
+      } else if (status === 500) {
+        setError(msg || 'Konfigurasi server bermasalah. Hubungi admin.');
+      } else {
+        setError(msg || 'Email atau password salah. Silakan coba lagi.');
+      }
     } finally {
       setLoading(false);
     }
@@ -62,6 +70,17 @@ export default function LoginPage() {
           </div>
 
           <div className="bg-card border border-border p-8 rounded-[2rem] shadow-2xl shadow-slate-900/10 backdrop-blur-xl relative overflow-hidden">
+            {/* Global server error (DB down / JWT missing) */}
+            {serverError && !error && (
+               <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className="mb-6 p-4 text-sm text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-3 font-medium"
+               >
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                  ⚠️ {serverError}
+               </motion.div>
+            )}
             {error && (
                <motion.div 
                 initial={{ opacity: 0, y: -10 }} 

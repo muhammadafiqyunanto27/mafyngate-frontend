@@ -310,6 +310,18 @@ export const CallOverlay = () => {
                     {callEnded && <p className="text-rose-500 font-black pt-4">CALL ENDED</p>}
                   </div>
                 )}
+
+                {/* Minimized Controls Overlay for Ringing State */}
+                {isMinimized && (
+                  <div className="absolute inset-0 z-30 opacity-0 hover:opacity-100 transition-opacity bg-black/40 flex flex-col items-center justify-center gap-3">
+                    <button onClick={() => setIsMinimized(false)} className="p-2 bg-white/20 rounded-full text-white shadow-lg"><Maximize2 size={16} /></button>
+                    {call.isReceivingCall && !callAccepted ? (
+                       <button onClick={rejectCall} className="p-2 bg-rose-500 rounded-full text-white shadow-lg"><PhoneOff size={16} /></button>
+                    ) : (
+                       <button onClick={() => handleEndCall(true)} className="p-2 bg-rose-500 rounded-full text-white shadow-lg"><PhoneOff size={16} /></button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

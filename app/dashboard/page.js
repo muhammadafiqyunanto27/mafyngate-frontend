@@ -1,8 +1,8 @@
 'use client';
 
 import { useAuth } from '../../context/AuthContext';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import api from '../../lib/api';
 import { setAccessToken } from '../../lib/api';
 import { getMediaUrl } from '../../lib/url';
@@ -25,27 +25,28 @@ import { motion } from 'framer-motion';
 
 import { useSocket } from '../../context/SocketContext';
 
+// ─── Tiny component to handle ?token= from Google OAuth ──────────────────────
+// Must be in its own component so useSearchParams can be wrapped in <Suspense>
+function GoogleTokenHandler({ fetchUser, router }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      setAccessToken(token);
+      const url = new URL(window.location.href);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, '', url.toString());
+      fetchUser().catch(() => router.push('/login'));
+    }
+  }, [searchParams, fetchUser, router]);
+  return null; // renders nothing
+}
+
 
 export default function DashboardPage() {
   const { user, loading, fetchUser } = useAuth();
   const { socket } = useSocket();
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // ─── Handle Google OAuth ?token= redirect ────────────────────────────────
-  useEffect(() => {
-    const token = searchParams.get('token');
-    if (token) {
-      setAccessToken(token);
-      // Remove token from URL without reloading
-      const url = new URL(window.location.href);
-      url.searchParams.delete('token');
-      window.history.replaceState({}, '', url.toString());
-      // Re-fetch user with the new token
-      fetchUser().catch(() => router.push('/login'));
-    }
-  }, [searchParams]);
-
   const [dashboardStats, setDashboardStats] = useState({
     connections: 0,
     unreadConversations: [],
@@ -131,6 +132,10 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout pageTitle="Dashboard">
+      {/* Handles ?token= from Google OAuth — must be in Suspense */}
+      <Suspense fallback={null}>
+        <GoogleTokenHandler fetchUser={fetchUser} router={router} />
+      </Suspense>
       <div className="space-y-6 md:space-y-10 pb-10">
         
         {/* Top Hero Banner */}

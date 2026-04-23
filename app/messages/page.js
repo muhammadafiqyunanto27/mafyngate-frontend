@@ -51,6 +51,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 import { getMediaUrl } from '../../lib/url';
 import Lightbox from '../../components/Lightbox';
+import DOMPurify from 'isomorphic-dompurify';
 
 const MessageBubble = memo(({
   msg,
@@ -62,13 +63,12 @@ const MessageBubble = memo(({
   onCopy,
   onDelete,
   textareaRef,
-  swipeOffset,
-  setSwipeOffset,
   onZoomMedia,
   activeMenuId,
   setActiveMenuId
 }) => {
   // getMediaUrl replaces the local getAvatar logic
+  const [localSwipeOffset, setLocalSwipeOffset] = useState(0);
 
 
   let pressTimer;
@@ -93,7 +93,7 @@ const MessageBubble = memo(({
         onDragStart={() => cancelPress()}
         onDrag={(e, info) => {
           if (Math.abs(info.offset.x) > 10) {
-            setSwipeOffset(prev => ({ ...prev, [msg.id]: info.offset.x }));
+            setLocalSwipeOffset(info.offset.x);
           }
         }}
         onDragEnd={(e, info) => {
@@ -103,7 +103,7 @@ const MessageBubble = memo(({
             onReply(msg);
             textareaRef.current?.focus();
           }
-          setSwipeOffset(prev => ({ ...prev, [msg.id]: 0 }));
+          setLocalSwipeOffset(0);
         }}
         className={`flex items-start gap-2 max-w-[85%] md:max-w-[75%] lg:max-w-[65%] w-fit ${isMine ? 'flex-row' : 'flex-row-reverse'}`}
         onTouchStart={isMobileView ? startPress : undefined}
@@ -228,8 +228,8 @@ const MessageBubble = memo(({
           {msg.content && msg.type !== 'VOICE' && msg.type !== 'PROFILE' && (
             <div className="mb-0.5 leading-normal whitespace-pre-wrap [overflow-wrap:anywhere] [word-break:break-word]">
               {(msg.type === 'IMAGE' || msg.type === 'VIDEO')
-                ? (msg.content !== '[Photo]' && msg.content !== '[Video]' && msg.content !== msg.fileName ? linkify(msg.content, isMine) : null)
-                : linkify(msg.content, isMine)
+                ? (msg.content !== '[Photo]' && msg.content !== '[Video]' && msg.content !== msg.fileName ? linkify(DOMPurify.sanitize(msg.content), isMine) : null)
+                : linkify(DOMPurify.sanitize(msg.content), isMine)
               }
             </div>
           )}
@@ -250,13 +250,13 @@ const MessageBubble = memo(({
 
         {/* Swipe Handle Indicator */}
         <AnimatePresence>
-          {swipeOffset[msg.id] && (
+          {localSwipeOffset !== 0 && (
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{
-                scale: Math.min(Math.abs(swipeOffset[msg.id]) / 40, 1.2),
-                opacity: Math.min(Math.abs(swipeOffset[msg.id]) / 30, 1),
-                x: isMine ? (swipeOffset[msg.id] < 0 ? swipeOffset[msg.id] : 0) : (swipeOffset[msg.id] > 0 ? swipeOffset[msg.id] : 0)
+                scale: Math.min(Math.abs(localSwipeOffset) / 40, 1.2),
+                opacity: Math.min(Math.abs(localSwipeOffset) / 30, 1),
+                x: isMine ? (localSwipeOffset < 0 ? localSwipeOffset : 0) : (localSwipeOffset > 0 ? localSwipeOffset : 0)
               }}
               exit={{ scale: 0, opacity: 0 }}
               style={{
@@ -373,7 +373,6 @@ function MessagesContent() {
   const textareaRef = useRef(null);
   const menuRef = useRef(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(null); // stores message for whom menu is open
-  const [swipeOffset, setSwipeOffset] = useState({}); // {msgId: xValue}
 
   const [lightboxMedia, setLightboxMedia] = useState(null);
   const [pendingMedia, setPendingMedia] = useState(null);
@@ -809,32 +808,41 @@ function MessagesContent() {
     }
   };
 
-  const handleDeleteSingleMessage = async (msgId) => {
+  const handleDeleteSingleMessage = useCallback(async (msgId) => {
     if (!confirm('Delete this message for everyone?')) return;
     try {
-      await api.delete('/user/chat/messages', { data: { messageIds: [msgId], targetId: selectedUser.id } });
+      await api.delete('/user/chat/messages', { data: { messageIds: [msgId], targetId: selectedUser?.id } });
       setMessages(prev => prev.filter(m => m.id !== msgId));
-      if (socket) socket.emit('messages_deleted', { targetId: selectedUser.id, messageIds: [msgId] });
+      if (socket) socket.emit('messages_deleted', { targetId: selectedUser?.id, messageIds: [msgId] });
       fetchConnections();
     } catch (err) { }
-  };
+  }, [selectedUser?.id, socket]);
 
-  const handleCopyMessage = (content) => {
+  const handleCopyMessage = useCallback((content) => {
     navigator.clipboard.writeText(content);
     setMessage({ type: 'success', text: 'Copied to clipboard' });
     setTimeout(() => setMessage({ type: '', text: '' }), 1000);
-  };
+  }, []);
 
-  const handleMobileMenu = (msg) => {
+  const handleMobileMenu = useCallback((msg) => {
     setActiveMenuId(null);
     setMobileMenuOpen(msg);
-  };
+  }, []);
 
-  const handleEditMessage = (msg) => {
+  const handleEditMessage = useCallback((msg) => {
     setEditingMessage(msg);
     setNewMessage(msg.content);
     textareaRef.current?.focus();
-  };
+  }, []);
+
+  const handleZoomMedia = useCallback((m) => {
+    if (m.userId) { // Profile card click
+      fetchTargetProfile(m.userId);
+    } else {
+      setLightboxMedia(m);
+      setLightboxActions(true);
+    }
+  }, []);
 
   // Use centralized getMediaUrl instead of local getAvatar
 
@@ -1049,16 +1057,7 @@ function MessagesContent() {
                       onCopy={handleCopyMessage}
                       onDelete={handleDeleteSingleMessage}
                       textareaRef={textareaRef}
-                      swipeOffset={swipeOffset}
-                      setSwipeOffset={setSwipeOffset}
-                      onZoomMedia={(m) => {
-                        if (m.userId) { // Profile card click
-                          fetchTargetProfile(m.userId);
-                        } else {
-                          setLightboxMedia(m);
-                          setLightboxActions(true);
-                        }
-                      }}
+                      onZoomMedia={handleZoomMedia}
                       activeMenuId={activeMenuId}
                       setActiveMenuId={setActiveMenuId}
                     />

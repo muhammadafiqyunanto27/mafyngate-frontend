@@ -260,29 +260,8 @@ export const SocketProvider = ({ children }) => {
     } catch (err) { }
   };
 
-  // Handle auto-answer from deep-links (Push Notifications)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('answerCall') === 'true') {
-      console.log('[Socket] Detected answerCall from notification deep-link');
-      // Use a brief delay to ensure the rest of the app/context is ready
-      const timer = setTimeout(() => {
-        setAnswerCallParam(true);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (call.isReceivingCall && !callAccepted && !stream && answerCallParam) {
-      console.log('[Socket] Deep-link answer detected. Answering call...');
-      answerCall();
-      setAnswerCallParam(false);
-      // Clear param to avoid re-triggering
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }, [call.isReceivingCall, callAccepted, stream, answerCallParam]);
+  // Removed auto-answer deep-link logic to comply with iOS Safari security policies
+  // User must manually click Accept to trigger getUserMedia.
 
   const stopStream = () => {
     if (stream) {

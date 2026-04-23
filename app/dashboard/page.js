@@ -1,9 +1,10 @@
 'use client';
 
 import { useAuth } from '../../context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import api from '../../lib/api';
+import { setAccessToken } from '../../lib/api';
 import { getMediaUrl } from '../../lib/url';
 import { 
   Users, 
@@ -26,9 +27,25 @@ import { useSocket } from '../../context/SocketContext';
 
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, fetchUser } = useAuth();
   const { socket } = useSocket();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // ─── Handle Google OAuth ?token= redirect ────────────────────────────────
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      setAccessToken(token);
+      // Remove token from URL without reloading
+      const url = new URL(window.location.href);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, '', url.toString());
+      // Re-fetch user with the new token
+      fetchUser().catch(() => router.push('/login'));
+    }
+  }, [searchParams]);
+
   const [dashboardStats, setDashboardStats] = useState({
     connections: 0,
     unreadConversations: [],

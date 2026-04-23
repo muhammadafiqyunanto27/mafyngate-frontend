@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '../../context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useCallback, Suspense } from 'react';
 import api from '../../lib/api';
 import { setAccessToken } from '../../lib/api';

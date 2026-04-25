@@ -45,24 +45,8 @@ export const AuthProvider = ({ children }) => {
         if (status === 503 || status === 500) {
           const msg = err.response?.data?.message || 'Server sedang bermasalah. Coba lagi nanti.';
           setServerError(msg);
-          setUser(null);
-          setLoading(false);
-          clearTimeout(safetyTimer);
-          return;
         }
-
-        try {
-          const res = await api.post('/auth/refresh');
-          setAccessToken(res.data.data.accessToken);
-          await fetchUser();
-        } catch (refreshErr) {
-          const refreshStatus = refreshErr.response?.status;
-          if (refreshStatus === 503 || refreshStatus === 500) {
-            const msg = refreshErr.response?.data?.message || 'Server sedang bermasalah. Coba lagi nanti.';
-            setServerError(msg);
-          }
-          setUser(null);
-        }
+        setUser(null);
       } finally {
         setLoading(false);
         clearTimeout(safetyTimer);

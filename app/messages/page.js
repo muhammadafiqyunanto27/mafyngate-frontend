@@ -51,7 +51,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../lib/api';
 import { getMediaUrl } from '../../lib/url';
 import Lightbox from '../../components/Lightbox';
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from 'dompurify';
+
+const sanitizeHTML = (html) => {
+  if (typeof window === 'undefined') return html;
+  return DOMPurify.sanitize(html);
+};
 
 const MessageBubble = memo(({
   msg,
@@ -228,8 +233,8 @@ const MessageBubble = memo(({
           {msg.content && msg.type !== 'VOICE' && msg.type !== 'PROFILE' && (
             <div className="mb-0.5 leading-normal whitespace-pre-wrap [overflow-wrap:anywhere] [word-break:break-word]">
               {(msg.type === 'IMAGE' || msg.type === 'VIDEO')
-                ? (msg.content !== '[Photo]' && msg.content !== '[Video]' && msg.content !== msg.fileName ? linkify(DOMPurify.sanitize(msg.content), isMine) : null)
-                : linkify(DOMPurify.sanitize(msg.content), isMine)
+                ? (msg.content !== '[Photo]' && msg.content !== '[Video]' && msg.content !== msg.fileName ? linkify(sanitizeHTML(msg.content), isMine) : null)
+                : linkify(sanitizeHTML(msg.content), isMine)
               }
             </div>
           )}

@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { Providers } from "../components/Providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -39,8 +40,6 @@ export const metadata = {
     statusBarStyle: "black-translucent",
   },
 };
-
-import { Providers } from "../components/Providers";
 
 export default function RootLayout({ children }) {
   return (

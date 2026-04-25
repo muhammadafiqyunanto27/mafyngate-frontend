@@ -702,6 +702,7 @@ function MessagesContent() {
   useEffect(() => {
     const fetchMsgs = async () => {
       if (!selectedUser) return;
+      setIsInitialLoad(true); // Reset so it jumps to bottom instantly without smooth scrolling
       try {
         const res = await api.get(`/user/chat/messages/${selectedUser.id}`);
         setMessages(res.data.data);

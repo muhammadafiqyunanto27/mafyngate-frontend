@@ -53,8 +53,8 @@ function ResetPasswordForm() {
     <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
       {/* Decorative */}
       <div className="absolute inset-0 pointer-events-none -z-10">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[60%] rounded-full bg-primary/15 blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[70%] rounded-full bg-indigo-500/10 blur-[120px]" />
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[60%] rounded-full bg-primary/10 blur-[60px] md:blur-[100px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[70%] rounded-full bg-indigo-500/5 blur-[60px] md:blur-[100px]" />
       </div>
 
       <motion.div

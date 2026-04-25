@@ -59,8 +59,8 @@ export default function RegisterPage() {
     <div className="flex min-h-screen bg-background relative overflow-hidden">
       {/* Decorative Gradients */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden -z-10">
-         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[60%] rounded-full bg-primary/20 blur-[120px] animate-pulse"></div>
-         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[70%] rounded-full bg-indigo-500/10 blur-[120px] animation-delay-2000"></div>
+         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[60%] rounded-full bg-primary/10 blur-[60px] md:blur-[100px]"></div>
+         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[70%] rounded-full bg-indigo-500/5 blur-[60px] md:blur-[100px]"></div>
       </div>
 
       <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12">

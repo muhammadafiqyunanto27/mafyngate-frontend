@@ -12,18 +12,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  metadataBase: new URL('https://mafyngate.com'),
-  title: "MafynGate - Secure Social Messaging",
-  description: "MafynGate: Aplikasi pesan instan paling aman dengan enkripsi tingkat tinggi untuk chat, telepon, dan video call pribadi.",
-  keywords: "mafyn, mafyn gate, mafyngate, secure messaging, private chat, encrypted chat, real-time communication, secure video call, privacy focused app",
+  metadataBase: new URL('https://mafyngate.web.id'),
+  title: "MafynGate - Secure Social Messaging & Private Communication",
+  description: "MafynGate adalah platform pesan instan paling aman dengan enkripsi end-to-end. Nikmati chat pribadi, video call HD, dan notifikasi pintar dalam satu aplikasi PWA yang ringan dan cepat.",
+  keywords: "mafyn, mafyn gate, mafyngate, secure messaging, private chat, encrypted chat, real-time communication, secure video call, privacy focused app, anonymous chat, end-to-end encryption, PWA messaging, messaging app 2024, alternative whatsapp aman, platform komunikasi privat, secure gateway, messenger aman indonesia",
   alternates: {
     canonical: '/',
   },
   icons: {
-    icon: '/favicon.png?v=8',
-    apple: '/apple-touch-icon.png?v=8',
-    shortcut: '/favicon.ico?v=8'
-  }
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon.png?v=8', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png?v=8', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  manifest: '/manifest.json'
 };
 
 import { Providers } from "../components/Providers";
@@ -34,6 +39,10 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#000000" />
+        {/* iOS PWA Tags */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="MafynGate" />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <Providers>

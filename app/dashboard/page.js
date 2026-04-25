@@ -22,6 +22,7 @@ import {
 import DashboardLayout from '../../components/DashboardLayout';
 import TodoList from '../../components/TodoList';
 import { motion } from 'framer-motion';
+import MigrationBanner from '../../components/MigrationBanner';
 
 import { useSocket } from '../../context/SocketContext';
 
@@ -136,6 +137,7 @@ export default function DashboardPage() {
       <Suspense fallback={null}>
         <GoogleTokenHandler fetchUser={fetchUser} router={router} />
       </Suspense>
+      <MigrationBanner />
       <div className="space-y-6 md:space-y-10 pb-10">
         
         {/* Top Hero Banner */}

@@ -1,14 +1,9 @@
-# MafynGate Robots.txt
-# Optimization for Google Search Console and other search engines
-
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /messages
+Disallow: /settings
+Disallow: /admin
+Disallow: /api
 
-# Disallow sensitive auth routes that shouldn't be indexed
-Disallow: /reset-password/
-Disallow: /forgot-password/
-Disallow: /settings/
-Disallow: /messages/
-
-# Point to sitemap
-Sitemap: https://mafyngate.com/sitemap.xml
+Sitemap: https://mafyngate.web.id/sitemap.xml

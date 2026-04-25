@@ -36,6 +36,94 @@
   --color-primary-900: hsl(256 45% 30%);
   --color-primary-950: hsl(255 40% 20%);
 
+  /* Override Tailwind v4 default oklch() colors with hsl() for Safari iOS compatibility */
+  --color-slate-50: hsl(210 40% 98%);
+  --color-slate-100: hsl(210 40% 96%);
+  --color-slate-200: hsl(214 32% 91%);
+  --color-slate-300: hsl(213 27% 84%);
+  --color-slate-400: hsl(215 20% 65%);
+  --color-slate-500: hsl(215 16% 47%);
+  --color-slate-600: hsl(215 19% 35%);
+  --color-slate-700: hsl(215 25% 27%);
+  --color-slate-800: hsl(217 33% 17%);
+  --color-slate-900: hsl(222 47% 11%);
+  --color-slate-950: hsl(229 84% 5%);
+
+  --color-zinc-50: hsl(0 0% 98%);
+  --color-zinc-100: hsl(240 5% 96%);
+  --color-zinc-200: hsl(240 6% 90%);
+  --color-zinc-300: hsl(240 5% 84%);
+  --color-zinc-400: hsl(240 5% 65%);
+  --color-zinc-500: hsl(240 4% 46%);
+  --color-zinc-600: hsl(240 5% 34%);
+  --color-zinc-700: hsl(240 5% 26%);
+  --color-zinc-800: hsl(240 4% 16%);
+  --color-zinc-900: hsl(240 6% 10%);
+  --color-zinc-950: hsl(240 10% 4%);
+
+  --color-indigo-50: hsl(226 100% 97%);
+  --color-indigo-100: hsl(226 100% 94%);
+  --color-indigo-200: hsl(228 96% 89%);
+  --color-indigo-300: hsl(230 94% 82%);
+  --color-indigo-400: hsl(234 89% 74%);
+  --color-indigo-500: hsl(239 84% 67%);
+  --color-indigo-600: hsl(243 75% 59%);
+  --color-indigo-700: hsl(245 58% 51%);
+  --color-indigo-800: hsl(244 55% 41%);
+  --color-indigo-900: hsl(242 47% 34%);
+  --color-indigo-950: hsl(244 47% 20%);
+
+  --color-emerald-50: hsl(152 81% 96%);
+  --color-emerald-100: hsl(149 80% 90%);
+  --color-emerald-200: hsl(152 76% 80%);
+  --color-emerald-300: hsl(156 72% 67%);
+  --color-emerald-400: hsl(158 64% 52%);
+  --color-emerald-500: hsl(160 84% 39%);
+  --color-emerald-600: hsl(161 94% 30%);
+  --color-emerald-700: hsl(163 94% 24%);
+  --color-emerald-800: hsl(163 88% 20%);
+  --color-emerald-900: hsl(164 86% 16%);
+  --color-emerald-950: hsl(166 91% 9%);
+
+  --color-rose-50: hsl(356 100% 97%);
+  --color-rose-100: hsl(356 100% 95%);
+  --color-rose-200: hsl(353 96% 90%);
+  --color-rose-300: hsl(353 96% 82%);
+  --color-rose-400: hsl(351 95% 71%);
+  --color-rose-500: hsl(350 89% 60%);
+  --color-rose-600: hsl(347 77% 50%);
+  --color-rose-700: hsl(345 83% 41%);
+  --color-rose-800: hsl(343 80% 35%);
+  --color-rose-900: hsl(342 75% 30%);
+  --color-rose-950: hsl(343 88% 16%);
+
+  --color-amber-50: hsl(48 100% 96%);
+  --color-amber-100: hsl(48 96% 89%);
+  --color-amber-200: hsl(48 97% 77%);
+  --color-amber-300: hsl(46 97% 65%);
+  --color-amber-400: hsl(43 96% 56%);
+  --color-amber-500: hsl(38 92% 50%);
+  --color-amber-600: hsl(32 95% 44%);
+  --color-amber-700: hsl(26 90% 37%);
+  --color-amber-800: hsl(23 83% 31%);
+  --color-amber-900: hsl(22 78% 26%);
+  --color-amber-950: hsl(21 92% 14%);
+
+  --color-blue-50: hsl(214 100% 97%);
+  --color-blue-100: hsl(214 95% 93%);
+  --color-blue-200: hsl(213 97% 87%);
+  --color-blue-300: hsl(212 96% 78%);
+  --color-blue-400: hsl(213 94% 68%);
+  --color-blue-500: hsl(217 91% 60%);
+  --color-blue-600: hsl(221 83% 53%);
+  --color-blue-700: hsl(224 76% 48%);
+  --color-blue-800: hsl(226 71% 40%);
+  --color-blue-900: hsl(224 64% 33%);
+  --color-blue-950: hsl(226 57% 21%);
+
+  --color-white: hsl(0 0% 100%);
+  --color-black: hsl(0 0% 0%);
+
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
   --radius-3xl: 2rem;

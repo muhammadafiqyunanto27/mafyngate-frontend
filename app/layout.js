@@ -13,7 +13,8 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "MafynGate - Secure Social Messaging",
-  description: "Secure Social Messaging & Advanced Computing Gateway",
+  description: "MafynGate: Aplikasi pesan instan paling aman dengan enkripsi tingkat tinggi untuk chat, telepon, dan video call pribadi.",
+  keywords: "mafyn, mafyn gate, mafyngate, secure messaging, private chat, encrypted chat, real-time communication, secure video call, privacy focused app",
   icons: {
     icon: '/favicon.png?v=8',
     apple: '/apple-touch-icon.png?v=8',

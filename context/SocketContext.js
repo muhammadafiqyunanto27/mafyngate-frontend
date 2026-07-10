@@ -23,6 +23,7 @@ export const SocketProvider = ({ children }) => {
   const [call, setCall] = useState({ isReceivingCall: false, from: '', name: '', avatar: '', signal: null, type: 'voice' });
   const [callAccepted, setCallAccepted] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
+  const [whoEndedCall, setWhoEndedCall] = useState(null);
   const [stream, setStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
   const [isCalling, setIsCalling] = useState(false);
@@ -298,6 +299,11 @@ export const SocketProvider = ({ children }) => {
     // Only show "Call Ended" message if there was an actual call happening
     if (wasActive) {
       setCallEnded(true);
+      if (shouldEmit) {
+        setWhoEndedCall('me');
+      } else {
+        setWhoEndedCall(callRef.current.name || 'Lawan Bicara');
+      }
     }
     setTargetUser(null);
     setIsMinimized(false);
@@ -343,6 +349,7 @@ export const SocketProvider = ({ children }) => {
     // Auto-hide the "Call Ended" message after 2 seconds and clear the identity then
     setTimeout(() => {
       setCallEnded(false);
+      setWhoEndedCall(null);
       setCall({ isReceivingCall: false, from: '', name: '', avatar: '', signal: null, type: 'voice' });
     }, 2000);
   };
@@ -423,22 +430,19 @@ export const SocketProvider = ({ children }) => {
     setTargetUser(userIdToCall);
 
     try {
-      console.log('[Media] Requesting access to camera/mic...');
-      // ALWAYS request video:true even for voice calls to warm up the connection
+      console.log('[Media] Requesting access to media devices...');
       const currentStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: type === 'video' ? { facingMode: facingMode } : false,
         audio: true
       });
 
       console.log('[Media] Stream acquired successfully:', currentStream.id);
 
-      // If voice call, immediately stop the video track to turn off the light
+      // If voice call, make sure local video state is false
       if (type === 'voice') {
-        const videoTrack = currentStream.getVideoTracks()[0];
-        if (videoTrack) {
-          videoTrack.stop();
-          setLocalVideoEnabled(false);
-        }
+        setLocalVideoEnabled(false);
+      } else {
+        setLocalVideoEnabled(true);
       }
 
       setStream(currentStream);
@@ -452,7 +456,7 @@ export const SocketProvider = ({ children }) => {
           iceCandidatePoolSize: 10,
           iceServers: [
             { urls: 'stun:stun.cloudflare.com:3478' },
-            { urls: 'stun:global.stun.twilio.com:3478?transport=udp' },
+            { urls: 'stun:global.stun.twilio.com:3478' },
             { urls: 'stun:stun.l.google.com:19302' },
           ]
         }
@@ -510,19 +514,16 @@ export const SocketProvider = ({ children }) => {
 
     try {
       console.log('[Media] Answering call, requesting media...');
-      // ALWAYS request video:true to ensure connection consistency
       const currentStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: call.type === 'video' ? { facingMode: facingMode } : false,
         audio: true
       });
 
-      // If voice call, immediately stop the video track
+      // If voice call, make sure local video state is false
       if (call.type === 'voice') {
-        const videoTrack = currentStream.getVideoTracks()[0];
-        if (videoTrack) {
-          videoTrack.stop();
-          setLocalVideoEnabled(false);
-        }
+        setLocalVideoEnabled(false);
+      } else {
+        setLocalVideoEnabled(true);
       }
 
       setStream(currentStream);
@@ -536,7 +537,7 @@ export const SocketProvider = ({ children }) => {
           iceCandidatePoolSize: 10,
           iceServers: [
             { urls: 'stun:stun.cloudflare.com:3478' },
-            { urls: 'stun:global.stun.twilio.com:3478?transport=udp' },
+            { urls: 'stun:global.stun.twilio.com:3478' },
             { urls: 'stun:stun.l.google.com:19302' },
           ]
         }
@@ -609,7 +610,7 @@ export const SocketProvider = ({ children }) => {
       socket, unreadCount, unreadChatsCount, notifications, toast, activeChatId, onlineUsers,
       setNotifications, setUnreadCount, setUnreadChatsCount, setActiveChatId, setOnlineUsers,
       requestNotificationPermission, removeNotification, readAllNotifications, clearNotifications, clearNotificationsFromSender,
-      call, callAccepted, callEnded, stream, remoteStream, isCalling,
+      call, callAccepted, callEnded, whoEndedCall, stream, remoteStream, isCalling,
       startCall, answerCall, rejectCall, handleEndCall,
       isMirrored, toggleMirror, switchCamera,
       remoteIsMirrored, isMinimized, setIsMinimized,

@@ -24,6 +24,7 @@ export const CallOverlay = () => {
     call,
     callAccepted,
     callEnded,
+    whoEndedCall,
     stream,
     remoteStream,
     isCalling,
@@ -307,7 +308,14 @@ export const CallOverlay = () => {
                     <p className="text-white/60 font-bold uppercase tracking-widest text-[10px]">
                       {isCalling ? 'Contacting Server...' : call.isReceivingCall ? 'Incoming Transmission' : callEnded ? 'End of Transmission' : 'Establishing Secure Link...'}
                     </p>
-                    {callEnded && <p className="text-rose-500 font-black pt-4">CALL ENDED</p>}
+                    {callEnded && (
+                      <div className="pt-4 space-y-1">
+                        <p className="text-rose-500 font-black">CALL ENDED</p>
+                        <p className="text-xs text-white/50 font-bold uppercase tracking-wider">
+                          {whoEndedCall === 'me' ? 'Anda mengakhiri panggilan' : `${call.name || 'Lawan bicara'} mengakhiri panggilan`}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 

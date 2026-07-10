@@ -7,6 +7,7 @@ import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import NotificationPrompt from './NotificationPrompt';
 import { motion } from 'framer-motion';
+import { safeStorage } from '../lib/storage';
 
 export default function DashboardLayout({ children, pageTitle = 'Dashboard', fullWidth = false }) {
   const { user, loading } = useAuth();
@@ -25,19 +26,19 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
     }
   }, [user, loading, router, isMounted]);
 
-  // Persistence logic: Retrieve from localStorage on mount
+  // Persistence logic: Retrieve from safeStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('mafyn_sidebar_collapsed');
+    const saved = safeStorage.getItem('mafyn_sidebar_collapsed');
     if (saved !== null) {
       setIsCollapsed(JSON.parse(saved));
     }
     setIsMounted(true);
   }, []);
 
-  // Update localStorage whenever isCollapsed changes (after initial mount)
+  // Update safeStorage whenever isCollapsed changes (after initial mount)
   const handleToggleCollapse = (value) => {
     setIsCollapsed(value);
-    localStorage.setItem('mafyn_sidebar_collapsed', JSON.stringify(value));
+    safeStorage.setItem('mafyn_sidebar_collapsed', JSON.stringify(value));
   };
 
   if (loading || !user) return null;

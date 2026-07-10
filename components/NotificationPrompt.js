@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Shield, PhoneCall, Zap, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { safeStorage } from '../lib/storage';
 
 export default function NotificationPrompt() {
   const [show, setShow] = useState(false);
@@ -14,7 +15,7 @@ export default function NotificationPrompt() {
     const checkStatus = () => {
       if (!('Notification' in window)) return;
       
-      const hasIgnored = localStorage.getItem('mafyngate_notif_ignored');
+      const hasIgnored = safeStorage.getItem('mafyngate_notif_ignored');
       if (Notification.permission === 'default' && !hasIgnored) {
         setTimeout(() => setShow(true), 1500);
       }
@@ -46,7 +47,7 @@ export default function NotificationPrompt() {
   };
 
   const handleIgnore = () => {
-    localStorage.setItem('mafyngate_notif_ignored', 'true');
+    safeStorage.setItem('mafyngate_notif_ignored', 'true');
     setShow(false);
   };
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import api from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { safeStorage } from '../lib/storage';
 
 const VAPID_PUBLIC_KEY = "BJJ8eibyB6DuK5-BuKaFxbRaww9Tl7K8IlgJNszqIjLCup23hM6XUPk2LAqENhY0sn9xY-tAH-Im_Ycvxy9kjVI";
 
@@ -101,7 +102,7 @@ export default function PushNotificationManager() {
       setIsSubscribed(false);
       setSubscription(null);
       setRegistration(null);
-      localStorage.removeItem('mafyngate_notif_ignored');
+      safeStorage.removeItem('mafyngate_notif_ignored');
       
       // 5. Re-register fresh
       console.log('[Push] Initiating fresh registration...');

@@ -5,6 +5,7 @@ import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import api from '../lib/api';
 import { API_URL } from '../lib/config';
+import { safeStorage } from '../lib/storage';
 
 const SocketContext = createContext();
 
@@ -58,7 +59,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      const accessToken = localStorage.getItem('accessToken');
+      const accessToken = safeStorage.getItem('accessToken');
 
       const newSocket = io(API_URL, {
         auth: { token: accessToken },

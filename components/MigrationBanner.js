@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCcw, X, Info, ExternalLink } from 'lucide-react';
+import { safeStorage } from '../lib/storage';
 
 export default function MigrationBanner() {
   const [isVisible, setIsVisible] = useState(false);
@@ -14,7 +15,7 @@ export default function MigrationBanner() {
                   document.referrer.includes('android-app://');
 
     // 2. Check if already dismissed
-    const isDismissed = localStorage.getItem('mafyngate_migration_dismissed');
+    const isDismissed = safeStorage.getItem('mafyngate_migration_dismissed');
 
     if (isPWA && !isDismissed) {
       setIsVisible(true);
@@ -23,7 +24,7 @@ export default function MigrationBanner() {
 
   const handleDismiss = () => {
     setIsVisible(false);
-    localStorage.setItem('mafyngate_migration_dismissed', 'true');
+    safeStorage.setItem('mafyngate_migration_dismissed', 'true');
   };
 
   return (

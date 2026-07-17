@@ -565,7 +565,12 @@ export const SocketProvider = ({ children }) => {
     if (socket && call.from) {
       socket.emit('reject_call', { to: call.from });
     }
-    setCall({ ...call, isReceivingCall: false });
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+    }
+    if ('vibrate' in navigator) navigator.vibrate(0);
+    setCall(prev => ({ ...prev, isReceivingCall: false }));
   };
 
   const toggleMirror = () => {
@@ -582,25 +587,31 @@ export const SocketProvider = ({ children }) => {
     setFacingMode(newMode);
 
     try {
-      // Stop old tracks first to release hardware
-      stream.getTracks().forEach(track => {
-        console.log('[Media] Releasing old track:', track.kind);
-        track.stop();
-      });
-
-      const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: newMode },
-        audio: true
-      });
-
-      if (connectionRef.current) {
-        const videoTrack = stream.getVideoTracks()[0];
-        const newVideoTrack = newStream.getVideoTracks()[0];
-        // Replace track in peer connection
-        connectionRef.current.replaceTrack(videoTrack, newVideoTrack, stream);
+      // 1. Get the old video track and stop it to release camera hardware
+      const oldVideoTrack = stream.getVideoTracks()[0];
+      if (oldVideoTrack) {
+        oldVideoTrack.stop();
       }
 
-      setStream(newStream);
+      // 2. Request new video stream only (audio: false) to prevent mic interruption
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: newMode },
+        audio: false
+      });
+      const newVideoTrack = newStream.getVideoTracks()[0];
+
+      // 3. Replace the track in the peer connection
+      if (connectionRef.current && oldVideoTrack && newVideoTrack) {
+        console.log('[Media] Swapping tracks in peer connection');
+        connectionRef.current.replaceTrack(oldVideoTrack, newVideoTrack, stream);
+      }
+
+      // 4. Update tracks in active stream object
+      if (oldVideoTrack) stream.removeTrack(oldVideoTrack);
+      if (newVideoTrack) stream.addTrack(newVideoTrack);
+
+      // Force a stream update
+      setStream(new MediaStream(stream.getTracks()));
     } catch (err) {
       console.error('[Media] Switch camera failed:', err);
     }

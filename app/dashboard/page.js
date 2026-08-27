@@ -122,7 +122,20 @@ export default function DashboardPage() {
     };
   }, [socket, user, fetchStats]);
 
-  if (loading || !user) return null;
+  if (loading || !user) {
+    return (
+      <DashboardLayout pageTitle="Dashboard">
+        <div className="space-y-6 md:space-y-10 pb-10 px-3 md:px-0">
+          <div className="h-48 md:h-64 rounded-[2rem] bg-muted/50 animate-pulse" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="h-28 md:h-36 rounded-[1.5rem] bg-muted/50 animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const displayStats = [
     { label: 'Unread Chats', value: dashboardStats.unreadMessages, change: 'Real-time', icon: MessageSquare, color: 'text-emerald-500 bg-emerald-500/10' },

@@ -18,6 +18,7 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSocket } from '../context/SocketContext';
 
 const menuItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -28,7 +29,7 @@ const menuItems = [
 
 export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }) {
   const { user, logout } = useAuth();
-  const { unreadChatsCount } = require('../context/SocketContext').useSocket();
+  const { unreadChatsCount } = useSocket();
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
   const [isHovered, setIsHovered] = useState(false);

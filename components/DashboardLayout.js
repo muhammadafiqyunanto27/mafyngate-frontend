@@ -45,7 +45,16 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
     safeStorage.setItem('mafyn_sidebar_collapsed', JSON.stringify(value));
   };
 
-  if (loading || !user) return null;
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen bg-background items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <p className="text-sm font-bold text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background overflow-hidden relative selection:bg-primary/30">

@@ -20,6 +20,7 @@ import {
   UserPlus
 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
+import { SectionErrorBoundary } from '../../components/SectionErrorBoundary';
 import TodoList from '../../components/TodoList';
 import MigrationBanner from '../../components/MigrationBanner';
 
@@ -149,7 +150,9 @@ export default function DashboardPage() {
       <Suspense fallback={null}>
         <GoogleTokenHandler fetchUser={fetchUser} router={router} />
       </Suspense>
-      <MigrationBanner />
+      <SectionErrorBoundary name="MigrationBanner">
+        <MigrationBanner />
+      </SectionErrorBoundary>
       <div className="space-y-6 md:space-y-10 pb-10">
         
         {/* Top Hero Banner */}
@@ -183,12 +186,14 @@ export default function DashboardPage() {
                        <div className="absolute inset-0 bg-white/20 rounded-full blur-3xl animate-pulse"></div>
                        <MessageSquare className="w-40 h-40 text-white relative z-10 drop-shadow-2xl" />
                     </div>
-                 </div>
-              </div>
+          </div>
+          </SectionErrorBoundary>
+        </div>
            </div>
         </section>
 
         {/* Stats Grid - Fixed Paddings for Desktop/Mobile */}
+        <SectionErrorBoundary name="StatsGrid">
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 px-3 md:px-0">
           {displayStats.map((stat, idx) => (
              <div 
@@ -210,6 +215,7 @@ export default function DashboardPage() {
              </div>
           ))}
         </div>
+        </SectionErrorBoundary>
 
 
         {/* Main Workspace Grid */}
@@ -218,7 +224,9 @@ export default function DashboardPage() {
           {/* Left Side: Tasks */}
           <div className="lg:col-span-2 flex flex-col">
              <div className="flex-1 bg-card border-y md:border border-border rounded-none md:rounded-[3rem] overflow-hidden shadow-sm hover:shadow-xl hover:border-primary/20 transition-all duration-500">
+                <SectionErrorBoundary name="TodoList" fallbackText="Tasks unavailable">
                 <TodoList />
+             </SectionErrorBoundary>
              </div>
              
              {/* Pending Requests Section */}
@@ -280,6 +288,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Right Side: Connections & Logs */}
+          <SectionErrorBoundary name="InboxAndSignals">
           <div className="flex flex-col gap-6 md:gap-8 px-3 md:px-0">
              <div className="flex-1 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] bg-card border border-border space-y-6 md:space-y-8 group transition-all duration-500 hover:border-primary/20 shadow-sm hover:shadow-xl flex flex-col min-h-[320px]">
                 <div className="flex items-center justify-between">
@@ -361,6 +370,7 @@ export default function DashboardPage() {
                 </div>
              </div>
           </div>
+          </SectionErrorBoundary>
         </div>
       </div>
     </DashboardLayout>

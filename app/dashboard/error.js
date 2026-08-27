@@ -4,7 +4,10 @@ import { useEffect } from 'react';
 
 export default function DashboardError({ error, reset }) {
   useEffect(() => {
-    console.error('Dashboard error:', error);
+    console.error('[Dashboard] Fatal error:', error);
+    if (typeof window !== 'undefined') {
+      window.__DASHBOARD_ERROR__ = error;
+    }
   }, [error]);
 
   return (
@@ -17,7 +20,7 @@ export default function DashboardError({ error, reset }) {
         </div>
         <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Something went wrong</h2>
         <p className="text-sm text-muted-foreground">
-          Dashboard encountered an error. This might be a temporary issue.
+          {error?.message || 'Dashboard encountered an unexpected error.'}
         </p>
         <button
           onClick={reset}

@@ -8,6 +8,14 @@
     "start": "next start",
     "lint": "eslint"
   },
+  "browserslist": [
+    "iOS >= 13",
+    "Safari >= 13",
+    "Chrome >= 64",
+    "Firefox >= 67",
+    "Edge >= 79",
+    "not dead"
+  ],
   "dependencies": {
     "@types/dompurify": "^3.0.5",
     "axios": "^1.14.0",

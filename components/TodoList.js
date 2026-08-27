@@ -1,7 +1,10 @@
+'use client';
+
 import { useState, useEffect, useRef } from 'react';
 import api from '../lib/api';
 import { Check, Trash2, Plus, GripVertical, ListTodo, Edit2, Copy, Layers, Save, X } from 'lucide-react';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
+import { ErrorBoundary } from './ErrorBoundary';
 
 export default function TodoList() {
   const [todos, setTodos] = useState([]);
@@ -153,28 +156,29 @@ export default function TodoList() {
 
         <div
           className="max-h-[550px] overflow-y-auto pr-2 custom-scrollbar"
-          style={{ scrollbarGutter: 'stable' }}
         >
-          <Reorder.Group
-            axis="y"
-            values={todos}
-            onReorder={setTodos}
-            className="flex flex-col gap-4"
-          >
-            <AnimatePresence mode="popLayout" initial={false}>
-              {todos.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center py-12 px-6 bg-muted/10 rounded-3xl border border-dashed border-border"
-                >
-                  <p className="text-sm font-bold text-muted-foreground opacity-50 uppercase tracking-widest">Chill Day! No tasks found.</p>
-                </motion.div>
-              ) : (
-                todos.map(todo => <TodoItem key={todo.id} todo={todo} todos={todos} setTodos={setTodos} toggleTodo={toggleTodo} deleteTodo={deleteTodo} handleDuplicate={handleDuplicate} handleCopy={handleCopy} startEditing={startEditing} editingId={editingId} setEditingId={setEditingId} editValue={editValue} setEditValue={setEditValue} saveEdit={saveEdit} />)
-              )}
-            </AnimatePresence>
-          </Reorder.Group>
+          <ErrorBoundary>
+            <Reorder.Group
+              axis="y"
+              values={todos}
+              onReorder={setTodos}
+              className="flex flex-col gap-4"
+            >
+              <AnimatePresence mode="popLayout" initial={false}>
+                {todos.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center py-12 px-6 bg-muted/10 rounded-3xl border border-dashed border-border"
+                  >
+                    <p className="text-sm font-bold text-muted-foreground opacity-50 uppercase tracking-widest">Chill Day! No tasks found.</p>
+                  </motion.div>
+                ) : (
+                  todos.map(todo => <TodoItem key={todo.id} todo={todo} todos={todos} setTodos={setTodos} toggleTodo={toggleTodo} deleteTodo={deleteTodo} handleDuplicate={handleDuplicate} handleCopy={handleCopy} startEditing={startEditing} editingId={editingId} setEditingId={setEditingId} editValue={editValue} setEditValue={setEditValue} saveEdit={saveEdit} />)
+                )}
+              </AnimatePresence>
+            </Reorder.Group>
+          </ErrorBoundary>
         </div>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import NotificationPrompt from './NotificationPrompt';
+import { ErrorBoundary } from './ErrorBoundary';
 import { motion } from 'framer-motion';
 import { safeStorage } from '../lib/storage';
 
@@ -65,28 +66,34 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
         <div className="absolute top-[40%] left-[20%] w-[300px] h-[300px] bg-indigo-500/5 rounded-full blur-[100px] animate-blob animation-delay-4000"></div>
       </div>
 
-      <Sidebar 
-        isCollapsed={isCollapsed} 
-        setIsCollapsed={handleToggleCollapse} 
-        isMobileOpen={isMobileOpen} 
-        setIsMobileOpen={setIsMobileOpen} 
-      />
+      <ErrorBoundary fallback={<div className="w-[72px] bg-card border-r border-border h-full flex-shrink-0" />}>
+        <Sidebar 
+          isCollapsed={isCollapsed} 
+          setIsCollapsed={handleToggleCollapse} 
+          isMobileOpen={isMobileOpen} 
+          setIsMobileOpen={setIsMobileOpen} 
+        />
+      </ErrorBoundary>
 
       <div className="flex-1 flex flex-col min-w-0 transition-all duration-500 relative overflow-hidden md:backdrop-blur-[2px]">
-        <Navbar 
-          onMenuClick={() => setIsMobileOpen(true)} 
-          pageTitle={pageTitle} 
-        />
+        <ErrorBoundary fallback={<div className="h-16 bg-card border-b border-border" />}>
+          <Navbar 
+            onMenuClick={() => setIsMobileOpen(true)} 
+            pageTitle={pageTitle} 
+          />
+        </ErrorBoundary>
 
         <main className={`flex-1 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar ${fullWidth ? 'p-0' : 'p-0 md:p-6 lg:p-10'}`}>
-          <motion.div
-            initial={{ opacity: 0, y: fullWidth ? 0 : 20, scale: fullWidth ? 1 : 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className={`w-full mx-auto min-h-full ${fullWidth ? 'max-w-none' : 'max-w-[1500px]'}`}
-          >
-            {children}
-          </motion.div>
+          <ErrorBoundary>
+            <motion.div
+              initial={{ opacity: 0, y: fullWidth ? 0 : 20, scale: fullWidth ? 1 : 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className={`w-full mx-auto min-h-full ${fullWidth ? 'max-w-none' : 'max-w-[1500px]'}`}
+            >
+              {children}
+            </motion.div>
+          </ErrorBoundary>
         </main>
       </div>
       <NotificationPrompt />

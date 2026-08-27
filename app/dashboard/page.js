@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import TodoList from '../../components/TodoList';
-import { motion } from 'framer-motion';
 import MigrationBanner from '../../components/MigrationBanner';
 
 import { useSocket } from '../../context/SocketContext';
@@ -192,10 +191,9 @@ export default function DashboardPage() {
         {/* Stats Grid - Fixed Paddings for Desktop/Mobile */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 px-3 md:px-0">
           {displayStats.map((stat, idx) => (
-             <motion.div 
+             <div 
                key={idx}
-               whileHover={{ y: -8, scale: 1.02 }}
-               className="p-4 md:p-8 rounded-[1.5rem] md:rounded-[40px] bg-card border border-border flex flex-col justify-between group transition-all duration-500 hover:border-primary/50 relative overflow-hidden shadow-sm"
+               className="p-4 md:p-8 rounded-[1.5rem] md:rounded-[40px] bg-card border border-border flex flex-col justify-between group transition-all duration-500 hover:border-primary/50 relative overflow-hidden shadow-sm hover:-translate-y-2 hover:scale-[1.02]"
              >
                <div className="flex items-start justify-between mb-1 md:mb-8">
                   <div className={`p-2.5 md:p-4 rounded-xl md:rounded-2xl ${stat.color} shadow-lg shadow-black/5 group-hover:scale-110 transition-transform duration-500 max-[450px]:hidden`}>
@@ -209,7 +207,7 @@ export default function DashboardPage() {
                   <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5 md:mb-1 truncate">{stat.label}</p>
                   <p className="text-xl md:text-3xl font-black text-foreground tracking-tight">{stat.value}</p>
                </div>
-             </motion.div>
+             </div>
           ))}
         </div>
 

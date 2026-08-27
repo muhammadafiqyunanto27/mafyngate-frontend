@@ -1,9 +1,11 @@
 'use client';
 
+import '../lib/polyfills';
 import { useEffect } from 'react';
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from '../context/AuthContext';
 import { SocketProvider } from '../context/SocketContext';
+import { ErrorBoundary } from './ErrorBoundary';
 import { CallOverlay } from './CallOverlay';
 import { NotificationToast } from './NotificationToast';
 import PushNotificationManager from './PushNotificationManager';
@@ -16,9 +18,9 @@ export function Providers({ children }) {
       <AuthProvider>
         <SocketProvider>
           {children}
-          <CallOverlay />
-          <NotificationToast />
-          <PushNotificationManager />
+          <ErrorBoundary fallback={null}><CallOverlay /></ErrorBoundary>
+          <ErrorBoundary fallback={null}><NotificationToast /></ErrorBoundary>
+          <ErrorBoundary fallback={null}><PushNotificationManager /></ErrorBoundary>
         </SocketProvider>
       </AuthProvider>
     </ThemeProvider>

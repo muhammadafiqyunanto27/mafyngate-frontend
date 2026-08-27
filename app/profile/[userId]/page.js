@@ -146,7 +146,7 @@ export default function PublicProfilePage() {
                     className="w-full h-full rounded-[2rem] object-cover cursor-pointer hover:opacity-90 transition-opacity"
                     alt={profile.name}
                     onClick={() => setLightboxMedia(profile.avatar)}
-                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                    onError={(e) => { e.target.style.display = 'none'; const s = e.target.nextElementSibling; if (s) s.style.display = 'flex'; }}
                   />
                 ) : null}
                 <div className={`w-full h-full items-center justify-center text-primary text-4xl font-black uppercase ${profile.avatar ? 'hidden' : 'flex'}`}>

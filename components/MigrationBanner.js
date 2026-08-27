@@ -67,7 +67,7 @@ export default function MigrationBanner() {
             </div>
           </div>
           
-          <style jsx>{`
+          <style>{`
             .animate-spin-slow {
               animation: spin 8s linear infinite;
             }

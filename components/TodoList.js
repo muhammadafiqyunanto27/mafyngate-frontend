@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../lib/api';
 import { Check, Trash2, Plus, GripVertical, ListTodo, Edit2, Copy, Layers, Save, X } from 'lucide-react';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
@@ -184,7 +184,7 @@ export default function TodoList() {
 function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplicate, handleCopy, startEditing, editingId, setEditingId, editValue, setEditValue, saveEdit }) {
   const controls = useDragControls();
   const [showActions, setShowActions] = useState(false);
-  const timerRef = useState(null);
+  const timerRef = useRef(null);
 
   const handleStart = (e) => {
     if (e.pointerType === 'mouse') return;
@@ -192,11 +192,11 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
       setShowActions(true);
       if (navigator.vibrate) navigator.vibrate(50);
     }, 500);
-    timerRef[1](timer);
+    timerRef.current = timer;
   };
 
   const handleEnd = () => {
-    if (timerRef[0]) clearTimeout(timerRef[0]);
+    if (timerRef.current) clearTimeout(timerRef.current);
   };
 
   return (

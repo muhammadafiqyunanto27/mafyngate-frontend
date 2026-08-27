@@ -920,7 +920,7 @@ function MessagesContent() {
                       <img
                         src={getMediaUrl(u.avatar)}
                         className="w-full h-full object-cover"
-                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                        onError={(e) => { e.target.style.display = 'none'; const s = e.target.nextElementSibling; if (s) s.style.display = 'flex'; }}
                       />
                     ) : null}
                     <div className={`w-full h-full items-center justify-center font-bold bg-primary/10 text-primary ${u.avatar ? 'hidden' : 'flex'} ${isMobileView ? 'text-xs' : ''}`}>
@@ -965,7 +965,7 @@ function MessagesContent() {
                       <img
                         src={getMediaUrl(selectedUser.avatar)}
                         className="w-full h-full object-cover"
-                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                        onError={(e) => { e.target.style.display = 'none'; const s = e.target.nextElementSibling; if (s) s.style.display = 'flex'; }}
                       />
                     ) : null}
                     <div className={`w-full h-full items-center justify-center font-bold bg-primary/10 text-primary ${selectedUser.avatar ? 'hidden' : 'flex'} ${isMobileView ? 'text-xs' : ''}`}>
@@ -1268,7 +1268,7 @@ function MessagesContent() {
                       <img
                         src={getMediaUrl(viewingProfile.avatar)}
                         className="w-full h-full object-cover group-hover/avatar:scale-110 transition-transform duration-500"
-                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                        onError={(e) => { e.target.style.display = 'none'; const s = e.target.nextElementSibling; if (s) s.style.display = 'flex'; }}
                       />
                     ) : null}
                     <div className={`w-full h-full items-center justify-center text-2xl font-bold bg-primary text-white ${viewingProfile.avatar ? 'hidden' : 'flex'}`}>

@@ -28,9 +28,13 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
 
   // Persistence logic: Retrieve from safeStorage on mount
   useEffect(() => {
-    const saved = safeStorage.getItem('mafyn_sidebar_collapsed');
-    if (saved !== null) {
-      setIsCollapsed(JSON.parse(saved));
+    try {
+      const saved = safeStorage.getItem('mafyn_sidebar_collapsed');
+      if (saved !== null) {
+        setIsCollapsed(JSON.parse(saved));
+      }
+    } catch (e) {
+      // Corrupted localStorage value — ignore and use default
     }
     setIsMounted(true);
   }, []);
@@ -46,7 +50,7 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
   return (
     <div className="flex h-screen bg-background overflow-hidden relative selection:bg-primary/30">
       {/* Background Decorative Blobs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 hidden md:block">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] animate-blob"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[150px] animate-blob animation-delay-2000"></div>
         <div className="absolute top-[40%] left-[20%] w-[300px] h-[300px] bg-indigo-500/5 rounded-full blur-[100px] animate-blob animation-delay-4000"></div>
@@ -59,7 +63,7 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
         setIsMobileOpen={setIsMobileOpen} 
       />
 
-      <div className="flex-1 flex flex-col min-w-0 transition-all duration-500 relative overflow-hidden backdrop-blur-[2px]">
+      <div className="flex-1 flex flex-col min-w-0 transition-all duration-500 relative overflow-hidden md:backdrop-blur-[2px]">
         <Navbar 
           onMenuClick={() => setIsMobileOpen(true)} 
           pageTitle={pageTitle} 

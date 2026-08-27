@@ -237,7 +237,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
                   src={getMediaUrl(user.avatar)} 
                   className="w-full h-full object-cover"
                   alt={user.name || 'User'}
-                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                  onError={(e) => { e.target.style.display = 'none'; const s = e.target.nextElementSibling; if (s) s.style.display = 'flex'; }}
                 />
               ) : null}
               <div className={`w-full h-full items-center justify-center ${user.avatar ? 'hidden' : 'flex'}`}>

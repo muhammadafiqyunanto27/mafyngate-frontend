@@ -71,13 +71,13 @@ export default function DashboardPage() {
       ]);
       
       setDashboardStats({
-        connections: connRes.data.data.length,
-        unreadConversations: unreadConvRes.data.data,
-        unreadMessages: unreadRes.data.count,
-        tasksCount: todoRes.data.data.filter(t => !t.completed).length,
-        notifications: notifRes.data.count,
-        activities: (activityRes.data.data || []).slice(0, 5),
-        pendingRequests: pendingRes.data.data || []
+        connections: connRes?.data?.data?.length ?? 0,
+        unreadConversations: unreadConvRes?.data?.data ?? [],
+        unreadMessages: unreadRes?.data?.count ?? 0,
+        tasksCount: (todoRes?.data?.data ?? []).filter(t => !t.completed).length,
+        notifications: notifRes?.data?.count ?? 0,
+        activities: (activityRes?.data?.data ?? []).slice(0, 5),
+        pendingRequests: pendingRes?.data?.data ?? []
       });
     } catch (err) {
       console.error('Stats fetch failed', err);
@@ -242,7 +242,7 @@ export default function DashboardPage() {
                                   <img 
                                     src={getMediaUrl(req.follower.avatar)} 
                                     className="w-full h-full object-cover" 
-                                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                                    onError={(e) => { e.target.style.display = 'none'; const s = e.target.nextElementSibling; if (s) s.style.display = 'flex'; }}
                                   />
                                 ) : null}
                                 <div className={`w-full h-full items-center justify-center ${req.follower.avatar ? 'hidden' : 'flex'}`}>
@@ -302,7 +302,7 @@ export default function DashboardPage() {
                                 <img 
                                   src={getMediaUrl(conn.avatar)} 
                                   className="w-full h-full object-cover" 
-                                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                                  onError={(e) => { e.target.style.display = 'none'; const s = e.target.nextElementSibling; if (s) s.style.display = 'flex'; }}
                                 />
                               ) : null}
                               <div className={`w-full h-full items-center justify-center ${conn.avatar ? 'hidden' : 'flex'}`}>

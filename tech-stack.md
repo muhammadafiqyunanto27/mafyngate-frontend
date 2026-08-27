@@ -1,7 +1,6 @@
-# Tech Stack & Guidelines
+# Tech Stack & Guidelines (Premium Minimalist SaaS Edition)
 
 - **Framework:** React / Next.js (App Router)
-- **Styling:** Tailwind CSS
-- **Icons:** Lucide React (jangan pakai icon dari image statis agar warnanya bisa di-inherit oleh Tailwind via `text-color`).
-- **UI Components:** Pendekatan mirip Shadcn UI (buat komponen *reusable*).
-- **Behavior:** Selalu pastikan ada efek hover pada setiap tombol atau link (ubah opacity atau ganti shade warna).
+- **Styling:** Tailwind CSS (Gunakan opacity, border transparan, dan text gradients. Hindari bayangan/glow tebal).
+- **Icons:** Lucide React.
+- **Behavior & Vibe:** Desain minimalis mirip Linear dan Vercel. Bersih, profesional, interaksi transisi lembut (`transition-all duration-300`), dan kontras yang pas tanpa menyilaukan mata.

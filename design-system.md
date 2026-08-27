@@ -1,26 +1,19 @@
-# MafynGate Design System
+# MafynGate Design System (Premium Minimalist SaaS Theme)
 
-## 1. Color Palette (Dark Mode Optimized)
-Jangan gunakan warna lain selain dari palet di bawah ini tanpa persetujuan.
+Inspired by Linear.app and Vercel design aesthetics. Clean, professional, high-contrast readability, and subtle visual enhancements.
 
-*   **Background (Latar Belakang Utama):** `#09090B` (Sangat gelap, nyaris hitam, memberi kesan premium).
-*   **Surface / Card (Background untuk Box/Card):** `#18181B` (Lebih terang sedikit dari background utama).
-*   **Surface Border (Garis tepi card):** `#27272A` (Biar card nggak melayang).
-*   **Primary Accent (Warna Ungu Utama):** `#8B5CF6` (Vibrant Violet - terang dan kontras di atas hitam).
-*   **Primary Hover:** `#7C3AED` (Sedikit lebih gelap untuk efek hover tombol).
-*   **Secondary Element (Tombol abu-abu):** `#27272A` dengan hover `#3F3F46`.
-*   **Text Primary:** `#FAFAFA` (Putih terang untuk Heading dan teks penting).
-*   **Text Muted (Deskripsi/Sub-teks):** `#A1A1AA` (Abu-abu, tidak silau tapi tetap terbaca).
-*   **Success/Action Icon (Misal: WhatsApp):** `#22C55E` (Hijau terang agar ikon terlihat jelas).
+## 1. Color Palette (Elegant Dark Mode)
+*   **Base Background:** `#09090B` (Zinc 950 - Deep black background).
+*   **Card/Surface:** `bg-zinc-900/30` or `bg-black/40` with `backdrop-blur-md` (Semua surface sangat bersih).
+*   **Subtle Border:** `border-zinc-800` or `border-white/5` (Sangat tipis dan halus).
+*   **Primary Accent:** `#8B5CF6` (Violet 500 - Violet berkelas) and `#7C3AED` (Violet 600 - Hover).
+*   **Highlight Gradient:** `bg-gradient-to-r from-violet-400 to-indigo-500` (Untuk teks penting seperti "Communication").
+*   **Text Primary:** `#FAFAFA` (Zinc 50 - Putih bersih untuk judul/teks penting).
+*   **Text Muted:** `#A1A1AA` (Zinc 400 - Abu-abu diredam untuk deskripsi dan label teknis).
+*   **Success Accent:** `#22C55E` (Green 500) or `#4ADE80` (Green 400 - Hijau whatsapp).
 
-## 2. Typography
-*   **Font Family:** Inter atau sistem San-Francisco (Sans-serif, bersih, tanpa gaya italic berlebihan).
-*   **H1 (Hero Title):** `text-5xl` atau `text-6xl`, `font-extrabold`, `tracking-tight`. (Contoh: "Your Gateway to Private Communication").
-*   **H2 (Section Title):** `text-3xl`, `font-bold`.
-*   **H3 (Card Title):** `text-xl`, `font-semibold`.
-*   **Body Text (P):** `text-base` atau `text-lg`, `text-muted` (abu-abu), `leading-relaxed` (jarak antar baris lega).
-
-## 3. Spacing & Radius
-*   **Border Radius:** Gunakan `rounded-2xl` untuk Card besar, dan `rounded-lg` untuk Button.
-*   **Padding dalam Card:** `p-6` atau `p-8` (Jangan terlalu lebar, sesuaikan dengan isi teks).
-*   **Jarak antar Section (Gap):** Minimal `py-20` (Beri nafas antar bagian website).
+## 2. Typography & Styling
+*   **Font Family:** Inter or standard system Sans-Serif.
+*   **Headings:** Sharp, bold, with `tracking-tight` (Rapat) to look modern.
+*   **Cards:** Very thin borders (`border border-white/5`), slight rounded corners (`rounded-xl` or `rounded-2xl`). No active shadows. On hover, change background color slightly: `hover:bg-zinc-800/40` with smooth transition (`transition-colors duration-300`).
+*   **Buttons:** Small, clean, proporsional padding (`px-6 py-2.5`), with standard rounded corners (`rounded-lg`).

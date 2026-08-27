@@ -1,22 +1,19 @@
-# Component & Layout Architecture
+# Component Architecture (Premium Minimalist SaaS Edition)
 
-Setiap kali membuat UI, pecah menjadi komponen kecil di folder `/components`.
+Setiap UI didesain agar terlihat premium, minimalis, dan seimbang.
 
-## Daftar Komponen Utama yang Dibutuhkan:
 1.  **Navbar (`/components/Navbar.jsx`)**
-    *   Kiri: Logo MafynGate + Teks (Primary).
-    *   Kanan: Link `LOGIN` (Text Muted, hover putih) dan Button `JOIN` (Solid Primary Color, rounded-lg).
+    *   Kiri: Logo & Nama Sistem.
+    *   Kanan: Tombol `LOGIN` (muted text, hover putih) dan `JOIN` (solid `bg-violet-600` hover `bg-violet-700`, rounded-lg).
 2.  **Hero Section (`/components/Hero.jsx`)**
-    *   Headline raksasa di tengah. Kata "Communication" menggunakan warna `text-primary` (#8B5CF6).
-    *   Sub-headline di bawahnya dengan warna `text-muted` maksimal lebar max-w-2xl agar tidak terlalu memanjang ke samping.
-    *   CTA Buttons: "Get Started" (Solid Primary) dan "User Guide" / "Support" (Secondary).
-3.  **Feature Cards (`/components/FeatureGrid.jsx`)**
-    *   Grid layout (1 kolom di mobile, 3 kolom di desktop).
-    *   Setiap Card menggunakan background `surface` (#18181B) dan border `surface-border`.
-    *   Ikon di dalam card HARUS menggunakan warna `text-primary` agar terlihat menyala (jangan warna gelap!).
+    *   Teks "Communication" wajib menggunakan text-gradient `bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-indigo-500` tanpa efek glow.
+    *   Tombol "Get Started" (Solid Violet, `bg-violet-600` hover `bg-violet-700`).
+    *   Tombol "User Guide" & "Support" (Muted background `bg-zinc-900/50` or `bg-zinc-800/30`, tipis `border border-zinc-800`).
+3.  **Feature Grid (`/components/FeatureGrid.jsx`)**
+    *   3 Card minimalis dengan background `bg-zinc-900/30` dan border `border-zinc-800` / `border-white/5`.
+    *   Ikon Lucide berdiri sendiri tanpa container boks, menggunakan warna `text-violet-400` atau `text-zinc-400`.
 4.  **Support Section (`/components/Support.jsx`)**
-    *   Heading H2 murni (jangan pakai italic tebal yang terlihat jadul).
-    *   Card WhatsApp: Ikon WA harus warna `text-green-500` (#22C55E) agar stand-out.
+    *   Heading "CONNECT SUPPORT" dalam huruf Kapital tebal biasa (DILARANG italic), tracking lebar.
+    *   Ikon WhatsApp berwarna hijau `text-green-500` / `text-emerald-400`, biarkan ikon berdiri sendiri dan membesar sedikit saat di-hover.
 5.  **Footer (`/components/Footer.jsx`)**
-    *   Garis tipis di atas footer.
-    *   Teks copyright: "© 2026 Muhammad Afiq Yunanto. All rights reserved." (Perbaiki typo 'Alright').
+    *   Copyright text: "© 2026 Muhammad Afiq Yunanto. All rights reserved." (Perbaiki ejaan).

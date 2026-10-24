@@ -18,7 +18,7 @@ export const NotificationToast = () => {
         exit={{ opacity: 0, x: 100, scale: 0.9 }}
         className="fixed top-24 right-6 z-[9999] w-80"
       >
-        <div className="bg-zinc-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl flex items-start gap-4">
+        <div className="bg-zinc-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-sm flex items-start gap-4">
           <div className={`p-2 rounded-xl flex-shrink-0 ${
             toast.type === 'CHAT' ? 'bg-primary/20 text-primary' : 
             toast.type === 'FOLLOW' ? 'bg-emerald-500/20 text-emerald-500' : 

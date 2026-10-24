@@ -121,7 +121,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
         {isMobileSearchOpen && (
           <motion.div 
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-            className="absolute inset-0 bg-card z-[1000] flex items-center px-4 gap-3 border-b border-primary/20 shadow-xl"
+            className="absolute inset-0 bg-card z-[1000] flex items-center px-4 gap-3 border-b border-primary/20 shadow-sm"
           >
              <button onClick={() => { setIsMobileSearchOpen(false); setShowResults(false); }} className="p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-2xl transition-all">
                 <X className="w-5 h-5" />
@@ -173,7 +173,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
 
         {/* Notification Bell */}
         <div className="relative" ref={bellRef}>
-          <button onClick={() => setIsBellOpen(!isBellOpen)} className={`p-2.5 rounded-2xl transition-all duration-200 ${isBellOpen ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'text-muted-foreground hover:bg-muted'}`}>
+          <button onClick={() => setIsBellOpen(!isBellOpen)} className={`p-2.5 rounded-2xl transition-all duration-200 ${isBellOpen ? 'bg-primary text-white shadow-lg  scale-105' : 'text-muted-foreground hover:bg-muted'}`}>
             <Bell className={`w-5 h-5 ${unreadCount > 0 && !isBellOpen ? 'animate-bounce' : ''}`} />
             {unreadCount > 0 && (
               <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className={`absolute -top-1 -right-1 w-5 h-5 rounded-full border-2 text-[10px] font-bold flex items-center justify-center ${isBellOpen ? 'bg-white text-primary border-primary' : 'bg-rose-500 text-white border-card'}`}>
@@ -188,7 +188,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                 <div className="fixed inset-0 z-[-1]" onClick={() => setIsBellOpen(false)} />
                 <motion.div
                   initial={{ opacity: 0, y: 15, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-card border border-border rounded-3xl shadow-2xl overflow-hidden z-[1000]"
+                  className="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-card border border-border rounded-xl shadow-lg overflow-hidden z-[1000]"
                 >
                   <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
                     <div className="flex items-center gap-2">
@@ -289,7 +289,7 @@ export default function Navbar({ onMenuClick, pageTitle }) {
             />
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute top-16 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-[400px] mt-3 p-2.5 bg-card border border-border rounded-[2rem] shadow-2xl overflow-hidden max-h-[70vh] md:max-h-[450px] overflow-y-auto z-[1000] scrollbar-thin"
+              className="absolute top-16 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-[400px] mt-3 p-2.5 bg-card border border-border rounded-xl shadow-lg overflow-hidden max-h-[70vh] md:max-h-[450px] overflow-y-auto z-[1000] scrollbar-thin"
             >
               {searchResults.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground text-sm font-medium italic">No matches found for your search</div>
@@ -299,10 +299,10 @@ export default function Navbar({ onMenuClick, pageTitle }) {
                     <div 
                       key={result.id} 
                       onClick={() => { router.push(`/profile/${result.id}`); setSearchResults([]); setSearchQuery(''); }}
-                      className="flex items-center justify-between p-3.5 hover:bg-muted/50 rounded-[1.5rem] cursor-pointer transition-all group/item border border-transparent hover:border-border/50"
+                      className="flex items-center justify-between p-3.5 hover:bg-muted/50 rounded-lg cursor-pointer transition-all group/item border border-transparent hover:border-border/50"
                     >
                       <div className="flex items-center gap-4 min-w-0">
-                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary/20 to-indigo-500/20 flex items-center justify-center text-primary font-black text-sm border border-primary/10 uppercase group-hover/item:scale-105 transition-transform flex-shrink-0">
+                        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-medium text-sm border border-primary/20 flex-shrink-0">
                           {result.avatar ? <img src={result.avatar.startsWith('http') ? result.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${result.avatar}`} className="w-full h-full object-cover rounded-2xl" /> : (result.name || result.email).charAt(0)}
                         </div>
                         <div className="min-w-0 font-sans">

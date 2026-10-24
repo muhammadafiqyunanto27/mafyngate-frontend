@@ -57,11 +57,7 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen bg-background relative overflow-hidden">
-      {/* Decorative Gradients */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden -z-10">
-         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[60%] rounded-full bg-primary/10 blur-[60px] md:blur-[100px]"></div>
-         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[70%] rounded-full bg-indigo-500/5 blur-[60px] md:blur-[100px]"></div>
-      </div>
+      {/* Clean background - no decorative gradients */}
 
       <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12">
         <motion.div 
@@ -72,14 +68,14 @@ export default function RegisterPage() {
         >
           {/* Logo */}
           <div className="flex flex-col items-center mb-10 text-center">
-            <div className="w-16 h-16 overflow-hidden shadow-2xl shadow-primary/40 mb-6 group hover:scale-105 transition-transform duration-500">
+            <div className="w-12 h-12 overflow-hidden rounded-xl border border-border mb-6">
                <img src="/logo.png?v=8" alt="MafynGate" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-2">Join MafynGate</h1>
             <p className="text-muted-foreground font-medium">Create your secure account today</p>
           </div>
 
-          <div className="bg-card border border-border p-8 rounded-[2rem] shadow-2xl shadow-slate-900/10 backdrop-blur-xl relative overflow-hidden">
+          <div className="bg-card border border-border p-8 rounded-xl">
             {/* Global server error (DB down / JWT missing) */}
             {serverError && !error && (
                <motion.div 
@@ -143,7 +139,7 @@ export default function RegisterPage() {
                 type="submit" 
                 disabled={loading} 
                 suppressHydrationWarning
-                className="w-full flex items-center justify-center gap-3 px-4 py-4 mt-4 font-bold text-white bg-primary rounded-2xl hover:bg-primary-600 disabled:opacity-50 transition-all active:scale-[0.98] shadow-xl shadow-primary/20"
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 mt-4 font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
               >
                 {loading ? (
                   <span className="flex items-center gap-2 italic opacity-80">
@@ -188,16 +184,12 @@ export default function RegisterPage() {
       </div>
 
       {/* Side Graphic */}
-      <div className="hidden lg:flex flex-1 bg-slate-900 border-l border-white/5 items-center justify-center relative">
-         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"></div>
+      <div className="hidden lg:flex flex-1 bg-muted/30 border-l border-border items-center justify-center relative">
+         <div className="absolute inset-0 "></div>
          <div className="max-w-md text-center space-y-6 relative z-10 px-12">
-            <motion.div 
-               animate={{ y: [0, -15, 0] }}
-               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-               className="p-4  glass flex items-center justify-center shadow-primary/20 shadow-2xl overflow-hidden aspect-square mb-8 mx-auto w-48"
-            >
-               <img src="/logo.png?v=8" alt="MafynGate" className="w-full h-full object-cover " />
-            </motion.div>
+             <div className="flex items-center justify-center overflow-hidden aspect-square w-32 h-32 rounded-xl border border-border mb-8 mx-auto">
+                <img src="/logo.png?v=8" alt="MafynGate" className="w-full h-full object-cover" />
+             </div>
             <h2 className="text-3xl font-bold text-white tracking-tight">Join the Future of Privacy</h2>
             <p className="text-slate-400 leading-relaxed font-medium">Create your gateway to secure messaging, high-definition video calls, and instant smart notifications. All in one stateless, high-speed platform.</p>
          </div>

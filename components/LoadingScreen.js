@@ -25,7 +25,7 @@ const LoadingScreen = () => {
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.5 }}
-                    className="relative w-24 h-24 p-1 bg-card border border-border shadow-2xl shadow-primary/20 overflow-hidden group"
+                    className="relative w-24 h-24 p-1 bg-card border border-border shadow-sm  overflow-hidden group"
                 >
                     {/* Animated Pulse Overlay */}
                     <motion.div 

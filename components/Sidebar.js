@@ -62,7 +62,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsMobileOpen(false)}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-40 lg:hidden"
+            className="fixed inset-0 bg-card/80 backdrop-blur-md z-40 lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -72,7 +72,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
         animate={isMobile ? (isMobileOpen ? 'mobileOpen' : 'mobileClosed') : (isCollapsed ? 'collapsed' : 'expanded')}
         variants={sidebarVariants}
         transition={{ type: 'tween', ease: 'easeInOut', duration: 0.2 }}
-        className="fixed inset-y-0 left-0 z-50 flex flex-col bg-card border-r border-border lg:relative shadow-2xl lg:shadow-none h-full overflow-x-hidden overflow-y-auto custom-scrollbar"
+        className="fixed inset-y-0 left-0 z-50 flex flex-col bg-card border-r border-border lg:relative lg:shadow-none h-full overflow-x-hidden overflow-y-auto custom-scrollbar"
       >
         {/* Header Section: overflow-x hidden for both states */}
         <div 
@@ -112,7 +112,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
                 )}
               </AnimatePresence>
               
-              <div className="absolute left-full ml-3 invisible group-hover:visible bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-50 shadow-xl pointer-events-none whitespace-nowrap">
+              <div className="absolute left-full ml-3 invisible group-hover:visible bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-50 shadow-sm pointer-events-none whitespace-nowrap">
                  Expand
               </div>
             </div>
@@ -173,14 +173,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
                 {item.name === 'Messages' && unreadChatsCount > 0 && (
                   <motion.div 
                     initial={{ scale: 0 }} animate={{ scale: 1 }}
-                    className={`flex items-center justify-center rounded-full bg-primary text-white font-black leading-none ${isCollapsed && !isMobile ? 'absolute top-2 right-2 w-4 h-4 text-[8px]' : 'w-5 h-5 text-[10px] mr-2 shadow-lg shadow-primary/20'}`}
+                    className={`flex items-center justify-center rounded-full bg-primary text-white font-black leading-none ${isCollapsed && !isMobile ? 'absolute top-2 right-2 w-4 h-4 text-[8px]' : 'w-5 h-5 text-[10px] mr-2 shadow-lg '}`}
                   >
                     {unreadChatsCount}
                   </motion.div>
                 )}
 
                 {(isCollapsed && !isMobile) && (
-                  <div className="absolute left-full ml-3 invisible group-hover:visible bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-50 shadow-xl pointer-events-none whitespace-nowrap">
+                  <div className="absolute left-full ml-3 invisible group-hover:visible bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-50 shadow-sm pointer-events-none whitespace-nowrap">
                     {item.name}
                   </div>
                 )}
@@ -191,10 +191,10 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
           {/* Background Health Check */}
           <div className={`mt-10 px-4 ${isCollapsed && !isMobile ? 'flex flex-col items-center' : ''}`}>
              {!isCollapsed || isMobile ? (
-                <div className="p-4 rounded-3xl bg-muted/30 border border-border">
+                <div className="p-4 rounded-xl bg-muted/30 border border-border">
                    <div className="flex items-center justify-between mb-2">
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Background Sync</p>
-                      <div className={`w-2 h-2 rounded-full animate-pulse ${typeof window !== 'undefined' && window.getMafynGatePushStatus && window.getMafynGatePushStatus() === 'active' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]'}`} />
+                      <div className={`w-2 h-2 rounded-full animate-pulse ${typeof window !== 'undefined' && window.getMafynGatePushStatus && window.getMafynGatePushStatus() === 'active' ? 'bg-emerald-500 ' : 'bg-rose-500 '}`} />
                    </div>
                    <p className="text-[11px] font-bold text-foreground mb-3 leading-tight">
                       {typeof window !== 'undefined' && window.getMafynGatePushStatus && window.getMafynGatePushStatus() === 'active' ? 'Gateway is Linked' : 'Push Disconnected'}
@@ -215,7 +215,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
                   className={`p-2.5 rounded-xl border border-border transition-all group relative ${typeof window !== 'undefined' && window.getMafynGatePushStatus && window.getMafynGatePushStatus() === 'active' ? 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' : 'text-rose-500 bg-rose-500/10 animate-pulse'}`}
                 >
                    <ShieldCheck className="w-5 h-5" />
-                   <div className="absolute left-full ml-3 invisible group-hover:visible bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-50 shadow-xl pointer-events-none whitespace-nowrap">
+                   <div className="absolute left-full ml-3 invisible group-hover:visible bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-50 shadow-sm pointer-events-none whitespace-nowrap">
                     Push Sync Status
                   </div>
                 </button>
@@ -266,7 +266,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
               <span className="font-bold text-sm truncate whitespace-nowrap">Sign Out</span>
             )}
             {(isCollapsed && !isMobile) && (
-               <div className="absolute left-full ml-3 invisible group-hover:visible bg-rose-600 text-white text-[10px] font-bold uppercase tracking-widest py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-50 shadow-xl pointer-events-none whitespace-nowrap">
+               <div className="absolute left-full ml-3 invisible group-hover:visible bg-rose-600 text-white text-[10px] font-bold uppercase tracking-widest py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-50 shadow-sm pointer-events-none whitespace-nowrap">
                  Terminate
                </div>
             )}
@@ -283,15 +283,15 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }} 
               onClick={() => setShowLogoutModal(false)} 
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" 
+              className="absolute inset-0 bg-card/80 backdrop-blur-md" 
             />
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }} 
               animate={{ scale: 1, opacity: 1, y: 0 }} 
               exit={{ scale: 0.9, opacity: 0, y: 20 }} 
-              className="relative bg-card border border-border w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl text-center"
+              className="relative bg-card border border-border w-full max-w-sm p-8 rounded-xl shadow-sm text-center"
             >
-              <div className="w-20 h-20 rounded-3xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto mb-6">
                 <LogOut className="w-10 h-10" />
               </div>
               
@@ -301,7 +301,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
               <div className="flex flex-col gap-3">
                 <button 
                   onClick={logout} 
-                  className="w-full bg-rose-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-rose-500/20 hover:scale-[1.02] active:scale-95 transition-all"
+                  className="w-full bg-rose-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-sm shadow-rose-500/20 hover:scale-[1.02] active:scale-95 transition-all"
                 >
                   Yes, Sign Out
                 </button>

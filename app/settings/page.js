@@ -131,7 +131,7 @@ export default function SettingsPage() {
           
           <div className="md:col-span-2 space-y-6 md:space-y-8">
             {/* Security Section */}
-            <div className="bg-card border border-border rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
+            <div className="bg-card border border-border rounded-xl overflow-hidden ">
                <div className="p-6 md:p-8 border-b border-border bg-muted/20">
                   <h3 className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
                      <Lock size={14} className="md:w-4 md:h-4" /> Security & Identity
@@ -173,7 +173,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Notifications Section */}
-            <div className="bg-card border border-border rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-sm">
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
                <div className="p-6 md:p-8 border-b border-border bg-muted/20">
                   <h3 className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
                      <Bell size={14} className="md:w-4 md:h-4" /> Notification Management
@@ -185,7 +185,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Support Section */}
-            <div className="bg-card border border-border rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-sm">
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
                <div className="p-6 md:p-8 border-b border-border bg-muted/20">
                   <h3 className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
                      <LifeBuoy size={14} className="md:w-4 md:h-4" /> Support Gateway
@@ -223,7 +223,7 @@ export default function SettingsPage() {
 
           <div className="space-y-8">
             {/* Danger Zone */}
-<div className="p-6 md:p-8 rounded-3xl md:rounded-[2.5rem] bg-rose-500/5 border border-rose-500/20 space-y-5 md:space-y-6">
+<div className="p-6 md:p-8 rounded-xl bg-rose-500/5 border border-rose-500/20 space-y-5 md:space-y-6">
                <div className="flex items-center gap-3 text-rose-500 justify-center md:justify-start">
                   <div className="p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-rose-500/10 shrink-0"><LogOut size={18} className="md:w-5 md:h-5" /></div>
                   <h4 className="font-black uppercase tracking-tight text-sm md:text-base">Dangerous Zone</h4>
@@ -237,7 +237,7 @@ export default function SettingsPage() {
                   }
                 }}
                 disabled={updateLoading}
-                className="w-full py-4 rounded-2xl bg-rose-500 text-white text-xs font-black uppercase tracking-widest hover:bg-rose-600 shadow-xl shadow-rose-500/20 transition-all active:scale-95 disabled:opacity-50"
+                className="w-full py-4 rounded-2xl bg-rose-500 text-white text-xs font-black uppercase tracking-widest hover:bg-rose-600  transition-all active:scale-95 disabled:opacity-50"
                >
                   {updateLoading ? 'Processing Request...' : 'Terminate Account'}
                </button>
@@ -251,8 +251,8 @@ export default function SettingsPage() {
         {/* Change Password Modal */}
         {isChangingPassword && (
           <div key="pass-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsChangingPassword(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-3xl md:rounded-[2.5rem] shadow-2xl p-6 md:p-8">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsChangingPassword(false)} className="absolute inset-0 bg-card/80 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-xl shadow-sm p-6 md:p-8">
                <div className="flex justify-between items-center mb-6 md:mb-8">
                  <h2 className="text-lg md:text-xl font-black uppercase tracking-tight">Update Password</h2>
                  <button onClick={() => setIsChangingPassword(false)} className="p-2 hover:bg-muted rounded-xl transition-all shrink-0"><X size={20} /></button>
@@ -270,7 +270,7 @@ export default function SettingsPage() {
                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Verify Password</label>
                     <input type="password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})} className="w-full px-5 py-4 bg-muted border border-border rounded-2xl text-sm font-bold" placeholder="Confirm New Password" />
                   </div>
-                  <button type="submit" className="w-full py-4 bg-primary text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+                  <button type="submit" className="w-full py-4 bg-primary text-white font-black uppercase tracking-widest text-sm rounded-2xl  hover:scale-[1.02] active:scale-95 transition-all">
                     {updateLoading ? 'Updating...' : 'Authorize Change'}
                   </button>
                </form>
@@ -281,8 +281,8 @@ export default function SettingsPage() {
         {/* Change Email Modal */}
         {isChangingEmail && (
           <div key="email-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsChangingEmail(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-3xl md:rounded-[2.5rem] shadow-2xl p-6 md:p-8">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsChangingEmail(false)} className="absolute inset-0 bg-card/80 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-xl shadow-sm p-6 md:p-8">
                <div className="flex justify-between items-center mb-6 md:mb-8">
                  <h2 className="text-lg md:text-xl font-black uppercase tracking-tight text-amber-500">Change Email</h2>
                  <button onClick={() => setIsChangingEmail(false)} className="p-2 hover:bg-muted rounded-xl transition-all shrink-0"><X size={20} /></button>
@@ -292,7 +292,7 @@ export default function SettingsPage() {
                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">New Email Address</label>
                     <input type="email" value={emailData.newEmail} onChange={(e) => setEmailData({newEmail: e.target.value})} className="w-full px-5 py-4 bg-muted border border-border rounded-2xl text-sm font-bold" placeholder="Enter new email..." />
                   </div>
-                  <button type="submit" className="w-full py-4 bg-amber-500 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-95 transition-all">
+                  <button type="submit" className="w-full py-4 bg-amber-500 text-white font-black uppercase tracking-widest text-sm rounded-2xl  hover:scale-[1.02] active:scale-95 transition-all">
                     {updateLoading ? 'Syncing...' : 'Update Email'}
                   </button>
                </form>
@@ -301,7 +301,7 @@ export default function SettingsPage() {
         )}
 
         {message.text && (
-          <motion.div key="toast" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`fixed bottom-10 right-10 p-6 rounded-[2rem] shadow-2xl z-[150] border flex items-center gap-4 ${message.type === 'success' ? 'bg-emerald-500/90 text-white border-emerald-400' : 'bg-rose-500/90 text-white border-rose-400'}`}>
+          <motion.div key="toast" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`fixed bottom-10 right-10 p-6 rounded-lg shadow-sm z-[150] border flex items-center gap-4 ${message.type === 'success' ? 'bg-emerald-500/90 text-white border-emerald-400' : 'bg-rose-500/90 text-white border-rose-400'}`}>
              {message.type === 'success' ? <CheckCircle2 size={24} /> : <X size={24} />}
              <p className="text-xs font-black uppercase tracking-[0.2em] italic">{message.text}</p>
           </motion.div>

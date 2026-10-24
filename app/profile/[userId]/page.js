@@ -129,7 +129,7 @@ export default function PublicProfilePage() {
       <div className="max-w-4xl mx-auto space-y-10 selection:bg-primary/30 pb-20">
         
         {/* Profile Header */}
-        <section className="bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl relative">
+        <section className="bg-card border border-border rounded-xl overflow-hidden shadow-sm relative">
           <div className="h-32 bg-primary/10 relative">
              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_#000_1px,_transparent_1px)] bg-[size:20px_20px]"></div>
              <button onClick={() => router.back()} className="absolute top-6 left-6 p-2 bg-white/10 hover:bg-white/20 text-foreground rounded-xl transition-all z-20">
@@ -139,11 +139,11 @@ export default function PublicProfilePage() {
           
           <div className="p-8 md:p-10 pt-0 relative flex flex-col md:flex-row items-end gap-6 font-sans">
             <div className="relative group -mt-12">
-              <div className="w-32 h-32 rounded-[2.5rem] bg-card border-[6px] border-background shadow-2xl overflow-hidden ring-1 ring-border/50">
+              <div className="w-32 h-32 rounded-xl bg-card border-[6px] border-background shadow-sm overflow-hidden ring-1 ring-border/50">
                 {profile.avatar ? (
                   <img 
                     src={getMediaUrl(profile.avatar)} 
-                    className="w-full h-full rounded-[2rem] object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                    className="w-full h-full rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
                     alt={profile.name}
                     onClick={() => setLightboxMedia(profile.avatar)}
                     onError={(e) => { e.target.style.display = 'none'; const s = e.target.nextElementSibling; if (s) s.style.display = 'flex'; }}
@@ -176,7 +176,7 @@ export default function PublicProfilePage() {
                     ? 'bg-rose-500 text-white shadow-rose-500/20' 
                     : profile.isPending
                     ? 'bg-amber-500 text-white'
-                    : 'bg-primary text-white shadow-primary/20 hover:bg-primary-600'
+                    : 'bg-primary text-white  hover:bg-primary-600'
                 }`}
               >
                 {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
@@ -202,7 +202,7 @@ export default function PublicProfilePage() {
         {/* Profile Content */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
            <div className="md:col-span-2 space-y-8">
-              <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm">
+              <div className="bg-card border border-border rounded-xl p-8 shadow-sm">
                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-6">
                     Profile Bio
                  </h3>
@@ -222,7 +222,7 @@ export default function PublicProfilePage() {
            </div>
 
            <div className="space-y-6">
-              <div className="bg-card border border-border rounded-[2.5rem] p-6 shadow-sm">
+              <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
                  <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Account Status</h4>
                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -239,7 +239,7 @@ export default function PublicProfilePage() {
         {/* Toast Notification */}
         <AnimatePresence>
           {message.text && (
-            <motion.div key="public-toast" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`fixed bottom-10 right-10 p-6 rounded-[2rem] shadow-2xl z-50 flex items-center gap-4 border ${message.type === 'success' ? 'bg-emerald-500/90 border-emerald-400 text-white' : 'bg-rose-500/90 border-rose-400 text-white'}`}>
+            <motion.div key="public-toast" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`fixed bottom-10 right-10 p-6 rounded-lg shadow-sm z-50 flex items-center gap-4 border ${message.type === 'success' ? 'bg-emerald-500/90 border-emerald-400 text-white' : 'bg-rose-500/90 border-rose-400 text-white'}`}>
               {message.type === 'success' ? <CheckCircle2 size={24} /> : <X size={24} />}
               <p className="text-xs font-black uppercase tracking-widest">{message.text}</p>
             </motion.div>

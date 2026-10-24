@@ -64,7 +64,7 @@ export default function NotificationPrompt() {
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
-            className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl shadow-indigo-500/10"
+            className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-sm shadow-indigo-500/10"
           >
             {/* Close Button */}
             <button 
@@ -118,7 +118,7 @@ export default function NotificationPrompt() {
                   className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all transform active:scale-95 ${
                     status === 'success' 
                       ? 'bg-emerald-600 text-white' 
-                      : 'bg-white text-black hover:bg-indigo-500 hover:text-white shadow-xl shadow-white/5'
+                      : 'bg-white text-black hover:bg-indigo-500 hover:text-white shadow-sm shadow-white/5'
                   }`}
                 >
                   {status === 'idle' && 'Enable Background Sync'}

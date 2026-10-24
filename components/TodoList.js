@@ -111,7 +111,7 @@ export default function TodoList() {
   );
 
   return (
-    <div className="bg-card rounded-none md:rounded-[2.5rem] overflow-hidden">
+    <div className="bg-card rounded-none md:rounded-xl overflow-hidden">
       <div className="p-6 md:p-8 border-b border-border bg-muted/20 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
@@ -130,7 +130,7 @@ export default function TodoList() {
           >
             <Trash2 className="w-5 h-5" />
           </button>
-          <div className="font-black text-[10px] uppercase bg-primary text-white px-3 py-1.5 rounded-lg shadow-lg shadow-primary/20">
+          <div className="font-black text-[10px] uppercase bg-primary text-white px-3 py-1.5 rounded-lg shadow-lg ">
             {todos.filter(t => !t.completed).length}
           </div>
         </div>
@@ -148,7 +148,7 @@ export default function TodoList() {
           <button
             type="submit"
             disabled={!title.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-primary text-white rounded-xl hover:bg-primary-600 disabled:opacity-30 transition-all active:scale-95 shadow-lg shadow-primary/20"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-primary text-white rounded-xl hover:bg-primary-600 disabled:opacity-30 transition-all active:scale-95 shadow-lg "
           >
             <Plus className="w-5 h-5 mx-auto" />
           </button>

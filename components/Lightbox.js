@@ -36,7 +36,7 @@ export default function Lightbox({ media, onClose, allowActions = true }) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-slate-950/95 backdrop-blur-2xl"
+        className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl"
       />
 
       {/* Header Controls */}
@@ -49,7 +49,7 @@ export default function Lightbox({ media, onClose, allowActions = true }) {
         <div className="flex items-center gap-4">
           <button
             onClick={onClose}
-            className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all shadow-xl"
+            className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all shadow-sm"
           >
             <X size={24} />
           </button>
@@ -85,13 +85,13 @@ export default function Lightbox({ media, onClose, allowActions = true }) {
               src={url}
               controls
               autoPlay
-              className="max-w-full max-h-[85vh] rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-black"
+              className="max-w-full max-h-[85vh] rounded-2xl  bg-black"
             />
           ) : (
             <motion.img
               layoutId={media.id || 'lightbox-img'}
               src={url}
-              className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.8)]"
+              className="max-w-full max-h-[85vh] object-contain rounded-2xl "
               alt="Full size preview"
             />
           )}

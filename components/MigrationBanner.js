@@ -36,7 +36,7 @@ export default function MigrationBanner() {
           exit={{ height: 0, opacity: 0 }}
           className="relative z-50 overflow-hidden"
         >
-          <div className="bg-indigo-600 text-white p-4 md:p-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xl border-b border-white/10">
+          <div className="bg-indigo-600 text-white p-4 md:p-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm border-b border-white/10">
             <div className="flex items-center gap-4">
               <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md animate-spin-slow">
                 <RefreshCcw className="w-5 h-5" />

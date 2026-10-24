@@ -79,7 +79,7 @@ export default function GuidePage() {
           </Link>
           
           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 overflow-hidden shadow-lg shadow-primary/20 flex-shrink-0">
+             <div className="w-8 h-8 overflow-hidden shadow-lg  flex-shrink-0">
                <img src="/logo.png?v=8" alt="MafynGate" className="w-full h-full object-cover" />
              </div>
              <span className="text-xl font-black tracking-tighter text-foreground uppercase">{t.hero}</span>
@@ -126,7 +126,7 @@ export default function GuidePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="p-6 rounded-[2.5rem] bg-card/60 backdrop-blur-sm border border-white/5 hover:border-primary/40 transition-all flex items-start gap-6 group relative overflow-hidden"
+                  className="p-6 rounded-xl bg-card/60 backdrop-blur-sm border border-white/5 hover:border-primary/40 transition-all flex items-start gap-6 group relative overflow-hidden"
                 >
                   <div className={`w-14 h-14 rounded-2xl ${bgs[idx]} ${colors[idx]} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform relative z-10`}>
                     <Icon size={28} />
@@ -150,7 +150,7 @@ export default function GuidePage() {
 
       {/* CTA (Ready for launch - Blue themed) */}
       <section className="mt-12 px-6">
-        <div className="max-w-5xl mx-auto p-12 md:p-16 rounded-[4rem] bg-primary text-primary-foreground text-center space-y-10 shadow-2xl shadow-primary/30 relative overflow-hidden group">
+        <div className="max-w-5xl mx-auto p-12 md:p-16 rounded-2xl bg-primary text-primary-foreground text-center space-y-10 shadow-sm  relative overflow-hidden group">
           <div className="absolute inset-0 opacity-10 pointer-events-none group-hover:opacity-20 transition-opacity" style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
           
           <Zap size={64} className="mx-auto text-primary-foreground/40" />
@@ -160,7 +160,7 @@ export default function GuidePage() {
           </div>
           
           <div className="pt-2 relative z-10">
-            <Link href="/register" className="inline-flex h-14 px-12 rounded-2xl bg-white text-primary font-black text-xs items-center hover:scale-110 active:scale-95 transition-all uppercase tracking-widest shadow-xl">
+            <Link href="/register" className="inline-flex h-14 px-12 rounded-2xl bg-white text-primary font-black text-xs items-center hover:scale-110 active:scale-95 transition-all uppercase tracking-widest shadow-sm">
               {t.cta}
             </Link>
           </div>

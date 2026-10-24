@@ -162,7 +162,7 @@ export default function CalculatorPage() {
                       relative group flex items-center justify-center font-mono text-sm md:text-lg font-bold rounded-xl md:rounded-2xl transition-all active:scale-95
                       col-span-1
                       ${isPrimary 
-                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90' 
+                        ? 'bg-primary text-primary-foreground shadow-lg  hover:bg-primary/90' 
                         : isDanger
                         ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20'
                         : isOperator

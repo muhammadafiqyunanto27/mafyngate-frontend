@@ -59,12 +59,7 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
 
   return (
     <div className="flex h-screen bg-background overflow-hidden relative selection:bg-primary/30">
-      {/* Background Decorative Blobs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 hidden md:block">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] animate-blob"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[150px] animate-blob animation-delay-2000"></div>
-        <div className="absolute top-[40%] left-[20%] w-[300px] h-[300px] bg-indigo-500/5 rounded-full blur-[100px] animate-blob animation-delay-4000"></div>
-      </div>
+      {/* Clean background - no decorative blobs */}
 
       <ErrorBoundary fallback={<div className="w-[72px] bg-card border-r border-border h-full flex-shrink-0" />}>
         <Sidebar 
@@ -75,7 +70,7 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
         />
       </ErrorBoundary>
 
-      <div className="flex-1 flex flex-col min-w-0 transition-all duration-500 relative overflow-hidden md:backdrop-blur-[2px]">
+      <div className="flex-1 flex flex-col min-w-0 transition-all duration-500 relative overflow-hidden ">
         <ErrorBoundary fallback={<div className="h-16 bg-card border-b border-border" />}>
           <Navbar 
             onMenuClick={() => setIsMobileOpen(true)} 
@@ -86,9 +81,9 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
         <main className={`flex-1 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar ${fullWidth ? 'p-0' : 'p-0 md:p-6 lg:p-10'}`}>
           <ErrorBoundary>
             <motion.div
-              initial={{ opacity: 0, y: fullWidth ? 0 : 20, scale: fullWidth ? 1 : 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: fullWidth ? 0 : 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
               className={`w-full mx-auto min-h-full ${fullWidth ? 'max-w-none' : 'max-w-[1500px]'}`}
             >
               {children}

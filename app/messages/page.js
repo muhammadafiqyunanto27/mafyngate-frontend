@@ -117,7 +117,7 @@ const MessageBubble = memo(({
       >
         {/* Desktop Menu handled inside bubble dropdown now */}
 
-        <div className={`relative px-3 py-2 rounded-xl shadow-sm text-sm transition-all border w-fit group/bubble ${isMine ? 'bg-primary/20 backdrop-blur-2xl text-white border-primary/30 rounded-tr-none' : 'bg-muted/80 backdrop-blur-2xl text-foreground border-border/50 rounded-tl-none shadow-md'}`}>
+        <div className={`relative px-3 py-2 rounded-xl shadow-sm text-sm transition-all border w-fit group/bubble ${isMine ? 'bg-primary/20 backdrop-blur-xl text-white border-primary/30 rounded-tr-none' : 'bg-muted/80 backdrop-blur-xl text-foreground border-border/50 rounded-tl-none shadow-md'}`}>
           {!isMobileView && (
             <div className={`absolute top-1 ${isMine ? 'left-1' : 'right-1'} opacity-0 group-hover/bubble:opacity-100 transition-all z-10`}>
               <button
@@ -127,7 +127,7 @@ const MessageBubble = memo(({
                 <ChevronDown size={14} />
               </button>
               {activeMenuId === msg.id && (
-                <div className={`absolute top-0 min-w-[140px] bg-card border border-border/50 shadow-2xl rounded-2xl overflow-hidden py-1.5 z-[100] animate-in fade-in zoom-in slide-in-from-top-2 duration-200 ${isMine ? 'right-full mr-4' : 'left-full ml-4'}`}>
+                <div className={`absolute top-0 min-w-[140px] bg-card border border-border/50 shadow-sm rounded-2xl overflow-hidden py-1.5 z-[100] animate-in fade-in zoom-in slide-in-from-top-2 duration-200 ${isMine ? 'right-full mr-4' : 'left-full ml-4'}`}>
                   <p className="px-4 py-1.5 text-[9px] font-black uppercase tracking-tighter text-muted-foreground/50 border-b border-border/30 mb-1">Actions</p>
                   <button onClick={() => { onReply(msg); setActiveMenuId(null); textareaRef.current?.focus(); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-left hover:bg-primary/10 hover:text-primary flex items-center gap-3 transition-colors"><Reply size={12} /> Reply</button>
                   <button onClick={() => { onCopy(msg.content); setActiveMenuId(null); }} className="w-full px-4 py-2 text-[10px] font-black uppercase text-left hover:bg-primary/10 hover:text-primary flex items-center gap-3 transition-colors"><Copy size={12} /> Copy</button>
@@ -202,16 +202,16 @@ const MessageBubble = memo(({
           {msg.type === 'PROFILE' && (
             <div
               onClick={() => onZoomMedia({ userId: JSON.parse(msg.content).id })}
-              className={`p-0 rounded-[2rem] border overflow-hidden mb-2 w-64 text-left shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer group/card ${isMine ? 'bg-[#1e293b] border-white/10' : 'bg-[#0f172a] border-border'}`}
+              className={`p-0 rounded-lg border overflow-hidden mb-2 w-64 text-left shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer group/card ${isMine ? 'bg-[#1e293b] border-white/10' : 'bg-[#0f172a] border-border'}`}
             >
               {/* Premium Background / Cover */}
-              <div className="h-16 bg-gradient-to-br from-indigo-500 via-primary to-purple-600 relative opacity-90">
+              <div className="h-16 bg-primary relative opacity-90">
                 <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] group-hover/card:backdrop-blur-0 transition-all" />
               </div>
 
               {/* Content Area */}
               <div className="px-5 pb-6 -mt-8 relative text-center">
-                <div className="w-16 h-16 rounded-[1.2rem] border-4 border-[#1e293b] bg-slate-800 mx-auto overflow-hidden shadow-2xl mb-3">
+                <div className="w-16 h-16 rounded-lg border-4 border-[#1e293b] bg-slate-800 mx-auto overflow-hidden shadow-sm mb-3">
                   {JSON.parse(msg.content).avatar ? (
                     <img src={getMediaUrl(JSON.parse(msg.content).avatar)} className="w-full h-full object-cover" />
                   ) : <div className="w-full h-full flex items-center justify-center text-xl font-bold bg-primary text-white">{(JSON.parse(msg.content).name || "?").charAt(0).toUpperCase()}</div>}
@@ -857,7 +857,7 @@ function MessagesContent() {
     <DashboardLayout pageTitle="Messages" fullWidth>
       <AnimatePresence>
         {message.text && (
-          <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-[2000] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-xl border ${message.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-rose-500/10 border-rose-500/20 text-rose-500'}`}>
+          <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-[2000] px-6 py-3 rounded-2xl shadow-sm flex items-center gap-3 backdrop-blur-xl border ${message.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-rose-500/10 border-rose-500/20 text-rose-500'}`}>
             {message.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
             <span className="text-xs font-black uppercase tracking-widest">{message.text}</span>
           </motion.div>
@@ -1008,7 +1008,7 @@ function MessagesContent() {
                   <button onClick={() => setShowMenu(!showMenu)} className={`p-2 rounded-lg transition-all ${showMenu ? 'bg-primary text-white shadow-lg' : 'hover:bg-muted text-muted-foreground'}`}><MoreVertical className="w-3.5 h-3.5" /></button>
                   <AnimatePresence>
                     {showMenu && (
-                      <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} className="absolute right-0 top-14 w-56 bg-card border border-border rounded-2xl shadow-2xl z-[100] p-1.5">
+                      <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} className="absolute right-0 top-14 w-56 bg-card border border-border rounded-2xl shadow-sm z-[100] p-1.5">
                         <button onClick={() => { setViewingProfile(selectedUser); setShowMenu(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted transition-all text-xs font-bold uppercase tracking-wide text-foreground group"><User className="w-4 h-4 text-primary" /> View Profile</button>
                         <button onClick={handlePinChat} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted transition-all text-xs font-bold uppercase tracking-wide text-foreground group">
                           {selectedUser?.isPinned ? <><PinOff className="w-4 h-4 text-amber-500" /> Unpin Chat</> : <><Pin className="w-4 h-4 text-primary" /> Pin Chat</>}
@@ -1073,7 +1073,7 @@ function MessagesContent() {
               </div>
 
               {/* Input Area */}
-              <div className="px-3 py-1.5 md:px-6 md:py-2 bg-background/50 backdrop-blur-3xl z-40 relative">
+              <div className="px-3 py-1.5 md:px-6 md:py-2 bg-background/50 backdrop-blur-xl z-40 relative">
                 <AnimatePresence mode="wait">
                   {replyingTo && (
                     <motion.div
@@ -1111,7 +1111,7 @@ function MessagesContent() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-                <form onSubmit={handleSendMessage} className="flex items-center gap-1.5 p-1.5 bg-slate-950 border border-white/5 rounded-full shadow-2xl">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-1.5 p-1.5 bg-slate-950 border border-white/5 rounded-full shadow-sm">
                   <div className="flex items-center gap-0.5 ml-1">
                     <input type="file" disabled={isSending} ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
                     <button type="button" disabled={isSending} onClick={() => fileInputRef.current?.click()} className={`p-2 rounded-full transition-all text-primary/70 hover:text-primary ${isSending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5'}`}><Paperclip size={20} /></button>
@@ -1155,7 +1155,7 @@ function MessagesContent() {
                   {isRecording ? (
                     <button type="button" onClick={stopRecording} className="w-9 h-9 bg-rose-500 text-white rounded-full shadow-lg hover:rotate-90 transition-all flex items-center justify-center shrink-0"><Square size={14} /></button>
                   ) : newMessage.trim() || selectedFile ? (
-                    <button type="submit" disabled={isSending} className={`w-9 h-9 rounded-full shadow-xl transition-all flex items-center justify-center shrink-0 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-105 active:scale-95'}`}>
+                    <button type="submit" disabled={isSending} className={`w-9 h-9 rounded-full shadow-sm transition-all flex items-center justify-center shrink-0 ${isSending ? 'bg-primary/50 text-white' : 'bg-primary text-white hover:scale-105 active:scale-95'}`}>
                       {isSending ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={16} className="ml-0.5" />}
                     </button>
                   ) : (
@@ -1171,13 +1171,13 @@ function MessagesContent() {
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.98 }}
-                    className="absolute inset-0 z-[100] bg-slate-950/90 backdrop-blur-2xl flex flex-col"
+                    className="absolute inset-0 z-[100] bg-slate-950/90 backdrop-blur-xl flex flex-col"
                   >
                     {/* Header */}
                     <div className="p-4 flex items-center justify-between z-10">
                       <button
                         onClick={() => { setPendingMedia(null); setPendingPreviewUrl(null); }}
-                        className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all shadow-xl"
+                        className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all shadow-sm"
                       >
                         <ArrowLeft size={24} />
                       </button>
@@ -1194,16 +1194,16 @@ function MessagesContent() {
                           <motion.img
                             layoutId="roomchat-preview"
                             src={pendingPreviewUrl}
-                            className="max-w-full max-h-full object-contain rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+                            className="max-w-full max-h-full object-contain rounded-3xl "
                           />
                         ) : pendingMedia.type.startsWith('video/') ? (
                           <video
                             src={pendingPreviewUrl}
                             controls
-                            className="max-w-full max-h-full rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-black"
+                            className="max-w-full max-h-full rounded-3xl  bg-black"
                           />
                         ) : (
-                          <div className="p-16 bg-white/5 rounded-[3rem] border border-white/10 flex flex-col items-center gap-6 shadow-2xl">
+                          <div className="p-16 bg-white/5 rounded-xl border border-white/10 flex flex-col items-center gap-6 shadow-sm">
                             <div className="w-24 h-24 rounded-3xl bg-primary/20 flex items-center justify-center">
                               <FileIcon size={48} className="text-primary" />
                             </div>
@@ -1216,7 +1216,7 @@ function MessagesContent() {
                     {/* WhatsApp Style Footer Pill */}
                     <div className="p-6 md:p-10 bg-gradient-to-t from-black/60 to-transparent">
                       <div className="max-w-3xl mx-auto flex items-center gap-4">
-                        <div className="flex-1 bg-white/5 backdrop-blur-3xl border border-white/20 rounded-[2.5rem] p-4 flex items-center gap-4 group focus-within:border-primary/50 transition-all shadow-xl">
+                        <div className="flex-1 bg-white/5 backdrop-blur-xl border border-white/20 rounded-xl p-4 flex items-center gap-4 group focus-within:border-primary/50 transition-all shadow-sm">
                           <textarea
                             autoFocus
                             placeholder="Write a message..."
@@ -1252,13 +1252,13 @@ function MessagesContent() {
         {/* Profile Modal */}
         {viewingProfile && (
           <div key="profile-modal" className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" />
-            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className={`relative bg-card border border-border w-full ${modalTab === 'gallery' ? 'max-w-[340px]' : 'max-w-[280px]'} overflow-hidden rounded-[2.5rem] shadow-2xl transition-all duration-300`}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="absolute inset-0 bg-card/80 backdrop-blur-md" />
+            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className={`relative bg-card border border-border w-full ${modalTab === 'gallery' ? 'max-w-[340px]' : 'max-w-[280px]'} overflow-hidden rounded-xl shadow-sm transition-all duration-300`}>
               <div className="h-20 bg-gradient-to-r from-primary to-indigo-600 relative"><button onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="absolute top-4 right-4 p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-all"><X className="w-4 h-4" /></button></div>
               <div className="px-5 pb-6 text-center -mt-10">
                 <div className="relative inline-block mb-3">
                   <div
-                    className="w-20 h-20 rounded-[1.5rem] border-4 border-background overflow-hidden bg-muted shadow-lg cursor-pointer group/avatar relative"
+                    className="w-20 h-20 rounded-lg border-4 border-background overflow-hidden bg-muted shadow-lg cursor-pointer group/avatar relative"
                     onClick={() => {
                       setLightboxActions(false);
                       setLightboxMedia({ fileUrl: viewingProfile.avatar, type: 'IMAGE' });
@@ -1404,7 +1404,7 @@ function MessagesContent() {
                         >
                           <UserCircle size={14} /> View Full Profile
                         </button>
-                        <button onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="w-full py-3 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Close</button>
+                        <button onClick={() => { setViewingProfile(null); setModalTab('info'); }} className="w-full py-3 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-sm  hover:scale-[1.02] active:scale-95 transition-all">Close</button>
                       </div>
                     </motion.div>
                   ) : (
@@ -1508,25 +1508,25 @@ function MessagesContent() {
 
         {lockModal.open && (
           <div key="lock-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setLockModal({ ...lockModal, open: false })} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setLockModal({ ...lockModal, open: false })} className="absolute inset-0 bg-card/80 backdrop-blur-sm" />
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-sm p-8 rounded-xl shadow-sm">
               <div className="w-16 h-16 rounded-3xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6"><Lock className="w-8 h-8" /></div>
               <h2 className="text-xl font-black text-center uppercase tracking-tight mb-2">{lockModal.title}</h2>
               <div className="space-y-4">
                 <input type="password" placeholder="Min 4 chars" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-6 py-4 bg-muted border border-border rounded-2xl focus:border-primary text-center font-black tracking-widest" />
                 {error && <p className="text-[10px] text-rose-500 font-bold uppercase text-center">{error}</p>}
-                <button onClick={handleSetPassword} className="w-full bg-primary text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl hover:scale-[1.02] active:scale-95 transition-all">Secure Chat</button>
+                <button onClick={handleSetPassword} className="w-full bg-primary text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-sm hover:scale-[1.02] active:scale-95 transition-all">Secure Chat</button>
               </div>
             </motion.div>
           </div>
         )}
         {isDeletingConvo && (
           <div key="delete-convo-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDeletingConvo(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDeletingConvo(false)} className="absolute inset-0 bg-card/80 backdrop-blur-sm" />
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-sm p-8 rounded-xl shadow-sm">
               <div className="w-16 h-16 rounded-3xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto mb-6"><AlertCircle className="w-8 h-8" /></div>
               <h2 className="text-xl font-black text-center uppercase tracking-tight mb-2">Delete Chat?</h2>
-              <div className="space-y-3"><button onClick={handleDeleteConversation} className="w-full bg-rose-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl">Wipe History</button><button onClick={() => setIsDeletingConvo(false)} className="w-full text-foreground/50 text-[10px] font-black uppercase tracking-widest mt-2 hover:text-foreground text-center">Cancel</button></div>
+              <div className="space-y-3"><button onClick={handleDeleteConversation} className="w-full bg-rose-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-sm">Wipe History</button><button onClick={() => setIsDeletingConvo(false)} className="w-full text-foreground/50 text-[10px] font-black uppercase tracking-widest mt-2 hover:text-foreground text-center">Cancel</button></div>
             </motion.div>
           </div>
         )}
@@ -1534,7 +1534,7 @@ function MessagesContent() {
         {mobileMenuOpen && (
           <div key="mobile-action-menu" className="fixed inset-0 z-[500] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileMenuOpen(null)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-[280px] overflow-hidden rounded-[2.5rem] shadow-2xl p-4">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-[280px] overflow-hidden rounded-xl shadow-sm p-4">
               <div className="mb-4 text-center">
                 <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">Message Action</p>
                 <p className="text-xs truncate font-bold px-4">{mobileMenuOpen.content || '[Media]'}</p>
@@ -1563,8 +1563,8 @@ function MessagesContent() {
         )}
         {isSharingContact && (
           <div key="share-contact-modal" className="fixed inset-0 z-[500] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsSharingContact(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-[320px] overflow-hidden rounded-[2.5rem] shadow-2xl p-6">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsSharingContact(false)} className="absolute inset-0 bg-card/80 backdrop-blur-sm" />
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-card border border-border w-full max-w-[320px] overflow-hidden rounded-xl shadow-sm p-6">
               <h2 className="text-sm font-black uppercase tracking-widest text-center mb-4">Share to Friend</h2>
 
               <div className="relative mb-4">

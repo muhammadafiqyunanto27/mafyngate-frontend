@@ -139,34 +139,34 @@ export default function ProfilePage() {
       <div className="max-w-4xl mx-auto space-y-10 pb-20 selection:bg-primary/30">
         
         {/* Profile Header */}
-        <section className="bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl relative">
+        <section className="bg-card border border-border rounded-xl overflow-hidden shadow-sm relative">
           <div className="h-32 bg-primary/10 relative">
              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_#000_1px,_transparent_1px)] bg-[size:20px_20px]"></div>
           </div>
           <div className="p-8 md:p-10 pt-0 relative flex flex-col md:flex-row items-end gap-6 font-sans">
             <div className="relative group -mt-12">
-              <div className="w-32 h-32 rounded-[2.5rem] bg-card border-[6px] border-background shadow-2xl overflow-hidden ring-1 ring-border/50">
+              <div className="w-32 h-32 rounded-xl bg-card border-[6px] border-background shadow-sm overflow-hidden ring-1 ring-border/50">
                 {user.avatar ? (
                   <img 
                     src={getMediaUrl(user.avatar)} 
-                    className="w-full h-full rounded-[2rem] object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                    className="w-full h-full rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity" 
                     alt="Profile" 
                     onClick={() => setLightboxMedia(user.avatar)}
                   />
                 ) : (
-                  <div className="w-full h-full rounded-[2rem] bg-muted flex items-center justify-center text-primary text-4xl font-black uppercase">
+                  <div className="w-full h-full rounded-lg bg-muted flex items-center justify-center text-primary text-4xl font-black uppercase">
                     {(user.name || user.email).charAt(0)}
                   </div>
                 )}
                 {uploadLoading && (
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center rounded-[2rem]">
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center rounded-lg">
                     <Loader2 className="w-6 h-6 text-white animate-spin" />
                   </div>
                 )}
               </div>
               <button 
                 onClick={() => fileInputRef.current.click()}
-                className="absolute bottom-1 -right-1 p-2.5 bg-primary text-white rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all border-4 border-background"
+                className="absolute bottom-1 -right-1 p-2.5 bg-primary text-white rounded-2xl shadow-sm hover:scale-105 active:scale-95 transition-all border-4 border-background"
               >
                 <Camera size={16} />
               </button>
@@ -189,7 +189,7 @@ export default function ProfilePage() {
             <div className="flex gap-3 pb-2 w-full md:w-auto">
                <button 
                 onClick={() => setIsEditing(true)}
-                className="flex-1 md:flex-none px-6 py-3 rounded-2xl bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary-600 transition-all flex items-center justify-center gap-2"
+                className="flex-1 md:flex-none px-6 py-3 rounded-2xl bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-sm  hover:bg-primary-600 transition-all flex items-center justify-center gap-2"
                >
                  Edit Profile
                </button>
@@ -206,7 +206,7 @@ export default function ProfilePage() {
         {/* Bio & Details */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
            <div className="md:col-span-2 space-y-8">
-              <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm">
+              <div className="bg-card border border-border rounded-xl p-8 shadow-sm">
                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
                     Profile Bio
                  </h3>
@@ -219,7 +219,7 @@ export default function ProfilePage() {
            </div>
 
            <div className="space-y-6">
-              <div className="bg-card border border-border p-6 rounded-[2.5rem] flex items-center justify-between group">
+              <div className="bg-card border border-border p-6 rounded-xl flex items-center justify-between group">
                 <div>
                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Status</p>
                    <p className="text-sm font-black text-foreground">{user.isPrivate ? 'Private' : 'Public'}</p>
@@ -244,8 +244,8 @@ export default function ProfilePage() {
         <AnimatePresence>
           {isEditing && (
             <div key="edit-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsEditing(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-              <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsEditing(false)} className="absolute inset-0 bg-card/80 backdrop-blur-sm" />
+              <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative bg-card border border-border w-full max-w-sm rounded-xl shadow-sm p-8">
                 <div className="flex justify-between items-center mb-8">
                   <h2 className="text-xl font-black uppercase tracking-tight">Update Details</h2>
                   <button onClick={() => setIsEditing(false)} className="p-2 hover:bg-muted rounded-xl transition-all"><X /></button>
@@ -283,7 +283,7 @@ export default function ProfilePage() {
           )}
 
           {message.text && (
-            <motion.div key="toast" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`fixed bottom-10 right-10 p-6 rounded-[2rem] shadow-2xl z-[150] border flex items-center gap-4 ${message.type === 'success' ? 'bg-emerald-500/90 text-white border-emerald-400' : 'bg-rose-500/90 text-white border-rose-400'}`}>
+            <motion.div key="toast" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`fixed bottom-10 right-10 p-6 rounded-lg shadow-sm z-[150] border flex items-center gap-4 ${message.type === 'success' ? 'bg-emerald-500/90 text-white border-emerald-400' : 'bg-rose-500/90 text-white border-rose-400'}`}>
                {message.type === 'success' ? <CheckCircle2 size={24} /> : <X size={24} />}
                <p className="text-xs font-black uppercase tracking-[0.2em] italic">{message.text}</p>
             </motion.div>

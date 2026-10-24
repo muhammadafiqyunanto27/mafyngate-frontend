@@ -183,7 +183,7 @@ export const CallOverlay = () => {
           borderRadius: isMinimized ? '24px' : '0px',
         }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className={`fixed z-[9999] flex flex-col bg-zinc-950/90 backdrop-blur-3xl shadow-2xl border-primary/20 overflow-hidden ${isMinimized ? 'border-2 cursor-move ring-1 ring-white/10' : ''}`}
+        className={`fixed z-[9999] flex flex-col bg-zinc-950/90 backdrop-blur-xl shadow-sm border-primary/20 overflow-hidden ${isMinimized ? 'border-2 cursor-move ring-1 ring-white/10' : ''}`}
         drag={isMinimized}
         dragMomentum={false}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
@@ -264,7 +264,7 @@ export const CallOverlay = () => {
 
                 {!remoteVideoEnabled && (
                   <div className="absolute inset-0 bg-zinc-950 z-20 flex flex-col items-center justify-center space-y-6">
-                    <div className={`${isMinimized ? 'w-16 h-16 rounded-2xl' : 'w-32 h-32 md:w-48 md:h-48 rounded-[3rem]'} bg-white/5 flex items-center justify-center border border-white/10`}>
+                    <div className={`${isMinimized ? 'w-16 h-16 rounded-2xl' : 'w-32 h-32 md:w-48 md:h-48 rounded-xl'} bg-white/5 flex items-center justify-center border border-white/10`}>
                       <VideoOff size={isMinimized ? 20 : 48} className="text-white/20" />
                     </div>
                     {!isMinimized && (
@@ -286,7 +286,7 @@ export const CallOverlay = () => {
             ) : (
               <div className="relative z-10 w-full h-full flex flex-col items-center justify-center space-y-4 md:space-y-6 bg-zinc-900">
                 <div className="relative">
-                  <div className={`${isMinimized ? 'w-20 h-20 rounded-2xl' : 'w-32 h-32 md:w-48 md:h-48 rounded-[3rem]'} overflow-hidden border-4 border-white/10 shadow-2xl`}>
+                  <div className={`${isMinimized ? 'w-20 h-20 rounded-2xl' : 'w-32 h-32 md:w-48 md:h-48 rounded-xl'} overflow-hidden border-4 border-white/10 shadow-sm`}>
                     {call.avatar ? (
                       <img src={getAvatar(call.avatar)} className="w-full h-full object-cover" />
                     ) : (
@@ -296,7 +296,7 @@ export const CallOverlay = () => {
                     )}
                   </div>
                   {isCalling && !isMinimized && (
-                    <div className="absolute -inset-4 border-4 border-primary/30 rounded-[4rem] animate-ping" />
+                    <div className="absolute -inset-4 border-4 border-primary/30 rounded-2xl animate-ping" />
                   )}
                 </div>
 
@@ -338,7 +338,7 @@ export const CallOverlay = () => {
               <motion.div
                 drag
                 dragConstraints={{ left: -100, right: 100, top: -100, bottom: 100 }}
-                className="absolute bottom-32 right-6 md:bottom-28 md:right-10 w-28 md:w-56 aspect-[3/4] md:aspect-video bg-zinc-800 rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl z-40 cursor-move"
+                className="absolute bottom-32 right-6 md:bottom-28 md:right-10 w-28 md:w-56 aspect-[3/4] md:aspect-video bg-zinc-800 rounded-3xl overflow-hidden border-2 border-white/20 shadow-sm z-40 cursor-move"
               >
                 <video
                   playsInline
@@ -362,7 +362,7 @@ export const CallOverlay = () => {
               <motion.div
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="bg-zinc-900/60 backdrop-blur-2xl border border-white/10 px-4 md:px-5 py-2.5 rounded-[3rem] shadow-2xl flex items-center gap-2 md:gap-5"
+                className="bg-zinc-900/60 backdrop-blur-xl border border-white/10 px-4 md:px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 md:gap-5"
               >
                 {call.isReceivingCall && !callAccepted ? (
                   <>

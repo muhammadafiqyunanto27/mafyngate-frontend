@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
 
         {/* Logo */}
         <div className="flex flex-col items-center mb-10 text-center">
-          <div className="w-16 h-16 overflow-hidden shadow-2xl shadow-primary/40 mb-6">
+          <div className="w-16 h-16 overflow-hidden shadow-sm  mb-6">
             <img src="/logo.png?v=8" alt="MafynGate" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-2">Lupa Password?</h1>
@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
           </p>
         </div>
 
-        <div className="bg-card border border-border p-8 rounded-[2rem] shadow-2xl backdrop-blur-xl">
+        <div className="bg-card border border-border p-8 rounded-lg shadow-sm backdrop-blur-xl">
           <AnimatePresence mode="wait">
             {sent ? (
               <motion.div
@@ -136,7 +136,7 @@ export default function ForgotPasswordPage() {
                   type="submit"
                   disabled={loading}
                   suppressHydrationWarning
-                  className="w-full flex items-center justify-center gap-3 px-4 py-4 font-bold text-white bg-primary rounded-2xl hover:opacity-90 disabled:opacity-50 transition-all active:scale-[0.98] shadow-xl shadow-primary/20"
+                  className="w-full flex items-center justify-center gap-3 px-4 py-4 font-bold text-white bg-primary rounded-2xl hover:opacity-90 disabled:opacity-50 transition-all active:scale-[0.98] shadow-sm "
                 >
                   {loading ? (
                     <span className="flex items-center gap-2 italic opacity-80">

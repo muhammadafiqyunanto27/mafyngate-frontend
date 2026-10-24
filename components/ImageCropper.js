@@ -40,14 +40,14 @@ export default function ImageCropper({ image, onCropComplete, onCancel, aspect =
         animate={{ opacity: 1 }} 
         exit={{ opacity: 0 }} 
         onClick={onCancel}
-        className="absolute inset-0 bg-slate-950/80 backdrop-blur-md" 
+        className="absolute inset-0 bg-background/80 backdrop-blur-md" 
       />
       
       <motion.div 
         initial={{ scale: 0.9, opacity: 0, y: 20 }} 
         animate={{ scale: 1, opacity: 1, y: 0 }} 
         exit={{ scale: 0.9, opacity: 0, y: 20 }} 
-        className="relative bg-card border border-border w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col"
+        className="relative bg-card border border-border w-full max-w-lg rounded-xl shadow-sm overflow-hidden flex flex-col"
       >
         {/* Header */}
         <div className="p-6 flex items-center justify-between border-b border-border/50">
@@ -126,7 +126,7 @@ export default function ImageCropper({ image, onCropComplete, onCancel, aspect =
                 </button>
                 <button 
                   onClick={handleDone}
-                  className="flex-1 py-4 bg-primary text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-4 bg-primary text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-sm  hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   <Check size={16} /> Apply Crop
                 </button>

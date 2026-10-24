@@ -126,10 +126,10 @@ export default function DashboardPage() {
     return (
       <DashboardLayout pageTitle="Dashboard">
         <div className="space-y-6 md:space-y-10 pb-10 px-3 md:px-0">
-          <div className="h-48 md:h-64 rounded-[2rem] bg-muted/50 animate-pulse" />
+          <div className="h-48 md:h-64 rounded-lg bg-muted/50 animate-pulse" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {[1,2,3,4].map(i => (
-              <div key={i} className="h-28 md:h-36 rounded-[1.5rem] bg-muted/50 animate-pulse" />
+              <div key={i} className="h-28 md:h-36 rounded-lg bg-muted/50 animate-pulse" />
             ))}
           </div>
         </div>
@@ -155,41 +155,38 @@ export default function DashboardPage() {
       </SectionErrorBoundary>
       <div className="space-y-6 md:space-y-10 pb-10">
         
-        {/* Top Hero Banner */}
+        {/* Hero Banner */}
         <section className="relative group">
-           <div className="p-6 md:p-10 rounded-none md:rounded-[3.5rem] bg-gradient-to-br from-indigo-700 via-primary-600 to-primary-800 text-white shadow-2xl overflow-hidden relative border-y md:border border-white/10">
-              <div className="absolute top-0 right-0 w-[40%] h-full bg-white/5 skew-x-[-20deg] translate-x-[20%] transition-transform group-hover:translate-x-[15%] duration-700"></div>
+           <div className="p-6 md:p-8 rounded-xl bg-card border border-border overflow-hidden relative">
+              {/* clean */}
               
-              <div className="relative z-10 grid lg:grid-cols-2 gap-8 items-center px-4 md:px-0">
-                 <div className="space-y-4 md:space-y-6 text-center md:text-left">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-[10px] md:text-xs font-bold backdrop-blur-md border border-white/10 uppercase tracking-widest">
-                       <Zap className="w-3 md:w-3.5 h-3 md:h-3.5 fill-current" />
-                       <span>Your Private Gateway is Active</span>
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                 <div className="space-y-3">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/20">
+                       <Zap className="w-3 h-3" />
+                       <span>Gateway Active</span>
                     </div>
-                    <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-[1.1]">
-                       Welcome back, <span className="text-indigo-200">{user.name || user.email.split('@')[0]}</span>
+                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+                       Welcome back, {user.name || user.email.split('@')[0]}
                     </h2>
-                    <p className="text-white/70 max-w-lg text-base md:text-lg font-medium leading-relaxed">
-                       You have <span className="text-white font-bold">{dashboardStats.unreadMessages} messages</span> and <span className="text-white font-bold">{dashboardStats.tasksCount} tasks</span> waiting.
+                    <p className="text-muted-foreground text-sm md:text-base">
+                       You have <span className="text-foreground font-medium">{dashboardStats.unreadMessages} messages</span> and <span className="text-foreground font-medium">{dashboardStats.tasksCount} tasks</span> waiting.
                     </p>
-                    <div className="pt-2 flex flex-wrap gap-3 md:gap-4 justify-center md:justify-start">
-                       <button 
+                    <div className="pt-1">
+                       <button
                          onClick={() => router.push('/messages')}
-                         className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white text-indigo-700 font-black text-sm shadow-xl hover:shadow-indigo-500/20 hover:scale-105 transition-all active:scale-95 flex items-center justify-center gap-2"
+                         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium transition-colors hover:bg-primary/90"
                         >
-                          Start Messaging <Send className="w-4 h-4" />
+                          Open Messages <Send className="w-4 h-4" />
                        </button>
                     </div>
                  </div>
-                 <div className="hidden lg:flex justify-center">
-                    <div className="relative">
-                       <div className="absolute inset-0 bg-white/20 rounded-full blur-3xl animate-pulse"></div>
-                       <MessageSquare className="w-40 h-40 text-white relative z-10 drop-shadow-2xl" />
+                 <div className="hidden md:flex items-center justify-center">
+                    {/* clean */}
+                       <MessageSquare className="w-24 h-24 text-muted-foreground/30" />
                     </div>
           </div>
-          </SectionErrorBoundary>
         </div>
-           </div>
         </section>
 
         {/* Stats Grid - Fixed Paddings for Desktop/Mobile */}
@@ -198,10 +195,10 @@ export default function DashboardPage() {
           {displayStats.map((stat, idx) => (
              <div 
                key={idx}
-               className="p-4 md:p-8 rounded-[1.5rem] md:rounded-[40px] bg-card border border-border flex flex-col justify-between group transition-all duration-500 hover:border-primary/50 relative overflow-hidden shadow-sm hover:-translate-y-2 hover:scale-[1.02]"
+               className="p-4 md:p-6 rounded-xl bg-card border border-border flex flex-col justify-between group transition-colors hover:border-primary/50"
              >
                <div className="flex items-start justify-between mb-1 md:mb-8">
-                  <div className={`p-2.5 md:p-4 rounded-xl md:rounded-2xl ${stat.color} shadow-lg shadow-black/5 group-hover:scale-110 transition-transform duration-500 max-[450px]:hidden`}>
+                  <div className={`p-2.5 md:p-3 rounded-lg ${stat.color} max-[450px]:hidden`}>
                      <stat.icon className="w-4 md:w-6 h-4 md:h-6" />
                   </div>
                   <span className={`text-[8px] md:text-[10px] font-black px-2 md:px-2.5 py-0.5 md:py-1 rounded-full ${stat.change.includes('+') || stat.change === 'New' || stat.change === 'Real-time' ? 'text-emerald-500 bg-emerald-500/10' : 'text-slate-500 bg-slate-500/10'}`}>
@@ -223,15 +220,15 @@ export default function DashboardPage() {
           
           {/* Left Side: Tasks */}
           <div className="lg:col-span-2 flex flex-col">
-             <div className="flex-1 bg-card border-y md:border border-border rounded-none md:rounded-[3rem] overflow-hidden shadow-sm hover:shadow-xl hover:border-primary/20 transition-all duration-500">
+             <div className="flex-1 bg-card border border-border rounded-xl overflow-hidden">
                 <SectionErrorBoundary name="TodoList" fallbackText="Tasks unavailable">
                 <TodoList />
-             </SectionErrorBoundary>
+              </SectionErrorBoundary>
              </div>
              
              {/* Pending Requests Section */}
              {dashboardStats.pendingRequests && dashboardStats.pendingRequests.length > 0 && (
-                <div className="mt-8 bg-card border border-border rounded-[3rem] p-8 shadow-sm">
+                <div className="mt-8 bg-card border border-border rounded-xl p-6">
                    <div className="flex items-center justify-between mb-6">
                       <h3 className="font-black text-foreground text-lg uppercase tracking-tight flex items-center gap-2">
                          <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
@@ -241,7 +238,7 @@ export default function DashboardPage() {
                    </div>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {dashboardStats.pendingRequests.map((req) => (
-                        <div key={req.id} className="p-4 rounded-[2rem] bg-muted/30 border border-border flex items-center justify-between gap-4">
+                        <div key={req.id} className="p-4 rounded-lg bg-muted/30 border border-border flex items-center justify-between gap-4">
                            <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary overflow-hidden">
                                 {req.follower.avatar ? (
@@ -290,7 +287,7 @@ export default function DashboardPage() {
           {/* Right Side: Connections & Logs */}
           <SectionErrorBoundary name="InboxAndSignals">
           <div className="flex flex-col gap-6 md:gap-8 px-3 md:px-0">
-             <div className="flex-1 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] bg-card border border-border space-y-6 md:space-y-8 group transition-all duration-500 hover:border-primary/20 shadow-sm hover:shadow-xl flex flex-col min-h-[320px]">
+             <div className="flex-1 p-5 md:p-6 rounded-xl bg-card border border-border space-y-4 md:space-y-6 flex flex-col min-h-[320px]">
                 <div className="flex items-center justify-between">
                    <h3 className="font-black text-foreground text-sm md:text-lg uppercase tracking-tight flex items-center gap-2">
                       <MessageSquare className="w-4 md:w-5 h-4 md:h-5 text-emerald-500" />
@@ -341,7 +338,7 @@ export default function DashboardPage() {
                 </button>
              </div>
 
-             <div className="p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] bg-slate-900 border border-slate-800 text-white shadow-2xl relative overflow-hidden group">
+             <div className="p-5 md:p-6 rounded-xl bg-zinc-900 border border-zinc-800 text-white relative overflow-hidden">
                 <div className="absolute -top-10 -right-10 w-48 h-48 bg-primary/20 rounded-full blur-[80px] group-hover:scale-150 transition-transform duration-1000"></div>
                 <div className="relative z-10 flex flex-col space-y-6">
                    <div className="flex items-center gap-3">

@@ -69,7 +69,7 @@ export default function LandingPage() {
       </div>
 
       {serverError && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] bg-rose-950 border border-rose-900 text-rose-200 px-5 py-3 rounded-full flex items-center gap-3 text-sm shadow-sm backdrop-blur-md">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] bg-rose-500/10 border border-rose-500/20 text-rose-400 px-5 py-3 rounded-lg flex items-center gap-3 text-sm backdrop-blur-md">
           <AlertCircle size={16} />
           <span>Server Error: {serverError}</span>
         </div>
@@ -121,39 +121,48 @@ export default function LandingPage() {
       <section className="relative z-20 py-16 px-6 md:px-12 max-w-[1400px] mx-auto border-t border-border">
         
         <div className="mb-16 md:mb-24 text-center">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">Built for the future.</h2>
-          <p className="text-slate-400 text-lg">Everything you need, nothing you don't.</p>
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">Built for the future.</h2>
+          <p className="text-muted-foreground text-lg">Everything you need, nothing you don't.</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
-          <div className="rounded-xl border border-border bg-card p-6">
-            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-primary mb-4">
-              <Shield size={20} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+          <div className="group relative rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl p-8 overflow-hidden transition-all duration-500 hover:border-cyan-500/30 hover:bg-white/[0.05]">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative">
+              <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5 transition-transform duration-300 group-hover:scale-105">
+                <Shield size={22} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Stateless Core</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Built on JWTs for fast and lightweight verification. Sessions are securely handled without database bloat.
+              </p>
             </div>
-            <h3 className="text-base font-semibold text-foreground mb-2">Stateless Core</h3>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Built on JWTs for fast and lightweight verification. Sessions are securely handled without database bloat.
-            </p>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6">
-            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-primary mb-4">
-              <Video size={20} />
+          <div className="group relative rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl p-8 overflow-hidden transition-all duration-500 hover:border-cyan-500/30 hover:bg-white/[0.05]">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative">
+              <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5 transition-transform duration-300 group-hover:scale-105">
+                <Video size={22} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">HD WebRTC</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Direct peer-to-peer connections for low-latency, encrypted video calls directly from your browser.
+              </p>
             </div>
-            <h3 className="text-base font-semibold text-foreground mb-2">HD WebRTC</h3>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Direct peer-to-peer connections for low-latency, encrypted video calls directly from your browser.
-            </p>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6">
-            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-primary mb-4">
-              <Zap size={20} />
+          <div className="group relative rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl p-8 overflow-hidden transition-all duration-500 hover:border-cyan-500/30 hover:bg-white/[0.05]">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative">
+              <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5 transition-transform duration-300 group-hover:scale-105">
+                <Zap size={22} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Instant Sync</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Real-time websocket connections keep your messages and statuses synced instantly across all devices.
+              </p>
             </div>
-            <h3 className="text-base font-semibold text-foreground mb-2">Instant Sync</h3>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Real-time websocket connections keep your messages and statuses synced instantly across all devices.
-            </p>
           </div>
         </div>
       </section>
@@ -163,8 +172,8 @@ export default function LandingPage() {
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row items-center justify-between gap-12">
           
           <div className="md:w-1/2">
-            <h2 className="text-3xl font-bold text-white mb-4">Need Help?</h2>
-            <p className="text-slate-400 text-lg max-w-md">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Need Help?</h2>
+            <p className="text-muted-foreground text-lg max-w-md">
               Reach out to our engineering team for bug reports, questions, or general support.
             </p>
           </div>
@@ -172,12 +181,13 @@ export default function LandingPage() {
           <div className="md:w-1/2 flex flex-col sm:flex-row gap-4 w-full">
             <button
               onClick={() => window.open('https://wa.me/6282219785260', '_blank')}
-              className="flex-1 rounded-xl border border-border bg-card p-5 text-left transition-colors hover:border-emerald-500/30 group"
+              className="group relative flex-1 rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl p-6 text-left overflow-hidden transition-all duration-300 hover:border-emerald-500/30 hover:bg-white/[0.05]"
             >
-              <div className="p-2.5 rounded-lg bg-muted text-emerald-500 inline-block mb-3">
-                <MessageCircle size={18} />
-              </div>
-              <div>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 transition-transform duration-300 group-hover:scale-105">
+                  <MessageCircle size={20} strokeWidth={1.5} />
+                </div>
                 <p className="text-xs text-muted-foreground mb-0.5 uppercase tracking-wider">WhatsApp</p>
                 <p className="text-sm font-medium text-foreground">Chat Support</p>
               </div>
@@ -185,12 +195,13 @@ export default function LandingPage() {
 
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex-1 rounded-xl border border-border bg-card p-5 text-left transition-colors hover:border-primary/30 group"
+              className="group relative flex-1 rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl p-6 text-left overflow-hidden transition-all duration-300 hover:border-cyan-500/30 hover:bg-white/[0.05]"
             >
-              <div className="p-2.5 rounded-lg bg-muted text-primary inline-block mb-3">
-                <Terminal size={18} />
-              </div>
-              <div>
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-4 transition-transform duration-300 group-hover:scale-105">
+                  <Terminal size={20} strokeWidth={1.5} />
+                </div>
                 <p className="text-xs text-muted-foreground mb-0.5 uppercase tracking-wider">System</p>
                 <p className="text-sm font-medium text-foreground">Report Glitch</p>
               </div>
@@ -230,17 +241,17 @@ export default function LandingPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden relative z-10 shadow-sm"
+              className="w-full max-w-sm bg-card border border-border rounded-xl overflow-hidden relative z-10"
             >
-              <div className="flex justify-between items-center p-6 border-b border-slate-800">
-                <h3 className="font-semibold text-slate-100 text-sm flex items-center gap-2">
+              <div className="flex justify-between items-center p-5 border-b border-border">
+                <h3 className="font-semibold text-foreground text-sm flex items-center gap-2">
                   <Terminal size={16} className="text-blue-400" />
                   System Report
                 </h3>
                 <button 
                   onClick={() => setIsModalOpen(false)} 
                   disabled={isSubmitting}
-                  className="text-slate-500 hover:text-white transition-colors bg-slate-800 hover:bg-slate-700 p-2 rounded-full"
+                  className="text-muted-foreground hover:text-foreground transition-colors p-2 rounded-lg hover:bg-muted"
                 >
                   <X size={14} />
                 </button>
@@ -259,8 +270,8 @@ export default function LandingPage() {
                       <div className="w-12 h-12 rounded-full bg-emerald-950 border border-emerald-900 flex items-center justify-center mb-4 text-emerald-500">
                         <CheckCircle size={24} />
                       </div>
-                      <p className="text-slate-100 font-medium text-sm mb-1">Report Logged</p>
-                      <p className="text-slate-500 text-xs">Our engineering team has been notified.</p>
+                      <p className="text-foreground font-medium text-sm mb-1">Report Logged</p>
+                      <p className="text-muted-foreground text-xs">Our engineering team has been notified.</p>
                     </motion.div>
                   ) : (
                     <motion.form 
@@ -272,14 +283,14 @@ export default function LandingPage() {
                       className="flex flex-col gap-5"
                     >
                       {submitStatus === "error" && (
-                        <div className="p-3 bg-rose-950/50 border border-rose-900/50 text-rose-400 rounded-xl flex items-start gap-2 text-xs">
+                        <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-lg flex items-start gap-2 text-xs">
                           <AlertCircle size={14} className="mt-0.5 shrink-0" />
                           <p>Failed to route report. Please check your connection.</p>
                         </div>
                       )}
 
                       <div className="space-y-1.5">
-                        <label className="text-[11px] text-slate-500 font-medium uppercase tracking-wide">Email Address</label>
+                        <label className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Email Address</label>
                         <input 
                           required 
                           type="email" 
@@ -287,12 +298,12 @@ export default function LandingPage() {
                           onChange={(e) => setSupportEmail(e.target.value)}
                           disabled={isSubmitting}
                           placeholder="user@domain.com" 
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all disabled:opacity-50" 
+                          className="w-full bg-muted border border-border rounded-lg px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors disabled:opacity-50" 
                         />
                       </div>
                       
                       <div className="space-y-1.5">
-                        <label className="text-[11px] text-slate-500 font-medium uppercase tracking-wide">Error Details</label>
+                        <label className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Error Details</label>
                         <textarea 
                           required 
                           rows="3" 
@@ -300,14 +311,14 @@ export default function LandingPage() {
                           onChange={(e) => setSupportMessage(e.target.value)}
                           disabled={isSubmitting}
                           placeholder="Describe the anomaly..." 
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none disabled:opacity-50"
+                          className="w-full bg-muted border border-border rounded-lg px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors resize-none disabled:opacity-50"
                         />
                       </div>
                       
                       <button 
                         type="submit" 
                         disabled={isSubmitting}
-                        className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold py-3 rounded-xl text-sm transition-all hover:from-blue-500 hover:to-blue-400 active:scale-[0.98] disabled:opacity-50 mt-2  border border-blue-400/20"
+                        className="w-full bg-primary text-primary-foreground font-medium py-2.5 rounded-lg text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
                       >
                         {isSubmitting ? "Transmitting..." : "Submit Report"}
                       </button>

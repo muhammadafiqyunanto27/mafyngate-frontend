@@ -54,8 +54,8 @@ const content = {
 };
 
 const icons = [ShieldCheck, UserPlus, MessageSquare, Video, Bell, Settings];
-const colors = ["text-primary", "text-indigo-500", "text-emerald-500", "text-rose-500", "text-amber-500", "text-slate-500"];
-const bgs = ["bg-primary/10", "bg-indigo-500/10", "bg-emerald-500/10", "bg-rose-500/10", "bg-amber-500/10", "bg-slate-500/10"];
+const colors = ["text-cyan-400", "text-cyan-400", "text-cyan-400", "text-cyan-400", "text-cyan-400", "text-cyan-400"];
+const bgs = ["bg-cyan-500/10", "bg-cyan-500/10", "bg-cyan-500/10", "bg-cyan-500/10", "bg-cyan-500/10", "bg-cyan-500/10"];
 
 export default function GuidePage() {
   const [lang, setLang] = useState('EN');
@@ -64,52 +64,51 @@ export default function GuidePage() {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 pb-10 overflow-x-hidden">
       
-      {/* Background Blobs */}
+      {/* Clean background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute top-0 -left-10 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute top-0 -right-10 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] animate-pulse animation-delay-2000"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem]" />
       </div>
 
       {/* Navbar (Landing DNA) */}
-      <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center">
-        <div className="max-w-7xl mx-auto px-6 w-full flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group text-muted-foreground hover:text-foreground transition-all">
-            <ArrowLeft size={18} />
-            <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Back</span>
+      <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border h-16 flex items-center">
+        <div className="max-w-5xl mx-auto px-6 w-full flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft size={16} />
+            <span className="text-sm hidden sm:inline">Back</span>
           </Link>
           
-          <div className="flex items-center gap-3">
-             <div className="w-8 h-8 overflow-hidden shadow-lg  flex-shrink-0">
+          <div className="flex items-center gap-2">
+             <div className="w-7 h-7 overflow-hidden rounded-lg border border-border flex-shrink-0">
                <img src="/logo.png?v=8" alt="MafynGate" className="w-full h-full object-cover" />
              </div>
-             <span className="text-xl font-black tracking-tighter text-foreground uppercase">{t.hero}</span>
+             <span className="text-base font-semibold tracking-tight text-foreground">{t.hero}</span>
           </div>
 
           <button 
             onClick={() => setLang(lang === 'EN' ? 'ID' : 'EN')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted hover:bg-muted/80 transition-all active:scale-95 border border-white/5"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors border border-border text-sm"
           >
-            <Globe size={14} className="text-primary" />
-            <span className="text-xs font-bold uppercase tracking-widest">{lang}</span>
+            <Globe size={14} className="text-muted-foreground" />
+            <span className="text-xs font-medium uppercase">{lang}</span>
           </button>
         </div>
       </nav>
 
       {/* Header */}
-      <header className="pt-28 pb-10 px-6 text-center max-w-4xl mx-auto space-y-4">
+      <header className="pt-24 pb-12 px-6 text-center max-w-3xl mx-auto space-y-4">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20"
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 text-xs font-medium"
         >
-          <Lock size={12} className="fill-current" />
-          <span className="text-[10px] font-black uppercase tracking-widest leading-none">{t.badge}</span>
+          <Lock size={12} />
+          <span>{t.badge}</span>
         </motion.div>
         
-        <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none text-foreground uppercase">
-          MASTERING <span className="text-primary italic">THE PORTAL</span>
+        <h1 className="text-3xl md:text-5xl font-bold tracking-tight leading-tight text-foreground">
+          {t.hero}
         </h1>
         
-        <p className="text-sm text-muted-foreground font-medium max-w-xl mx-auto opacity-80">
+        <p className="text-base text-muted-foreground max-w-xl mx-auto">
           {t.subtitle}
         </p>
       </header>
@@ -150,17 +149,17 @@ export default function GuidePage() {
 
       {/* CTA (Ready for launch - Blue themed) */}
       <section className="mt-12 px-6">
-        <div className="max-w-5xl mx-auto p-12 md:p-16 rounded-2xl bg-primary text-primary-foreground text-center space-y-10 shadow-sm  relative overflow-hidden group">
-          <div className="absolute inset-0 opacity-10 pointer-events-none group-hover:opacity-20 transition-opacity" style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+        <div className="max-w-3xl mx-auto p-10 md:p-14 rounded-2xl bg-primary text-primary-foreground text-center space-y-6 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
           
-          <Zap size={64} className="mx-auto text-primary-foreground/40" />
-          <div className="space-y-2">
-             <h2 className="text-3xl md:text-5xl font-black tracking-tighter uppercase italic leading-none">{t.ready}</h2>
-             <p className="text-[10px] md:text-xs font-bold opacity-80 max-w-sm mx-auto tracking-widest uppercase">{t.ctaSub}</p>
+          <Zap size={40} className="mx-auto text-primary-foreground/50" />
+          <div className="space-y-2 relative z-10">
+             <h2 className="text-2xl md:text-4xl font-bold tracking-tight">{t.ready}</h2>
+             <p className="text-sm opacity-80 max-w-sm mx-auto">{t.ctaSub}</p>
           </div>
           
-          <div className="pt-2 relative z-10">
-            <Link href="/register" className="inline-flex h-14 px-12 rounded-2xl bg-white text-primary font-black text-xs items-center hover:scale-110 active:scale-95 transition-all uppercase tracking-widest shadow-sm">
+          <div className="relative z-10">
+            <Link href="/register" className="inline-flex h-11 px-8 rounded-lg bg-white text-primary font-medium text-sm items-center transition-colors hover:bg-white/90">
               {t.cta}
             </Link>
           </div>
@@ -168,25 +167,22 @@ export default function GuidePage() {
       </section>
 
       {/* Footer (Same as Landing Page) */}
-      <footer className="mt-12 py-4 border-t border-white/5 bg-background">
-        <div className="max-w-7xl mx-auto px-6 h-full flex flex-col md:flex-row items-center justify-between gap-6">
-          {/* Left: Brand */}
-          <div className="flex items-center gap-2 group">
-            <div className="w-6 h-6 overflow-hidden flex-shrink-0">
+      <footer className="mt-12 py-8 border-t border-border">
+        <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 overflow-hidden rounded flex-shrink-0">
               <img src="/logo.png?v=8" alt="MafynGate" className="w-full h-full object-cover" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-foreground select-none">MafynGate</span>
+            <span className="text-sm font-semibold text-foreground">MafynGate</span>
           </div>
 
-          {/* Center: Copyright */}
-          <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest opacity-40 text-muted-foreground text-center">
-            © 2026 muhammad afiq yunanto alright reserved
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} MafynGate. All rights reserved.
           </p>
 
-          {/* Right: Quick Actions */}
-          <div className="flex items-center gap-6 text-[10px] font-black uppercase tracking-widest">
-            <Link href="/register" className="text-muted-foreground hover:text-primary transition-all">Register</Link>
-            <Link href="/login" className="px-4 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all tracking-[0.2em]">Access Portal</Link>
+          <div className="flex items-center gap-4 text-sm">
+            <Link href="/register" className="text-muted-foreground hover:text-foreground transition-colors">Register</Link>
+            <Link href="/login" className="text-primary hover:text-primary/80 transition-colors">Login</Link>
           </div>
         </div>
       </footer>

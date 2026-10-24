@@ -126,10 +126,10 @@ export default function DashboardPage() {
     return (
       <DashboardLayout pageTitle="Dashboard">
         <div className="space-y-6 md:space-y-10 pb-10 px-3 md:px-0">
-          <div className="h-48 md:h-64 rounded-lg bg-muted/50 animate-pulse" />
+          <div className="h-48 md:h-64 rounded-xl bg-muted/50 animate-pulse" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {[1,2,3,4].map(i => (
-              <div key={i} className="h-28 md:h-36 rounded-lg bg-muted/50 animate-pulse" />
+              <div key={i} className="h-28 md:h-36 rounded-xl bg-muted/50 animate-pulse" />
             ))}
           </div>
         </div>

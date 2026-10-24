@@ -118,7 +118,7 @@ export default function LandingPage() {
       </main>
 
       {/* FEATURES SECTION */}
-      <section className="relative z-20 py-24 px-6 md:px-12 max-w-[1400px] mx-auto border-t border-slate-800/50">
+      <section className="relative z-20 py-16 px-6 md:px-12 max-w-[1400px] mx-auto border-t border-border">
         
         <div className="mb-16 md:mb-24 text-center">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">Built for the future.</h2>
@@ -159,7 +159,7 @@ export default function LandingPage() {
       </section>
 
       {/* SUPPORT SECTION */}
-      <section className="relative z-20 py-24 px-6 md:px-12 bg-slate-900/30 border-t border-slate-800/50">
+      <section className="relative z-20 py-16 px-6 md:px-12 bg-muted/30 border-t border-border">
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row items-center justify-between gap-12">
           
           <div className="md:w-1/2">

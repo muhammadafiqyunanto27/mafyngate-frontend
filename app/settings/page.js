@@ -122,7 +122,7 @@ export default function SettingsPage() {
             <h1 className="text-2xl md:text-3xl font-black text-foreground uppercase tracking-tight">Settings</h1>
             <p className="text-xs md:text-sm text-muted-foreground font-medium italic">Manage your account security and support access.</p>
           </div>
-          <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl md:rounded-3xl bg-primary/10 text-primary flex items-center justify-center">
+          <div className="w-12 h-12 md:w-14 md:h-14 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
             <Shield size={28} className="md:w-8 md:h-8" />
           </div>
         </div>
@@ -140,7 +140,7 @@ export default function SettingsPage() {
                <div className="p-1 md:p-2 space-y-1">
                   <button 
                     onClick={() => setIsChangingPassword(true)}
-                    className="w-full p-5 md:p-6 flex items-center justify-between group hover:bg-muted/50 rounded-2xl md:rounded-3xl transition-all"
+                    className="w-full p-5 md:p-6 flex items-center justify-between group hover:bg-muted/50 rounded-lg transition-all"
                   >
                     <div className="flex items-center gap-4 text-left">
                       <div className="p-2.5 md:p-3 bg-indigo-500/10 text-indigo-500 rounded-xl md:rounded-2xl group-hover:scale-110 transition-transform">
@@ -156,7 +156,7 @@ export default function SettingsPage() {
 
                   <button 
                     onClick={() => setIsChangingEmail(true)}
-                    className="w-full p-5 md:p-6 flex items-center justify-between group hover:bg-muted/50 rounded-2xl md:rounded-3xl transition-all"
+                    className="w-full p-5 md:p-6 flex items-center justify-between group hover:bg-muted/50 rounded-lg transition-all"
                   >
                     <div className="flex items-center gap-4 text-left">
                       <div className="p-2.5 md:p-3 bg-amber-500/10 text-amber-500 rounded-xl md:rounded-2xl group-hover:scale-110 transition-transform">
@@ -192,7 +192,7 @@ export default function SettingsPage() {
                   </h3>
                </div>
                <div className="p-1 md:p-2 space-y-1">
-                  <button onClick={openGmail} className="w-full p-5 md:p-6 flex items-center justify-between group hover:bg-muted/50 rounded-2xl md:rounded-3xl transition-all">
+                  <button onClick={openGmail} className="w-full p-5 md:p-6 flex items-center justify-between group hover:bg-muted/50 rounded-lg transition-all">
                     <div className="flex items-center gap-4 text-left">
                       <div className="p-2.5 md:p-3 bg-primary/10 text-primary rounded-xl md:rounded-2xl shrink-0">
                         <Mail size={18} className="md:w-5 md:h-5" />
@@ -205,7 +205,7 @@ export default function SettingsPage() {
                     <ChevronRight size={14} className="text-muted-foreground shrink-0" />
                   </button>
 
-                  <button onClick={() => window.open('https://wa.me/6282219785260', '_blank')} className="w-full p-5 md:p-6 flex items-center justify-between group hover:bg-muted/50 rounded-2xl md:rounded-3xl transition-all">
+                  <button onClick={() => window.open('https://wa.me/6282219785260', '_blank')} className="w-full p-5 md:p-6 flex items-center justify-between group hover:bg-muted/50 rounded-lg transition-all">
                     <div className="flex items-center gap-4 text-left">
                       <div className="p-2.5 md:p-3 bg-emerald-500/10 text-emerald-500 rounded-xl md:rounded-2xl shrink-0">
                         <MessageCircle size={18} className="md:w-5 md:h-5" />

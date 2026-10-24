@@ -112,7 +112,7 @@ export default function TodoList() {
 
   return (
     <div className="bg-card rounded-none md:rounded-xl overflow-hidden">
-      <div className="p-6 md:p-8 border-b border-border bg-muted/20 flex justify-between items-center">
+      <div className="p-5 md:p-6 border-b border-border bg-muted/20 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
             <ListTodo className="w-5 h-5" />

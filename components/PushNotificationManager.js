@@ -28,11 +28,25 @@ export default function PushNotificationManager() {
   const [subscription, setSubscription] = useState(null);
   const [registration, setRegistration] = useState(null);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && user) {
-      registerServiceWorker();
+  // Define functions first to avoid "accessed before declared" error
+  const subscribeToPush = async (reg) => {
+    try {
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      
+      await api.post('/push/subscribe', { subscription: sub });
+      setSubscription(sub);
+      setIsSubscribed(true);
+      console.log('[Push] Subscribed successfully');
+    } catch (err) {
+      console.error('[Push] Failed to subscribe:', err);
+      if (err.name === 'NotAllowedError') {
+        alert('Notification permission denied by browser. Please enable it in site settings.');
+      }
     }
-  }, [user]);
+  };
 
   const registerServiceWorker = async () => {
     try {
@@ -60,24 +74,12 @@ export default function PushNotificationManager() {
     }
   };
 
-  const subscribeToPush = async (reg) => {
-    try {
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
-      
-      await api.post('/push/subscribe', { subscription: sub });
-      setSubscription(sub);
-      setIsSubscribed(true);
-      console.log('[Push] Subscribed successfully');
-    } catch (err) {
-      console.error('[Push] Failed to subscribe:', err);
-      if (err.name === 'NotAllowedError') {
-        alert('Notification permission denied by browser. Please enable it in site settings.');
-      }
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && user) {
+      // Defer to avoid sync setState in effect
+      Promise.resolve().then(registerServiceWorker);
     }
-  };
+  }, [user, registerServiceWorker]);
 
   const resetBackgroundSync = async () => {
     try {

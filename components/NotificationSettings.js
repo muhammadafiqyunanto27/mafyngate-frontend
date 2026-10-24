@@ -130,7 +130,7 @@ export default function NotificationSettings() {
       <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10 text-orange-400/80 text-xs flex items-start gap-3 leading-relaxed">
         <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
         <p>
-          Note: For notifications to work while all browser windows are closed on Desktop, ensure "Continue running background apps when closed" is enabled in your browser system settings.
+          Note: For notifications to work while all browser windows are closed on Desktop, ensure &ldquo;Continue running background apps when closed&rdquo; is enabled in your browser system settings.
         </p>
       </div>
     </div>

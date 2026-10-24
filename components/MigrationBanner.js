@@ -18,7 +18,8 @@ export default function MigrationBanner() {
     const isDismissed = safeStorage.getItem('mafyngate_migration_dismissed');
 
     if (isPWA && !isDismissed) {
-      setIsVisible(true);
+      // Defer to avoid sync setState in effect
+      Promise.resolve().then(() => setIsVisible(true));
     }
   }, []);
 

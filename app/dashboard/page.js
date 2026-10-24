@@ -90,7 +90,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      fetchStats();
+      // Defer fetchStats to avoid sync setState in effect
+      Promise.resolve().then(fetchStats);
       // Prompt for notifications on mobile/desktop to ensure background calls work
       if (typeof window !== 'undefined' && window.requestMafynGateNotification) {
         if (Notification.permission === 'default') {

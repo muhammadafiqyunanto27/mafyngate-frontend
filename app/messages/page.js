@@ -77,6 +77,7 @@ const MessageBubble = memo(({
 
 
   let pressTimer;
+  
   const startPress = () => {
     pressTimer = setTimeout(() => {
       if (navigator.vibrate) navigator.vibrate(50);
@@ -280,6 +281,7 @@ const MessageBubble = memo(({
     </motion.div>
   );
 });
+MessageBubble.displayName = 'MessageBubble';
 
 function MessagesContent() {
   const { user, fetchUser } = useAuth();

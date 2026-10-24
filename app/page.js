@@ -122,7 +122,7 @@ export default function LandingPage() {
         
         <div className="mb-16 md:mb-24 text-center">
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">Built for the future.</h2>
-          <p className="text-muted-foreground text-lg">Everything you need, nothing you don't.</p>
+          <p className="text-muted-foreground text-lg">Everything you need, nothing you don&apos;t.</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">

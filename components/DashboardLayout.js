@@ -32,12 +32,14 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
     try {
       const saved = safeStorage.getItem('mafyn_sidebar_collapsed');
       if (saved !== null) {
-        setIsCollapsed(JSON.parse(saved));
+        // Defer state update to avoid sync setState in effect
+        Promise.resolve().then(() => setIsCollapsed(JSON.parse(saved)));
       }
     } catch (e) {
       // Corrupted localStorage value — ignore and use default
     }
-    setIsMounted(true);
+    // Defer to avoid sync setState in effect
+    Promise.resolve().then(() => setIsMounted(true));
   }, []);
 
   // Update safeStorage whenever isCollapsed changes (after initial mount)

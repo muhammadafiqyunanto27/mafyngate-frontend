@@ -92,7 +92,7 @@ export default function NotificationPrompt() {
               </div>
 
               <h2 className="text-3xl font-bold text-white mb-4 tracking-tight">
-                Don't Miss a Single Beat
+                Don&apos;t Miss a Single Beat
               </h2>
               <p className="text-zinc-400 text-lg mb-10 leading-relaxed font-light">
                 MafynGate works best when it can talk to you. Enable notifications to receive real-time calls, messages, and your new <strong>Ringing Todo Alarms</strong>.
@@ -130,7 +130,7 @@ export default function NotificationPrompt() {
                   onClick={handleIgnore}
                   className="text-zinc-500 hover:text-zinc-300 text-sm font-medium transition-colors"
                 >
-                  I'll do it later in Settings
+                  I&apos;ll do it later in Settings
                 </button>
               </div>
             </div>

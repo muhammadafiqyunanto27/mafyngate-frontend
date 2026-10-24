@@ -91,7 +91,9 @@ export default function DashboardLayout({ children, pageTitle = 'Dashboard', ful
           </ErrorBoundary>
         </main>
       </div>
-      <NotificationPrompt />
+      <ErrorBoundary fallback={null}>
+        <NotificationPrompt />
+      </ErrorBoundary>
     </div>
   );
 }

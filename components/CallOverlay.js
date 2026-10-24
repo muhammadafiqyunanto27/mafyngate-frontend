@@ -73,15 +73,13 @@ export const CallOverlay = () => {
       });
 
       navigator.mediaSession.setActionHandler('hangup', () => handleEndCall(true));
-      navigator.mediaSession.setActionHandler('stop', () => handleEndCall(true));
+      // Removed 'stop' handler — it was firing on minimize/background, killing calls prematurely
     }
 
-    // 2. Handle Auto-PiP on Visibility Change
+    // 2. Handle Auto-PiP on Visibility Change (NEVER end the call here)
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'hidden' && callAccepted && userVideo.current) {
         try {
-          // If on mobile, falling back to our Draggable Miniature is safer, 
-          // but we try the native API first for the "Auto-Switch" effect.
           if (!document.pictureInPictureElement && document.pictureInPictureEnabled) {
             await userVideo.current.requestPictureInPicture();
           }
@@ -255,7 +253,7 @@ export const CallOverlay = () => {
                   autoPlay
                   autopictureinpicture=""
                   onLoadedMetadata={handleMetadataLoaded}
-                  className={`relative z-10 w-full h-full transition-all duration-500 
+                  className={`relative z-10 w-full h-full 
                     ${remoteIsMirrored ? 'scale-x-[-1]' : ''} 
                     ${!remoteVideoEnabled ? 'opacity-0' : 'opacity-100'}
                     ${isMinimized ? 'object-cover' : (remoteVideoMeta.aspect > 1.2 ? 'object-contain' : 'object-contain md:object-cover')}

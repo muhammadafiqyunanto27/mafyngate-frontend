@@ -46,6 +46,7 @@ export const SocketProvider = ({ children }) => {
   const socketRef = React.useRef(null);
   const ringtoneRef = React.useRef(null);
   const outgoingRef = React.useRef(null);
+  const endingRef = React.useRef(false);
 
   // Keep refs in sync with state for use in long-lived socket listeners
   useEffect(() => { streamRef.current = stream; }, [stream]);
@@ -277,6 +278,9 @@ export const SocketProvider = ({ children }) => {
   };
 
   const handleEndCall = (shouldEmit = true) => {
+    // Idempotency guard: ignore duplicate end triggers (e.g., button + MediaSession firing together)
+    if (endingRef.current) return;
+    endingRef.current = true;
     console.log('[Call] Ending call and cleaning up...');
 
     // Use the latest values from refs to avoid stale closures in socket listeners
@@ -346,6 +350,9 @@ export const SocketProvider = ({ children }) => {
     // We keep the 'name' and 'avatar' in the call state for 2 seconds 
     // so the 'Call Ended' screen shows who we were talking to
     setCall(prev => ({ ...prev, isReceivingCall: false, from: '', signal: null }));
+
+    // Release the end-call idempotency guard now that cleanup has run
+    endingRef.current = false;
 
     // Auto-hide the "Call Ended" message after 2 seconds and clear the identity then
     setTimeout(() => {

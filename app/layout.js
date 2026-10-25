@@ -43,8 +43,26 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  // iOS detection script - runs before hydration to add class immediately
+  const iOSDetectorScript = (
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
+          (function() {
+            var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            var isWebKit = /AppleWebKit/i.test(navigator.userAgent);
+            if (isIOS || isWebKit) {
+              document.documentElement.classList.add('ios-device');
+            }
+          })();
+        `,
+      }}
+    />
+  );
+
   return (
     <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <head>{iOSDetectorScript}</head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <Providers>
           <VersionChecker>

@@ -317,6 +317,25 @@
   66% { transform: translate(-15px, 15px) scale(0.95); }
 }
 
+/* ===== iOS Safari / WebKit: DISABLE ALL ANIMATIONS & TRANSITIONS ===== */
+/* This prevents framer-motion layout animations, drag, and complex transitions from crashing WebKit */
+html.ios-device *,
+html.ios-device *::before,
+html.ios-device *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important;
+  
+  /* Disable transform animations that cause GPU issues */
+  will-change: auto !important;
+}
+
+/* Specifically disable framer-motion layout on iOS */
+html.ios-device [style*="transform"] {
+  transform: none !important;
+}
+
 /* ─── Reduced motion ─── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

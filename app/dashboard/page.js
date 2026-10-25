@@ -2,7 +2,7 @@
 
 import { useAuth } from '../../context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import api from '../../lib/api';
 import { setAccessToken } from '../../lib/api';
 import { getMediaUrl } from '../../lib/url';
@@ -58,7 +58,22 @@ export default function DashboardPage() {
     pendingRequests: []
   });
 
-  const fetchStats = useCallback(async () => {
+  // Simple in-memory cache with TTL
+  const cacheRef = useRef({
+    data: null,
+    timestamp: 0,
+    ttl: 30000 // 30 seconds
+  });
+
+  const fetchStats = useCallback(async (force = false) => {
+    const now = Date.now();
+    const cache = cacheRef.current;
+    
+    // Return cached data if valid and not forced
+    if (!force && cache.data && (now - cache.timestamp) < cache.ttl) {
+      return cache.data;
+    }
+
     try {
       const [connRes, todoRes, unreadRes, activityRes, notifRes, unreadConvRes, pendingRes] = await Promise.all([
         api.get('/user/connections'),
@@ -70,7 +85,7 @@ export default function DashboardPage() {
         api.get('/user/requests/pending')
       ]);
       
-      setDashboardStats({
+      const stats = {
         connections: connRes?.data?.data?.length ?? 0,
         unreadConversations: unreadConvRes?.data?.data ?? [],
         unreadMessages: unreadRes?.data?.count ?? 0,
@@ -78,7 +93,13 @@ export default function DashboardPage() {
         notifications: notifRes?.data?.count ?? 0,
         activities: (activityRes?.data?.data ?? []).slice(0, 5),
         pendingRequests: pendingRes?.data?.data ?? []
-      });
+      };
+
+      // Update cache
+      cacheRef.current = { data: stats, timestamp: now, ttl: cache.ttl };
+      
+      setDashboardStats(stats);
+      return stats;
     } catch (err) {
       console.error('Stats fetch failed', err);
     }
@@ -106,20 +127,25 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!socket || !user) return;
 
-    const handleUpdate = () => fetchStats();
+    // Granular update handlers - only fetch what's needed
+    const handleConnectionUpdate = () => fetchStats(true); // Force refresh for connections
+    const handleNotification = () => fetchStats(true);
+    const handleMessage = () => fetchStats(true);
+    const handleTodoUpdate = () => fetchStats(true);
+    const handleActivity = () => fetchStats(true);
 
-    socket.on('connection_update', handleUpdate);
-    socket.on('new_notification', handleUpdate);
-    socket.on('new_message', handleUpdate);
-    socket.on('todo_updated', handleUpdate);
-    socket.on('activity_logged', handleUpdate);
+    socket.on('connection_update', handleConnectionUpdate);
+    socket.on('new_notification', handleNotification);
+    socket.on('new_message', handleMessage);
+    socket.on('todo_updated', handleTodoUpdate);
+    socket.on('activity_logged', handleActivity);
 
     return () => {
-      socket.off('connection_update', handleUpdate);
-      socket.off('new_notification', handleUpdate);
-      socket.off('new_message', handleUpdate);
-      socket.off('todo_updated', handleUpdate);
-      socket.off('activity_logged', handleUpdate);
+      socket.off('connection_update', handleConnectionUpdate);
+      socket.off('new_notification', handleNotification);
+      socket.off('new_message', handleMessage);
+      socket.off('todo_updated', handleTodoUpdate);
+      socket.off('activity_logged', handleActivity);
     };
   }, [socket, user, fetchStats]);
 

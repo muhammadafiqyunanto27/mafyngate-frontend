@@ -48,6 +48,10 @@ export const SocketProvider = ({ children }) => {
   const outgoingRef = React.useRef(null);
   const endingRef = React.useRef(false);
 
+  const NOTIFICATION_SOUND = '/notification.wav';
+  const RINGTONE_SOUND = '/ringtone.mp3';
+  const OUTGOING_SOUND = '/outgoing.mp3';
+
   // Keep refs in sync with state for use in long-lived socket listeners
   useEffect(() => { streamRef.current = stream; }, [stream]);
   useEffect(() => { callRef.current = call; }, [call]);
@@ -138,7 +142,7 @@ export const SocketProvider = ({ children }) => {
 
         // Play notification sound
         try {
-          const audio = new Audio('/notification.wav');
+          const audio = new Audio(NOTIFICATION_SOUND);
           audio.play().catch(() => { }); // Browsers might block auto-play
         } catch (e) { }
 
@@ -156,11 +160,11 @@ export const SocketProvider = ({ children }) => {
             ringtoneRef.current.pause();
             ringtoneRef.current.currentTime = 0;
           }
-          const ring = new Audio('/ringtone.mp3'); // User should add this file
+          const ring = new Audio(RINGTONE_SOUND); // User should add this file
           ring.loop = true;
           ring.play().catch(() => {
             // Fallback if file not found or blocked
-            const fallback = new Audio('/notification.wav');
+            const fallback = new Audio(NOTIFICATION_SOUND);
             fallback.loop = true;
             fallback.play().catch(() => { });
             ringtoneRef.current = fallback;
@@ -495,7 +499,7 @@ export const SocketProvider = ({ children }) => {
 
       // Start Outgoing sound
       try {
-        const out = new Audio('/outgoing.mp3'); // User should add this file
+        const out = new Audio(OUTGOING_SOUND); // User should add this file
         out.loop = true;
         out.play().catch(() => { });
         outgoingRef.current = out;

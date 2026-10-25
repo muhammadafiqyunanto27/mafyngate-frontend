@@ -325,3 +325,70 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ─── iOS Safari fixes ─── */
+/* Disable backdrop-filter on iOS Safari < 16 (causes GPU crashes/blank screen) */
+@supports not (backdrop-filter: blur(1px)) {
+  .backdrop-blur-xl,
+  .backdrop-blur-lg,
+  .backdrop-blur-md,
+  .backdrop-blur-sm,
+  .backdrop-blur-2xl,
+  .backdrop-blur {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: var(--card) !important;
+  }
+  .glass-panel {
+    @apply bg-card border border-border;
+  }
+}
+
+/* iOS Safari specific: reduce backdrop-blur intensity on mobile */
+@media (max-width: 768px) {
+  .backdrop-blur-xl {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+  .backdrop-blur-2xl {
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+  .backdrop-blur-lg {
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+  .backdrop-blur-md {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+}
+
+/* iOS safe area insets */
+@supports (padding: max(0px)) {
+  .safe-top { padding-top: max(1rem, env(safe-area-inset-top)); }
+  .safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+  .safe-left { padding-left: max(1rem, env(safe-area-inset-left)); }
+  .safe-right { padding-right: max(1rem, env(safe-area-inset-right)); }
+}
+
+/* Fix for iOS 100vh issue */
+.ios-vh-fix {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+html { height: -webkit-fill-available; }
+body { min-height: 100vh; min-height: -webkit-fill-available; }
+
+/* Prevent iOS zoom on focus */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* iOS momentum scrolling */
+.ios-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}

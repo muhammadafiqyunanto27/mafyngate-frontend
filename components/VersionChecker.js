@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-const CURRENT_VERSION = 'v1.3';
+const CURRENT_VERSION = 'v1.4';
 
 export function useVersionCheck() {
   useEffect(() => {

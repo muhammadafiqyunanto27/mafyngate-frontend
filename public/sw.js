@@ -1,5 +1,5 @@
-// MafynGate Service Worker (v1.3 - Auto cache clear on version change)
-const CACHE_VERSION = 'v1.3';
+// MafynGate Service Worker (v1.4 - Force cache clear for iOS fixes)
+const CACHE_VERSION = 'v1.4';
 const CACHE_NAME = `mafyngate-${CACHE_VERSION}`;
 const STATIC_ASSETS = [
   '/',

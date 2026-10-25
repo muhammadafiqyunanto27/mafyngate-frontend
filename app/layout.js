@@ -49,9 +49,10 @@ export default function RootLayout({ children }) {
       dangerouslySetInnerHTML={{
         __html: `
           (function() {
+            // Only target actual iOS devices (iPhone/iPad/iPod)
+            // Chrome Android has "AppleWebKit" in UA but is NOT iOS
             var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-            var isWebKit = /AppleWebKit/i.test(navigator.userAgent);
-            if (isIOS || isWebKit) {
+            if (isIOS) {
               document.documentElement.classList.add('ios-device');
             }
           })();

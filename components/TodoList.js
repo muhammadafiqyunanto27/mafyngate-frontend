@@ -3,8 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../lib/api';
 import { Check, Trash2, Plus, GripVertical, ListTodo, Edit2, Copy, Layers, Save, X } from 'lucide-react';
-import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ErrorBoundary } from './ErrorBoundary';
+
+// iOS detection
+const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 export default function TodoList() {
   const [todos, setTodos] = useState([]);
@@ -110,6 +113,7 @@ export default function TodoList() {
     </div>
   );
 
+  // Simple list without Reorder on iOS
   return (
     <div className="bg-card rounded-none md:rounded-xl overflow-hidden">
       <div className="p-5 md:p-6 border-b border-border bg-muted/20 flex justify-between items-center">
@@ -154,30 +158,48 @@ export default function TodoList() {
           </button>
         </form>
 
-        <div
-          className="max-h-[550px] overflow-y-auto pr-2 custom-scrollbar"
-        >
+        <div className="max-h-[550px] overflow-y-auto pr-2 custom-scrollbar">
           <ErrorBoundary>
-            <Reorder.Group
-              axis="y"
-              values={todos}
-              onReorder={setTodos}
-              className="flex flex-col gap-4"
-            >
-              <AnimatePresence mode="popLayout" initial={false}>
-                {todos.length === 0 ? (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center py-12 px-6 bg-muted/10 rounded-3xl border border-dashed border-border"
-                  >
-                    <p className="text-sm font-bold text-muted-foreground opacity-50 uppercase tracking-widest">Chill Day! No tasks found.</p>
-                  </motion.div>
-                ) : (
-                  todos.map(todo => <TodoItem key={todo.id} todo={todo} todos={todos} setTodos={setTodos} toggleTodo={toggleTodo} deleteTodo={deleteTodo} handleDuplicate={handleDuplicate} handleCopy={handleCopy} startEditing={startEditing} editingId={editingId} setEditingId={setEditingId} editValue={editValue} setEditValue={setEditValue} saveEdit={saveEdit} />)
-                )}
-              </AnimatePresence>
-            </Reorder.Group>
+            <AnimatePresence mode="popLayout" initial={false}>
+              {todos.length === 0 && (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12 px-6 bg-muted/10 rounded-3xl border border-dashed border-border"
+                >
+                  <p className="text-sm font-bold text-muted-foreground opacity-50 uppercase tracking-widest">Chill Day! No tasks found.</p>
+                </motion.div>
+              )}
+              {todos.length > 0 && (
+                <motion.div
+                  key="list"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col gap-4"
+                >
+                  {todos.map(todo => (
+                    <TodoItem
+                      key={todo.id}
+                      todo={todo}
+                      todos={todos}
+                      setTodos={setTodos}
+                      toggleTodo={toggleTodo}
+                      deleteTodo={deleteTodo}
+                      handleDuplicate={handleDuplicate}
+                      handleCopy={handleCopy}
+                      startEditing={startEditing}
+                      editingId={editingId}
+                      setEditingId={setEditingId}
+                      editValue={editValue}
+                      setEditValue={setEditValue}
+                      saveEdit={saveEdit}
+                    />
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </ErrorBoundary>
         </div>
       </div>
@@ -186,7 +208,6 @@ export default function TodoList() {
 }
 
 function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplicate, handleCopy, startEditing, editingId, setEditingId, editValue, setEditValue, saveEdit }) {
-  const controls = useDragControls();
   const [showActions, setShowActions] = useState(false);
   const timerRef = useRef(null);
 
@@ -204,25 +225,10 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
   };
 
   return (
-    <Reorder.Item
-      value={todo}
-      dragListener={false}
-      dragControls={controls}
-      layout
+    <motion.div
       initial={{ opacity: 0, scale: 0.98, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: -10 }}
-      whileDrag={{
-        scale: 1.02,
-        zIndex: 50,
-        boxShadow: "0 30px 60px -12px rgb(0 0 0 / 0.4)"
-      }}
-      transition={{
-        type: "spring",
-        stiffness: 400,
-        damping: 30,
-        mass: 1
-      }}
       className={`relative group flex items-center gap-4 p-4 md:p-5 rounded-2xl border transition-colors select-none cursor-default ${todo.completed
           ? 'bg-muted/10 border-transparent opacity-60'
           : 'bg-card border-border shadow-md hover:border-primary/40'
@@ -234,20 +240,8 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
         }
       }}
     >
-      <div
-        className="flex flex-row items-center gap-4 shrink-0 max-[450px]:flex-col max-[450px]:gap-3"
-        onPointerDown={handleStart}
-        onPointerUp={handleEnd}
-        onPointerLeave={handleEnd}
-      >
-        <div
-          onPointerDown={(e) => {
-            e.stopPropagation();
-            controls.start(e);
-          }}
-          style={{ touchAction: 'none' }}
-          className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-primary transition-all p-2 bg-muted/50 rounded-lg shrink-0"
-        >
+      <div className="flex flex-row items-center gap-4 shrink-0 max-[450px]:flex-col max-[450px]:gap-3">
+        <div className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-primary transition-all p-2 bg-muted/50 rounded-lg shrink-0">
           <GripVertical className="w-5 h-5 md:w-6 md:h-6" />
         </div>
 
@@ -265,11 +259,7 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
         </button>
       </div>
 
-      <div className="flex-1 min-w-0"
-        onPointerDown={handleStart}
-        onPointerUp={handleEnd}
-        onPointerLeave={handleEnd}
-      >
+      <div className="flex-1 min-w-0">
         {editingId === todo.id ? (
           <input
             autoFocus
@@ -294,7 +284,7 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
         <ActionButton icon={Trash2} label="Delete" color="hover:text-rose-500 hover:bg-rose-500/10" onClick={() => deleteTodo(todo.id)} />
       </div>
 
-      {/* Mobile Actions Overlay - Simplified and Smaller */}
+      {/* Mobile Actions Overlay - Simplified */}
       <AnimatePresence>
         {showActions && (
           <div className="contents md:hidden">
@@ -323,7 +313,7 @@ function TodoItem({ todo, todos, setTodos, toggleTodo, deleteTodo, handleDuplica
           </div>
         )}
       </AnimatePresence>
-    </Reorder.Item>
+    </motion.div>
   );
 }
 

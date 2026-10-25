@@ -78,6 +78,8 @@ export const SocketProvider = ({ children }) => {
 
       newSocket.on('reconnect', (attempt) => {
         console.log('[Socket] Reconnected after', attempt, 'attempts');
+        // Re-fetch initial data on reconnect to ensure connection data is fresh
+        fetchInitialData();
       });
 
       const fetchInitialData = async () => {

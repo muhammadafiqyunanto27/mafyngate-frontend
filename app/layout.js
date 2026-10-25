@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "../components/Providers";
+import VersionChecker from "../components/VersionChecker";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -46,7 +47,9 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <Providers>
-          {children}
+          <VersionChecker>
+            {children}
+          </VersionChecker>
         </Providers>
       </body>
     </html>

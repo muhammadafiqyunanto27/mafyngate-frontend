@@ -1,12 +1,68 @@
-// MafynGate Service Worker (v1.2 - Updated branding assets)
+// MafynGate Service Worker (v1.3 - Auto cache clear on version change)
+const CACHE_VERSION = 'v1.3';
+const CACHE_NAME = `mafyngate-${CACHE_VERSION}`;
+const STATIC_ASSETS = [
+  '/',
+  '/manifest.json',
+  '/logo.png',
+  '/favicon.ico',
+  '/icon-192x192.png',
+  '/icon-512x192.png',
+  '/icon-512x512.png',
+];
+
 self.addEventListener('install', (event) => {
-  console.log('[SW] Service Worker Installing...');
+  console.log('[SW] Service Worker Installing...', CACHE_VERSION);
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { cache: 'reload' })));
+    })
+  );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Service Worker Activating...');
-  event.waitUntil(clients.claim());
+  console.log('[SW] Service Worker Activating...', CACHE_VERSION);
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => {
+            console.log('[SW] Deleting old cache:', name);
+            return caches.delete(name);
+          })
+      );
+    }).then(() => clients.claim())
+  );
+});
+
+// Fetch strategy: Network first, fallback to cache
+self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') return;
+
+  // Skip cross-origin requests
+  const url = new URL(event.request.url);
+  if (url.origin !== location.origin) return;
+
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        // Cache successful responses
+        if (response.ok) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Fallback to cache
+        return caches.match(event.request);
+      })
+  );
 });
 
 self.addEventListener('push', function(event) {
@@ -23,8 +79,8 @@ self.addEventListener('push', function(event) {
 
     const options = {
       body: body || 'You have a new notification',
-      icon: icon || '/logo.png', // Ensure this exists in public/
-      badge: '/logo.png', // Fallback to icon for badge
+      icon: icon || '/logo.png',
+      badge: '/logo.png',
       vibrate: type === 'CALL' ? [1000, 500, 1000, 500, 1000, 500, 1000] : [100, 50, 100],
       priority: 'high',
       importance: 'high',
@@ -88,4 +144,14 @@ self.addEventListener('notificationclick', function(event) {
       }
     })
   );
+});
+
+// Listen for version check messages from client
+self.addEventListener('message', (event) => {
+  if (event.data === 'check-version') {
+    event.ports[0].postMessage({ version: CACHE_VERSION });
+  }
+  if (event.data === 'skip-waiting') {
+    self.skipWaiting();
+  }
 });

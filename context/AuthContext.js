@@ -82,11 +82,19 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await api.post('/auth/logout');
+    } catch (err) {
+      console.error('[Auth] Logout API error:', err);
+      // Continue with local logout even if API fails
     } finally {
       setAccessToken(null);
       setUser(null);
       setServerError(null);
-      router.push('/');
+      // Use replace to prevent back-button issues
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      } else {
+        router.push('/');
+      }
     }
   };
 
